@@ -82,7 +82,7 @@ function showCraft(category='weapon'){
  if(!recipes.some(r=>r.category===category))body+='<p class="small">このカテゴリにはまだレシピがありません。</p>';
  modal('🔧 製作',body+'</div>');
 }
-function craft(id,category){let r=recipes.find(x=>x.id===id);if(!r||!canCraft(r)){toast('素材不足または所持品が満杯');return;}for(let [k,v] of Object.entries(r.need))S.inventory[k]-=v;S.inventory[id]++;if(weaponAttack[id])S.weapon=id;if(id==='kit'){S.inventory.kit--;S.hp=Math.min(180,S.hp+60)}if(S.weapon && !S.inventory[S.weapon])S.weapon=null;addLog(r.name+'を製作した！');toast('🔧 '+r.name+'完成！');refresh();showCraft(category||r.category)}
+function craft(id,category){let r=recipes.find(x=>x.id===id);if(!r||!canCraft(r)){toast('素材不足または所持品が満杯');return;}for(let [k,v] of Object.entries(r.need))S.inventory[k]-=v;S.inventory[id]++;if(weaponAttack[id])S.weapon=id;if(S.weapon && !S.inventory[S.weapon])S.weapon=null;addLog(r.name+'を製作した！');toast('🔧 '+r.name+'完成！');refresh();showCraft(category||r.category)}
 function showMap(){modal('📍 エリア移動','<p class="small">この試作では移動先に応じて素材の種類が少し変わります。敵と遭遇中でも移動で撤退できます。</p><div class="moving">'+['廃工場','研究所','倉庫','演習広場','居住区','整備場'].map(x=>`<button onclick="move('${x}')">${x}</button>`).join('')+'</div>')}
 function move(p){S.place=p;S.enemy=false;S.stacks=0;S.found=[];S.st=Math.max(0,S.st-5);addLog(p+'へ移動した（発見履歴は破棄）');closeModal();refresh()}
 setInterval(()=>{if(S.remaining>0)S.remaining--;refresh()},1000);
