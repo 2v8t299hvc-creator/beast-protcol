@@ -1,0 +1,63 @@
+{
+  "version": "0.5",
+  "status": "confirmed recipes for fist weapon line",
+  "recipes": [
+    {
+      "id": "glove",
+      "name": "グローブ",
+      "category": "weapon",
+      "requires": {
+        "ragglove": 1,
+        "cloth": 1
+      },
+      "attack": 12
+    },
+    {
+      "id": "reinforced",
+      "name": "強化グローブ",
+      "category": "weapon",
+      "requires": {
+        "glove": 1,
+        "scissors": 1
+      },
+      "attack": 24
+    },
+    {
+      "id": "steel",
+      "name": "鋼鉄",
+      "category": "material",
+      "requires": {
+        "scrap": 1,
+        "charcoal": 1
+      }
+    },
+    {
+      "id": "discharger",
+      "name": "放電装置",
+      "category": "material",
+      "requires": {
+        "steel": 1,
+        "core": 1
+      }
+    },
+    {
+      "id": "plasma",
+      "name": "プラズマグローブ",
+      "category": "weapon",
+      "requires": {
+        "reinforced": 1,
+        "discharger": 1
+      },
+      "attack": 38
+    }
+  ],
+  "found": {
+    "ragglove": "ボロ手袋",
+    "cloth": "布",
+    "scissors": "ハサミ",
+    "scrap": "鉄くず",
+    "charcoal": "木炭",
+    "core": "プラズマコア"
+  },
+  "notes": "Names and required ingredients confirmed by user. Attack values are provisional."
+}
