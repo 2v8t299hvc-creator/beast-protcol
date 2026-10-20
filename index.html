@@ -107,7 +107,7 @@ function useItem(id){
  if($('back').classList.contains('on')&&$('modalTitle').textContent.startsWith('📦')){if(S.inventory[id])showItem(id);else closeModal();}
 }
 function rest(){if(S.enemy)return toast('接敵中は休息できません');S.hp=Math.min(180,S.hp+25);S.st=Math.min(120,S.st+40);addLog('休息して体力・スタミナを回復した');refresh()}
-function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('back').classList.add('on')};function closeModal(){$('back').classList.remove('on')}
+function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('back').classList.add('on')};function closeModal(){if(S.pendingFound){showDiscovery();return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
 const inventoryIcons={ragglove:'🧤',glove:'🥊',reinforced:'🥊',plasma:'⚡',scrap:'🔩',cloth:'🧵',scissors:'✂️',charcoal:'⚫',core:'🔮',steel:'🔧',discharger:'⚡',cell:'🔋',armguard:'🛡️',ration:'🥪',drink:'🧃',kit:'🩹'};
 function renderInventory(){
  const el=$('inventoryMini');if(!el)return;
