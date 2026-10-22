@@ -72,27 +72,29 @@ function renderStageArt(){
 function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/180';$('stval').textContent=S.st+'/120';$('hpbar').style.width=S.hp/180*100+'%';$('stbar').style.width=S.st/120*100+'%';$('master').textContent=S.mastery;$('weapon').textContent=S.weapon?names[S.weapon]:'素手';$('armor').textContent=S.armor?names[S.armor]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');$('enemy').classList.toggle('on',S.enemy);$('ehp').textContent=S.ehp;$('ebar').style.width=Math.max(0,S.ehp/85*100)+'%';$('mainBtn').textContent=S.enemy?'⚔ 攻撃':'⌕ 探索';$('mainBtn').classList.toggle('fight',S.enemy);$('skillBtn').disabled=!S.enemy||Date.now()<S.cool;$('skillBtn').textContent=Date.now()<S.cool?'⚡ '+Math.ceil((S.cool-Date.now())/1000)+'秒':'⚡ スキル';$('clock').textContent=`${String(Math.floor(S.remaining/60)).padStart(2,'0')}:${String(S.remaining%60).padStart(2,'0')}`;}
 function occupied(inv=S.inventory){return Object.values(inv).filter(v=>v>0).length}
 function canReceive(id,inv=S.inventory){return (inv[id]||0)>0 || occupied(inv)<BAG_SLOTS}
-function addFound(id){
- S.pendingFound=id;
+function addFound(obj){
+ const id=stockItemId(obj);
+ S.pendingFound=typeof obj==='string'?{id:obj,uid:null,area:null}:obj;
  addLog(names[id]+'を発見！ 取得するか選ぼう');
  showDiscovery();
 }
 function showDiscovery(){
- const id=S.pendingFound;if(!id)return;
+ const obj=S.pendingFound;if(!obj)return;const id=obj.id;
  modal('🔎 '+names[id]+'を発見',`<p>見つけたアイテムをどうする？</p><div class="rowItemActions"><button onclick="decideFound(true)" ${canReceive(id)?'':'disabled'}>取得する</button><button onclick="decideFound(false)">取らない（ストックへ）</button></div>`+
  (!canReceive(id)?'<p class="small">6枠がいっぱい。取らないを選ぶとストックに残せます。</p>':''));
 }
 function decideFound(take){
- const id=S.pendingFound;if(!id)return;
+ const obj=S.pendingFound;if(!obj)return;const id=obj.id;
  if(take&&!canReceive(id))return toast('所持品がいっぱい');
  S.pendingFound=null;
  if(take){
   S.inventory[id]=(S.inventory[id]||0)+1;
+  markObjectTaken(obj);
   addLog(names[id]+'を取得した');
   toast('✅ '+names[id]+'を取得');
  }else{
-  if(S.found.length>=FIND_QUEUE_MAX){const old=S.found.shift();addLog(names[old]+'の古いストックが消えた')}
-  S.found.push(id);
+  if(S.found.length>=FIND_QUEUE_MAX){const old=S.found.shift();addLog(names[stockItemId(old)]+'の古いストックが消えた')}
+  S.found.push(obj);
   addLog(names[id]+'をストックへ保留した');
   toast('📦 ストックに保存');
  }
@@ -101,15 +103,14 @@ function decideFound(take){
 function takeFound(i){
  if(S.busy||S.pendingFound)return toast('ほかの行動中です');
  if(i<0||i>=Math.min(S.found.length,FIND_SLOTS))return;
- const id=S.found[i];
+ const obj=S.found[i],id=stockItemId(obj);
  if(!canReceive(id))return toast('所持品が6枠いっぱい！');
  if(S.st<3)return toast('スタミナ不足！休息してね');
  S.busy=true;S.st-=3;refresh();toast('ストックを探索中…');
  setTimeout(()=>{
-  const j=S.found.indexOf(id,i);
-  const pos=j>=0?j:S.found.indexOf(id);
+  const pos=S.found.indexOf(obj);
   if(pos>=0&&canReceive(id)){
-   S.inventory[id]=(S.inventory[id]||0)+1;S.found.splice(pos,1);
+   S.inventory[id]=(S.inventory[id]||0)+1;S.found.splice(pos,1);markObjectTaken(obj);
    addLog(names[id]+'を探索して回収した');
    toast('✅ '+names[id]+'を取得');
   }
@@ -118,7 +119,7 @@ function takeFound(i){
 }
 function showStock(){
  let items=S.found.slice(0,FIND_SLOTS);
- let slots=items.map((id,i)=>`<div class="slot" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span>${itemIconHTML(id)} ${names[id]}</span><button onclick="takeFound(${i})" ${canReceive(id)?'':'disabled'}>取得</button></div>`);
+ let slots=items.map((obj,i)=>{const id=stockItemId(obj);return `<div class="slot" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span>${itemIconHTML(id)} ${names[id]}</span><button onclick="takeFound(${i})" ${canReceive(id)?'':'disabled'}>取得</button></div>`});
  while(slots.length<FIND_SLOTS)slots.push('<div class="slot empty">未発見</div>');
  let note=S.found.length>FIND_SLOTS?'<p class="small">次の発見品が1件待機中。1個取得すると、この欄に繰り上がります。</p>':'';
  modal('📦 ストック '+items.length+'/3','<p class="small">保留した発見品です。回収には探索と同じく1秒・スタミナ3が必要です。</p><div class="slotgrid">'+slots.join('')+'</div>'+note);
@@ -136,10 +137,28 @@ function equip(id){
 }
 function discard(id){if(!S.inventory[id])return;S.inventory[id]--;addLog(names[id]+'を1個捨てた');refresh()}
 const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3},"地下機構区画":{"scrap":10,"mystery":5},"神殿区画":{"marble":10,"mystery":5},"工業区画":{"scrap":15,"lighter":5}};
-let regionRemaining=Object.fromEntries(Object.entries(regionStock).map(([k,v])=>[k,{...v}]));
-function drawRegionItem(place){const pool=regionRemaining[place];if(!pool)return null;const ids=Object.keys(pool).flatMap(id=>Array(pool[id]).fill(id));return ids.length?ids[rand(ids.length)]:null}
-function consumeRegionItem(place,id){if(regionRemaining[place]&&regionRemaining[place][id]>0)regionRemaining[place][id]--}
-function primary(){if(S.busy||S.pendingFound)return;if(S.hp<=0){toast('戦闘不能！再読み込みで最初から');return}S.busy=true;const battle=S.enemy;if(!battle&&S.st<3){S.busy=false;toast('スタミナ不足！休息してね');return}if(!battle){S.st-=3;refresh();setTimeout(()=>{S.busy=false;S.ticks++;let r=Math.random();if(r<.16){S.enemy=true;S.ehp=85;S.stacks=0;S.nextEnemyAction=Date.now()+2100;addLog('訓練ドローンと遭遇！');toast('敵と遭遇！探索が攻撃に切り替わった');}else if(r<.84){let id=drawRegionItem(S.place);if(id){consumeRegionItem(S.place,id);addFound(id);}else{addLog('この区画の素材は採り尽くされている');toast('この区画の素材はなくなった');}}else{addLog('何も見つからなかった');toast('探索したが何もなかった');}refresh()},1000)}else{setTimeout(()=>{S.busy=false;if(!S.enemy)return;const dmg=rand(7)+13+(S.weapon?(weaponAttack[S.weapon]||0):0)+Math.floor(S.mastery/12);S.ehp=Math.max(0,S.ehp-dmg);S.stacks=Math.min(S.stacks+1,5);S.mastery+=3+Math.floor(S.stacks/2);addLog('拳で'+dmg+'ダメージ！ 熟練度上昇');if(S.ehp===0){S.enemy=false;addFound('scrap');toast('訓練ドローン撃破！ ガラクタを発見');addLog('訓練ドローンが機能停止した');S.stacks=0}else{toast(dmg+'ダメージ！');}refresh()},1000)}}
+// Each physical object has its own ID. A lap visits every uncollected object once.
+const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
+ let serial=0;
+ return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,taken:false})))];
+}));
+const regionSeen=Object.fromEntries(Object.keys(regionStock).map(area=>[area,new Set()]));
+function drawRegionItem(area){
+ const objects=regionObjects[area]||[];
+ let unseen=objects.filter(obj=>!obj.taken&&!regionSeen[area].has(obj.uid));
+ if(!unseen.length){
+  regionSeen[area].clear();
+  unseen=objects.filter(obj=>!obj.taken);
+  if(unseen.length)addLog(area+'の探索が一周した');
+ }
+ if(!unseen.length)return null;
+ const obj=unseen[rand(unseen.length)];
+ regionSeen[area].add(obj.uid);
+ return obj;
+}
+function markObjectTaken(obj){if(obj&&obj.uid){const found=(regionObjects[obj.area]||[]).find(x=>x.uid===obj.uid);if(found)found.taken=true}}
+function stockItemId(obj){return typeof obj==='string'?obj:obj.id}
+function primary(){if(S.busy||S.pendingFound)return;if(S.hp<=0){toast('戦闘不能！再読み込みで最初から');return}S.busy=true;const battle=S.enemy;if(!battle&&S.st<3){S.busy=false;toast('スタミナ不足！休息してね');return}if(!battle){S.st-=3;refresh();setTimeout(()=>{S.busy=false;S.ticks++;let r=Math.random();if(r<.16){S.enemy=true;S.ehp=85;S.stacks=0;S.nextEnemyAction=Date.now()+2100;addLog('訓練ドローンと遭遇！');toast('敵と遭遇！探索が攻撃に切り替わった');}else if(r<.84){let obj=drawRegionItem(S.place);if(obj){addFound(obj);}else{addLog('この区画の素材は採り尽くされている');toast('この区画の素材はなくなった');}}else{addLog('何も見つからなかった');toast('探索したが何もなかった');}refresh()},1000)}else{setTimeout(()=>{S.busy=false;if(!S.enemy)return;const dmg=rand(7)+13+(S.weapon?(weaponAttack[S.weapon]||0):0)+Math.floor(S.mastery/12);S.ehp=Math.max(0,S.ehp-dmg);S.stacks=Math.min(S.stacks+1,5);S.mastery+=3+Math.floor(S.stacks/2);addLog('拳で'+dmg+'ダメージ！ 熟練度上昇');if(S.ehp===0){S.enemy=false;addFound('scrap');toast('訓練ドローン撃破！ ガラクタを発見');addLog('訓練ドローンが機能停止した');S.stacks=0}else{toast(dmg+'ダメージ！');}refresh()},1000)}}
 function skill(){if(!S.enemy||Date.now()<S.cool||S.st<10)return toast('スキルを使用できません');S.st-=10;S.cool=Date.now()+25000;S.skillUntil=Date.now()+5000;toast('テンポブレイク！敵の行動を遅延');addLog('テンポブレイク発動：5秒間、行動が0.5秒遅くなる');refresh()}
 function useItem(id){
  if(!['ration','drink','kit'].includes(id)||!S.inventory[id])return toast('アイテムがありません');
