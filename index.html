@@ -135,7 +135,7 @@ function equip(id){
  if(previous)S.inventory[previous]=(S.inventory[previous]||0)+1;
  S[type]=id;addLog(names[id]+'を装備した');closeModal();refresh();
 }
-function discard(id){if(!S.inventory[id])return;S.inventory[id]--;addLog(names[id]+'を1個捨てた');refresh()}
+function discard(id){const count=S.inventory[id]||0;if(!count)return;S.inventory[id]=0;addLog(names[id]+'を'+count+'個すべて捨てた');toast(names[id]+'を全て捨てた');refresh();if($('back').classList.contains('on'))showBag()}
 const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3},"地下機構区画":{"scrap":10,"mystery":5},"神殿区画":{"marble":10,"mystery":5},"工業区画":{"scrap":15,"lighter":5}};
 // Each physical object has its own ID. A lap visits every uncollected object once.
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
@@ -156,7 +156,7 @@ function drawRegionItem(area){
  regionSeen[area].add(obj.uid);
  return obj;
 }
-function markObjectTaken(obj){if(obj&&obj.uid){const found=(regionObjects[obj.area]||[]).find(x=>x.uid===obj.uid);if(found)found.taken=true}}
+function markObjectTaken(obj){if(obj&&obj.uid){const found=(regionObjects[obj.area]||[]).find(x=>x.uid===obj.uid);if(found){found.taken=true;regionSeen[obj.area].clear();}}}
 function stockItemId(obj){return typeof obj==='string'?obj:obj.id}
 function primary(){if(S.busy||S.pendingFound)return;if(S.hp<=0){toast('戦闘不能！再読み込みで最初から');return}S.busy=true;const battle=S.enemy;if(!battle&&S.st<3){S.busy=false;toast('スタミナ不足！休息してね');return}if(!battle){S.st-=3;refresh();setTimeout(()=>{S.busy=false;S.ticks++;let r=Math.random();if(r<.16){S.enemy=true;S.ehp=85;S.stacks=0;S.nextEnemyAction=Date.now()+2100;addLog('訓練ドローンと遭遇！');toast('敵と遭遇！探索が攻撃に切り替わった');}else if(r<.84){let obj=drawRegionItem(S.place);if(obj){addFound(obj);}else{addLog('この区画の素材は採り尽くされている');toast('この区画の素材はなくなった');}}else{addLog('何も見つからなかった');toast('探索したが何もなかった');}refresh()},1000)}else{setTimeout(()=>{S.busy=false;if(!S.enemy)return;const dmg=rand(7)+13+(S.weapon?(weaponAttack[S.weapon]||0):0)+Math.floor(S.mastery/12);S.ehp=Math.max(0,S.ehp-dmg);S.stacks=Math.min(S.stacks+1,5);S.mastery+=3+Math.floor(S.stacks/2);addLog('拳で'+dmg+'ダメージ！ 熟練度上昇');if(S.ehp===0){S.enemy=false;addFound('scrap');toast('訓練ドローン撃破！ ガラクタを発見');addLog('訓練ドローンが機能停止した');S.stacks=0}else{toast(dmg+'ダメージ！');}refresh()},1000)}}
 function skill(){if(!S.enemy||Date.now()<S.cool||S.st<10)return toast('スキルを使用できません');S.st-=10;S.cool=Date.now()+25000;S.skillUntil=Date.now()+5000;toast('テンポブレイク！敵の行動を遅延');addLog('テンポブレイク発動：5秒間、行動が0.5秒遅くなる');refresh()}
@@ -217,7 +217,7 @@ function showItem(id){
  healing?`<button onclick="useItem('${id}')">使用する</button>`:'',
  weapon||armor?`<button onclick="equip('${id}')">装備する</button>`:'',
  related.length?`<button onclick="showRecipesFor('${id}')">製作する（${related.length}件）</button>`:'',
- `<button class="dropbtn" onclick="discard('${id}');if(S.inventory['${id}'])showItem('${id}');else closeModal()">1個捨てる</button>`
+ `<button class="dropbtn" onclick="discard('${id}')">全部捨てる</button>`
  ].filter(Boolean).join('');
  modal('📦 '+names[id],`<p>所持数：${S.inventory[id]}個</p><div class="rowItemActions">${controls}</div>`);
 }
@@ -239,7 +239,7 @@ function showBag(){
   const canUse=['ration','drink','kit'].includes(k);
   const useButton=canUse?`<button onclick="useItem('${k}')">使用</button>`:'';
   const equipButton=weaponAttack[k]?`<button onclick="equip('${k}')">${S.weapon===k?'装備中':'装備'}</button>`:'';
-  return `<div class="slot">${names[k]} × ${v}${useButton}${equipButton}<button class="dropbtn" onclick="discard('${k}')">1個捨てる</button></div>`;
+  return `<div class="slot">${names[k]} × ${v}${useButton}${equipButton}<button class="dropbtn" onclick="discard('${k}')">全部捨てる</button></div>`;
  });
  while(slots.length<BAG_SLOTS)slots.push('<div class="slot empty">空き枠</div>');
  modal('🎒 所持品 '+occupied()+'/'+BAG_SLOTS+'枠','<p class="small">回復アイテムはこの6枠から使用できます。発見品はストックから回収します。</p><div class="slotgrid">'+slots.join('')+'</div>');
