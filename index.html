@@ -229,12 +229,13 @@ function takeFound(i){
  if(S.busy||S.pendingFound)return toast('ほかの行動中です');
  if(i<0||i>=Math.min(S.found.length,FIND_SLOTS))return;
  const obj=S.found[i],id=stockItemId(obj);
+ if(obj.dropped&&obj.area!==S.place)return toast('落とし物は'+obj.area+'で回収してね');
  if(!canReceive(id))return toast('所持品が6枠いっぱい！');
  if(S.st<3)return toast('スタミナ不足！休息してね');
  S.busy=true;S.st-=3;refresh();toast('ストックを探索中…');
  setTimeout(()=>{
   const pos=S.found.indexOf(obj);
-  if(pos>=0&&canReceive(id)){
+  if(pos>=0&&canReceive(id)&&(!obj.dropped||obj.area===S.place)){
    S.inventory[id]=(S.inventory[id]||0)+(obj.count||1);S.found.splice(pos,1);markObjectTaken(obj);
    addLog(names[id]+' ×'+(obj.count||1)+'を探索して回収した');
    toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
@@ -247,8 +248,9 @@ function showStock(){
  const slots=Array.from({length:FIND_SLOTS},(_,i)=>{
   const obj=items[i];
   if(!obj)return '<div class="bp-stock-card bp-stock-empty"><span class="bp-stock-empty-symbol">＋</span><span>空きストック</span></div>';
-  const id=stockItemId(obj),room=canReceive(id),energy=S.st>=3,canTake=room&&energy&&!S.busy;
-  const reason=!room?'所持品が満杯':!energy?'スタミナ不足':'';
+  const id=stockItemId(obj),room=canReceive(id),energy=S.st>=3,canTake=room&&energy&&!S.busy&&(!obj.dropped||obj.area===S.place);
+  const rightArea=!obj.dropped||obj.area===S.place;
+  const reason=!rightArea?obj.area+'に移動して回収':!room?'所持品が満杯':!energy?'スタミナ不足':'';
   return `<div class="bp-stock-card">
    <div class="bp-stock-picture">${itemIconHTML(id)}</div>
    <strong class="bp-stock-name">${names[id]}${obj.count>1?' ×'+obj.count:''}</strong>
@@ -279,7 +281,11 @@ function discard(id){
  const pile={uid:S.place+':drop:'+(++droppedSerial),id,area:S.place,count,taken:false,dropped:true};
  (regionObjects[S.place]||(regionObjects[S.place]=[])).push(pile);
  regionSeen[S.place]?.clear();
- addLog(names[id]+' ×'+count+'を'+S.place+'に置いた');
+ // Newly discarded piles go to the newest stock position (the fourth can wait).
+ // Evicted stock is not destroyed: the underlying dropped pile stays on the map.
+ if(S.found.length>=FIND_QUEUE_MAX){const old=S.found.shift();addLog(names[stockItemId(old)]+'の古いストックが押し出された')}
+ S.found.push(pile);
+ addLog(names[id]+' ×'+count+'を'+S.place+'に置き、ストックへ追加した');
  $('back').classList.remove('on');
  refresh();toast(names[id]+' ×'+count+'を置いた');
 }
@@ -292,10 +298,10 @@ const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,co
 const regionSeen=Object.fromEntries(Object.keys(regionStock).map(area=>[area,new Set()]));
 function drawRegionItem(area){
  const objects=regionObjects[area]||[];
- let unseen=objects.filter(obj=>!obj.taken&&!regionSeen[area].has(obj.uid));
+ let unseen=objects.filter(obj=>!obj.taken&&!regionSeen[area].has(obj.uid)&&!S.found.includes(obj)&&S.pendingFound!==obj);
  if(!unseen.length){
   regionSeen[area].clear();
-  unseen=objects.filter(obj=>!obj.taken);
+  unseen=objects.filter(obj=>!obj.taken&&!S.found.includes(obj)&&S.pendingFound!==obj);
   if(unseen.length)addLog(area+'の探索が一周した');
  }
  if(!unseen.length)return null;
