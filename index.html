@@ -137,10 +137,17 @@ function totalStat(stat){const atk=stat==='attack';return ACTOR_STATS[atk?'baseA
 function combatDamage(attack,defense,type,other=1){return Math.max(1,Math.floor(Math.max(1,attack-Math.max(0,defense)*0.5)*MASTERY_MULTIPLIERS[masteryRank(type)]*other))}
 function addMastery(type,amount){if(!WEAPON_TYPES[type]||amount<=0)return;const before=masteryRank(type);S.masteryAttacks[type]=(S.masteryAttacks[type]||0)+amount;const after=masteryRank(type);if(after>before)addLog(WEAPON_TYPES[type]+'熟練度が'+MASTERY_RANKS[after]+'に上昇！')}
 function recordAttack(type){addMastery(type,1)}
-function craftConsumption(r){const inv={...S.inventory},equipment={...S.equipment};for(const [id,n] of Object.entries(r.need)){let left=n;const fromBag=Math.min(inv[id]||0,left);inv[id]=(inv[id]||0)-fromBag;left-=fromBag;if(left){const slot=Object.keys(equipment).find(k=>equipment[k]===id);if(slot&&left===1){equipment[slot]=null;left--}}if(left)return null}return {inv,equipment}}
-
+function craftConsumption(r){
+ let stacks=S.bag.map(x=>({...x})),equipment={...S.equipment};
+ for(const [id,count] of Object.entries(r.need)){
+  let left=count,fromBag=Math.min(totalIn(stacks,id),left);
+  if(fromBag){stacks=removeFromStacks(stacks,id,fromBag);left-=fromBag}
+  if(left){const slot=Object.keys(equipment).find(k=>equipment[k]===id);if(slot&&left===1){equipment[slot]=null;left--}}
+  if(left)return null;
+ }return {stacks,equipment};
+}
 const BAG_SLOTS=6, FIND_SLOTS=3, FIND_QUEUE_MAX=4;
-let S={found:[],pendingFound:null,hp:180,st:120,ehp:0,enemy:false,stacks:0,lastHit:0,skillUntil:0,cool:0,level:1,xp:0,character:'kaito',masteryAttacks:{fist:0,slash:0},equipment:{weapon:null,head:null,arm:null,body:null,legs:null,accessory:null},inventory:{scrap:0,cloth:0,cell:0,ragglove:0,scissors:0,charcoal:0,core:0,glove:0,reinforced:0,steel:0,discharger:0,plasma:0,armguard:0,kit:0,ration:2,drink:2},place:'山岳区画',busy:false,ticks:0,remaining:1200};
+let S={found:[],pendingFound:null,hp:180,st:120,ehp:0,enemy:false,stacks:0,lastHit:0,skillUntil:0,cool:0,level:1,xp:0,character:'kaito',masteryAttacks:{fist:0,slash:0},equipment:{weapon:null,head:null,arm:null,body:null,legs:null,accessory:null},bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},place:'山岳区画',busy:false,ticks:0,remaining:1200};
 const $=id=>document.getElementById(id);const rand=n=>Math.floor(Math.random()*n);
 function addLog(s){let d=document.createElement('div');d.textContent='› '+s;$('log').prepend(d);while($('log').children.length>5)$('log').lastChild.remove()}
 let tt;function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('toast').classList.remove('show'),1400)}
@@ -192,8 +199,24 @@ function renderStageArt(){
 }
 
 function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/'+maxHp();$('stval').textContent=S.st+'/'+maxSt();$('hpbar').style.width=S.hp/maxHp()*100+'%';$('stbar').style.width=S.st/maxSt()*100+'%';$('levelProgress').textContent='Lv.'+S.level+' ('+levelProgress()+')';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]:'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');$('enemy').classList.toggle('on',S.enemy);$('ehp').textContent=S.ehp;$('ebar').style.width=Math.max(0,S.ehp/85*100)+'%';$('mainBtn').textContent=S.enemy?'⚔ 攻撃':'⌕ 探索';$('mainBtn').classList.toggle('fight',S.enemy);$('skillBtn').disabled=!S.enemy||Date.now()<S.cool;$('skillBtn').textContent=Date.now()<S.cool?'⚡ '+Math.ceil((S.cool-Date.now())/1000)+'秒':'⚡ スキル';$('clock').textContent=`${String(Math.floor(S.remaining/60)).padStart(2,'0')}:${String(S.remaining%60).padStart(2,'0')}`;}
-function occupied(inv=S.inventory){return Object.values(inv).filter(v=>v>0).length}
-function canReceive(id,inv=S.inventory){return (inv[id]||0)>0 || occupied(inv)<BAG_SLOTS}
+const FISH_ITEMS=new Set(['swordfish','minefish','porcupinefish','paradisefish']);
+function stackLimit(id){return FISH_ITEMS.has(id)||!!equipmentDef(id)?1:10}
+function totalIn(stacks,id){return stacks.reduce((sum,x)=>sum+(x.id===id?x.count:0),0)}
+function syncInventory(){const obj={};for(const x of S.bag)obj[x.id]=(obj[x.id]||0)+x.count;S.inventory=obj}
+function occupied(stacks=S.bag){return stacks.length}
+function addToStacks(stacks,id,count){
+ const next=stacks.map(x=>({...x}));let left=count,lim=stackLimit(id);
+ for(const x of next){if(x.id!==id||!left)continue;let n=Math.min(lim-x.count,left);x.count+=n;left-=n}
+ while(left>0&&next.length<BAG_SLOTS){let n=Math.min(lim,left);next.push({id,count:n});left-=n}
+ return left===0?next:null;
+}
+function removeFromStacks(stacks,id,count){
+ let next=stacks.map(x=>({...x}));if(next.filter(x=>x.id===id).reduce((n,x)=>n+x.count,0)<count)return null;
+ let left=count;for(let i=0;i<next.length&&left;){if(next[i].id!==id){i++;continue}const n=Math.min(left,next[i].count);next[i].count-=n;left-=n;if(!next[i].count)next.splice(i,1);else i++}return next;
+}
+function canReceive(id,inv=S.bag,count=1){return !!addToStacks(Array.isArray(inv)?inv:S.bag,id,count)}
+function receive(id,count){const next=addToStacks(S.bag,id,count);if(!next)return false;S.bag=next;syncInventory();return true}
+function takeFromBag(id,count){const next=removeFromStacks(S.bag,id,count);if(!next)return false;S.bag=next;syncInventory();return true}
 function addFound(obj){
  const id=stockItemId(obj);
  S.pendingFound=typeof obj==='string'?{id:obj,uid:null,area:null}:obj;
@@ -202,7 +225,7 @@ function addFound(obj){
 }
 function showDiscovery(){
  const obj=S.pendingFound;if(!obj)return;
- const id=obj.id,canTake=canReceive(id);
+ const id=obj.id,canTake=canReceive(id,S.bag,obj.count||1);
  const preview=itemIconHTML(id);
  modal('🔎 アイテム発見',`<div class="bp-discovery">
   <div class="bp-discovery-main"><div class="bp-discovery-preview">${preview}</div>
@@ -218,10 +241,10 @@ function showDiscovery(){
 }
 function decideFound(take){
  const obj=S.pendingFound;if(!obj)return;const id=obj.id;
- if(take&&!canReceive(id))return toast('所持品がいっぱい');
+ if(take&&!canReceive(id,S.bag,obj.count||1))return toast('所持品がいっぱい');
  S.pendingFound=null;
  if(take){
-  S.inventory[id]=(S.inventory[id]||0)+(obj.count||1);
+  receive(id,obj.count||1);
   markObjectTaken(obj);
   addLog(names[id]+' ×'+(obj.count||1)+'を取得した');
   toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
@@ -237,13 +260,13 @@ function takeFound(i){
  if(i<0||i>=Math.min(S.found.length,FIND_SLOTS))return;
  const obj=S.found[i],id=stockItemId(obj);
  if(obj.dropped&&obj.area!==S.place)return toast('落とし物は'+obj.area+'で回収してね');
- if(!canReceive(id))return toast('所持品が6枠いっぱい！');
+ if(!canReceive(id,S.bag,obj.count||1))return toast('所持品に全量入らない！');
  if(S.st<3)return toast('スタミナ不足！休息してね');
  S.busy=true;S.st-=3;refresh();toast('ストックを探索中…');
  setTimeout(()=>{
   const pos=S.found.indexOf(obj);
-  if(pos>=0&&canReceive(id)&&(!obj.dropped||obj.area===S.place)){
-   S.inventory[id]=(S.inventory[id]||0)+(obj.count||1);S.found.splice(pos,1);markObjectTaken(obj);
+  if(pos>=0&&canReceive(id,S.bag,obj.count||1)&&(!obj.dropped||obj.area===S.place)){
+   receive(id,obj.count||1);S.found.splice(pos,1);markObjectTaken(obj);
    addLog(names[id]+' ×'+(obj.count||1)+'を探索して回収した');
    toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
   }
@@ -255,7 +278,7 @@ function showStock(){
  const slots=Array.from({length:FIND_SLOTS},(_,i)=>{
   const obj=items[i];
   if(!obj)return '<div class="bp-stock-card bp-stock-empty"><span class="bp-stock-empty-symbol">＋</span><span>空きストック</span></div>';
-  const id=stockItemId(obj),room=canReceive(id),energy=S.st>=3,canTake=room&&energy&&!S.busy&&(!obj.dropped||obj.area===S.place);
+  const id=stockItemId(obj),room=canReceive(id,S.bag,obj.count||1),energy=S.st>=3,canTake=room&&energy&&!S.busy&&(!obj.dropped||obj.area===S.place);
   const rightArea=!obj.dropped||obj.area===S.place;
   const reason=!rightArea?obj.area+'に移動して回収':!room?'所持品が満杯':!energy?'スタミナ不足':'';
   return `<div class="bp-stock-card">
@@ -272,29 +295,21 @@ function showStock(){
 }
 function equip(id){
  const def=equipmentDef(id);if(!def||!S.inventory[id])return;
- const slot=def.slot,previous=equipped(slot),next={...S.inventory};
- next[id]--;if(previous)next[previous]=(next[previous]||0)+1;
- if(occupied(next)>BAG_SLOTS)return toast('装備交換には所持品の空きが必要です');
- S.inventory=next;S.equipment[slot]=id;addLog(names[id]+'を装備した');closeModal();refresh();
+ const slot=def.slot,previous=equipped(slot);let next=removeFromStacks(S.bag,id,1);
+ if(!next)return;if(previous){next=addToStacks(next,previous,1);if(!next)return toast('装備交換には所持品の空きが必要です')}
+ S.bag=next;syncInventory();S.equipment[slot]=id;addLog(names[id]+'を装備した');closeModal();refresh();
 }
-function unequip(slot){const id=equipped(slot);if(!id)return;if(!canReceive(id))return toast('所持品が満杯');
- S.inventory[id]=(S.inventory[id]||0)+1;S.equipment[slot]=null;addLog(names[id]+'を外した');refresh();showEquipment();
-}
+function unequip(slot){const id=equipped(slot);if(!id)return;if(!receive(id,1))return toast('所持品が満杯');S.equipment[slot]=null;addLog(names[id]+'を外した');refresh();showEquipment()}
 let droppedSerial=0;
-function discard(id){
- const count=S.inventory[id]||0;if(!count)return;
- S.inventory[id]=0;
- // A discarded stack becomes one discoverable physical pile in the current region.
+function discardStack(index){
+ const stack=S.bag[index];if(!stack)return;
+ const {id,count}=stack;S.bag.splice(index,1);syncInventory();
  const pile={uid:S.place+':drop:'+(++droppedSerial),id,area:S.place,count,taken:false,dropped:true};
- (regionObjects[S.place]||(regionObjects[S.place]=[])).push(pile);
- regionSeen[S.place]?.clear();
- // Newly discarded piles go to the newest stock position (the fourth can wait).
- // Evicted stock is not destroyed: the underlying dropped pile stays on the map.
- pushStock(pile);
+ (regionObjects[S.place]||(regionObjects[S.place]=[])).push(pile);regionSeen[S.place]?.clear();pushStock(pile);
  addLog(names[id]+' ×'+count+'を'+S.place+'に置き、ストックへ追加した');
- $('back').classList.remove('on');
- refresh();toast(names[id]+' ×'+count+'を置いた');
+ $('back').classList.remove('on');refresh();toast(names[id]+' ×'+count+'を置いた');
 }
+function discard(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)discardStack(i)}
 const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1,"wood_sword":2},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3,"survival_knife":2},"地下機構区画":{"scrap":10,"mystery":5,"oil":5},"神殿区画":{"marble":10,"mystery":5,"wood_sword":2},"工業区画":{"scrap":15,"lighter":5,"oil":8,"survival_knife":3},"海岸区画":{"stone":6,"wood":6,"water":5,"seaweed":8,"swimsuit":5,"rubber":3,"oil":2,"lighter":2,"swordfish":4,"porcupinefish":4,"paradisefish":2,"survival_knife":1,"wood_sword":1},"港湾区画":{"scrap":8,"wood":6,"water":3,"seaweed":3,"swimsuit":2,"rubber":8,"oil":8,"lighter":6,"swordfish":3,"porcupinefish":2,"survival_knife":4,"wood_sword":1},"湖畔区画":{"wood":8,"stone":6,"marble":4,"water":10,"seaweed":8,"swimsuit":2,"rubber":2,"lighter":1,"minefish":6,"paradisefish":6,"wood_sword":2},"水没施設区画":{"scrap":8,"mystery":4,"water":6,"seaweed":5,"swimsuit":4,"rubber":6,"oil":4,"lighter":2,"swordfish":2,"minefish":3,"porcupinefish":2,"paradisefish":3,"survival_knife":2}};
 // Each physical object has its own ID. A lap visits every uncollected object once.
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
@@ -328,7 +343,7 @@ function useItem(id){
  if(!['ration','drink','kit','water','seaweed','seaweed_soup','fried_swordfish','swordfish_sashimi','minefish_sashimi','paradise_sashimi','paradise_platter','paradise_broth'].includes(id)||!S.inventory[id])return toast('アイテムがありません');
  if(id!=='drink'&&id!=='water'&&S.hp>=maxHp())return toast('HPは満タンです');
  if((id==='drink'||id==='water')&&S.st>=maxSt())return toast('スタミナは満タンです');
- S.inventory[id]--;
+ takeFromBag(id,1);
  if(id==='ration')S.hp=Math.min(maxHp(),S.hp+20);
  if(id==='drink')S.st=Math.min(maxSt(),S.st+40);
  if(id==='kit')S.hp=Math.min(maxHp(),S.hp+60);
@@ -375,34 +390,29 @@ function itemIconHTML(id){
  return '<span class="itemIcon">'+(itemFallback[id]||'📦')+'</span>';
 }
 const inventoryOrder=Object.keys(S.inventory).filter(id=>S.inventory[id]>0);
-function orderedInventory(){
- const present=Object.keys(S.inventory).filter(id=>S.inventory[id]>0);
- for(let i=inventoryOrder.length-1;i>=0;i--)if(!present.includes(inventoryOrder[i]))inventoryOrder.splice(i,1);
- for(const id of present)if(!inventoryOrder.includes(id))inventoryOrder.push(id);
- return inventoryOrder.map(id=>[id,S.inventory[id]]);
-}
+function orderedInventory(){return S.bag.map(x=>[x.id,x.count])}
 function renderInventory(){
  const el=$('inventoryMini');if(!el)return;
  const items=orderedInventory();
  el.innerHTML=Array.from({length:BAG_SLOTS},(_,i)=>{
   const entry=items[i];if(!entry)return '<button class="empty" disabled aria-label="空き枠">＋</button>';
   const [k,n]=entry;
-  return `<button onclick="showItem('${k}')" title="${names[k]} ×${n}">${itemIconHTML(k)}<span class="itemName">${names[k]}</span><span class="itemQty">${n}</span></button>`;
+  return `<button onclick="showItemStack(${i})" title="${names[k]} ×${n}">${itemIconHTML(k)}<span class="itemName">${names[k]}</span><span class="itemQty">${n}</span></button>`;
  }).join('');
 }
-function showItem(id){
- if(!S.inventory[id]){closeModal();refresh();return}
+function showItemStack(index){
+ const entry=S.bag[index];if(!entry){closeModal();refresh();return}const id=entry.id;
  const healing=['ration','drink','kit','water','seaweed','seaweed_soup','fried_swordfish','swordfish_sashimi','minefish_sashimi','paradise_sashimi','paradise_platter','paradise_broth'].includes(id);
- const wearable=!!equipmentDef(id);
  const related=recipes.filter(r=>Object.hasOwn(r.need,id));
  const controls=[
  healing?`<button onclick="useItem('${id}')">使用する</button>`:'',
- wearable?`<button onclick="equip('${id}')">装備する</button>`:'',
+ equipmentDef(id)?`<button onclick="equip('${id}')">装備する</button>`:'',
  related.length?`<button onclick="showRecipesFor('${id}')">製作する（${related.length}件）</button>`:'',
- `<button class="dropbtn" onclick="discard('${id}')">全部捨てる</button>`
+ `<button class="dropbtn" onclick="discardStack(${index})">このスタックを捨てる</button>`
  ].filter(Boolean).join('');
- modal('📦 '+names[id],`<p>所持数：${S.inventory[id]}個</p><div class="rowItemActions">${controls}</div>`);
+ modal('📦 '+names[id],`<p>選択スタック：${entry.count}/${stackLimit(id)}個（同種合計：${S.inventory[id]||0}個）</p><div class="rowItemActions">${controls}</div>`);
 }
+function showItem(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)showItemStack(i);else {closeModal();refresh()}}
 function showRecipesFor(id){
  const list=recipes.filter(r=>Object.hasOwn(r.need,id));
  modal('🔧 '+names[id]+'から製作',list.map(r=>{
@@ -420,18 +430,16 @@ function showEquipment(){
  modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${totalStat('attack')}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button>`);
 }
 function showBag(){
- const items=orderedInventory();
- const slots=items.map(([k,v])=>{
+ const slots=orderedInventory().map(([k,v],i)=>{
   const canUse=['ration','drink','kit','water','seaweed','seaweed_soup','fried_swordfish','swordfish_sashimi','minefish_sashimi','paradise_sashimi','paradise_platter','paradise_broth'].includes(k);
   const useButton=canUse?`<button onclick="useItem('${k}')">使用</button>`:'';
   const equipButton=equipmentDef(k)?`<button onclick="equip('${k}')">装備</button>`:'';
-  return `<div class="slot">${names[k]} × ${v}${useButton}${equipButton}<button class="dropbtn" onclick="discard('${k}')">全部捨てる</button></div>`;
+  return `<div class="slot">${names[k]} × ${v}/${stackLimit(k)}${useButton}${equipButton}<button class="dropbtn" onclick="discardStack(${i})">このスタックを捨てる</button></div>`;
  });
  while(slots.length<BAG_SLOTS)slots.push('<div class="slot empty">空き枠</div>');
- modal('🎒 所持品 '+occupied()+'/'+BAG_SLOTS+'枠','<p class="small">回復アイテムはこの6枠から使用できます。発見品はストックから回収します。</p><div class="slotgrid">'+slots.join('')+'</div>');
+ modal('🎒 所持品 '+occupied()+'/'+BAG_SLOTS+'枠','<p class="small">同じ種類も上限を超えると別枠です。</p><div class="slotgrid">'+slots.join('')+'</div>');
 }
-function canCraft(r){const after=craftConsumption(r);return !!after&&canReceive(r.id,after.inv)}
-
+function canCraft(r){const after=craftConsumption(r);return !!after&&!!addToStacks(after.stacks,r.id,r.count||1)}
 function craftRecipeHTML(r){
  const ok=canCraft(r);
  const materials=Object.entries(r.need).map(([id,need])=>{
@@ -479,7 +487,8 @@ function showCraft(category='weapon',subcategory=null){
 function craft(id,category){
  const r=recipes.find(x=>x.id===id);if(!r||!canCraft(r))return toast('素材不足または所持品が満杯');
  const after=craftConsumption(r);if(!after)return toast('素材不足');
- S.inventory=after.inv;S.equipment=after.equipment;S.inventory[id]=(S.inventory[id]||0)+(r.count||1);
+ const packed=addToStacks(after.stacks,id,r.count||1);if(!packed)return toast('完成品が全量入らない');
+ S.bag=packed;syncInventory();S.equipment=after.equipment;
  const rarity=RECIPE_RARITY[id]||'common';gainXp(CRAFT_XP[rarity]);const weapon=EQUIPMENT_DEFS[id];if(weapon?.slot==='weapon')addMastery(weapon.weaponType,CRAFT_MASTERY[rarity]);
  addLog(r.name+'を製作した！ (+'+CRAFT_XP[rarity]+'XP)');toast('🔧 '+r.name+'完成！');refresh();showCraft(category||r.category,selectedCraftSubcategory);
 }
