@@ -420,6 +420,6 @@ function showMap(){
 }
 function move(p){if(S.busy||S.pendingFound)return toast('探索中は移動できません');S.place=p;S.enemy=false;S.stacks=0;S.found=[];S.st=Math.max(0,S.st-5);addLog(p+'へ移動した（発見履歴は破棄）');closeModal();refresh()}
 setInterval(()=>{if(S.remaining>0)S.remaining--;refresh()},1000);
-setInterval(()=>{if(!S.enemy||S.hp<=0)return;let now=Date.now();if(!S.nextEnemyAction)S.nextEnemyAction=now+2000;if(now>=S.nextEnemyAction){let slowed=now<S.skillUntil;S.nextEnemyAction=now+2000+(slowed?500:0);let hit=rand(7)+5;S.hp=Math.max(0,S.hp-hit);addLog('訓練ドローンの攻撃！ '+hit+'ダメージ');if(S.hp===0){S.enemy=false;toast('HPが0！ 演習脱落');}refresh()}},200);
+setInterval(()=>{if(!S.enemy||S.hp<=0)return;let now=Date.now();if(!S.nextEnemyAction)S.nextEnemyAction=now+2000;if(now>=S.nextEnemyAction){let slowed=now<S.skillUntil;S.nextEnemyAction=now+2000+(slowed?500:0);let hit=Math.max(1,Math.floor(rand(7)+5-totalStat('defense')*0.5));S.hp=Math.max(0,S.hp-hit);addLog('訓練ドローンの攻撃！ '+hit+'ダメージ');if(S.hp===0){S.enemy=false;toast('HPが0！ 演習脱落');}refresh()}},200);
 addLog('仮想演習へログインした。');addLog('山岳区画で素材を探索しよう。素材の配置数には上限がある。');refresh();
 </script></body></html>
