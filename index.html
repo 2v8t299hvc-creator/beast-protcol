@@ -199,7 +199,7 @@ function showDiscovery(){
  modal('🔎 アイテム発見',`<div class="bp-discovery">
   <div class="bp-discovery-main"><div class="bp-discovery-preview">${preview}</div>
    <div class="bp-discovery-detail"><span class="bp-discovery-label">FOUND ITEM</span><strong>${names[id]}</strong>
-   <span class="bp-discovery-area">${S.place} で発見</span>
+   <span class="bp-discovery-area">${obj.area||S.place} で発見　${obj.count>1?'×'+obj.count:''}</span>
    <span class="bp-discovery-count">所持数 ${S.inventory[id]||0} ・ 空き枠 ${BAG_SLOTS-occupied()}/${BAG_SLOTS}</span></div></div>
   <div class="bp-discovery-actions">
    <button class="bp-discovery-take" onclick="decideFound(true)" ${canTake?'':'disabled'}>✓ 取得する</button>
@@ -213,10 +213,10 @@ function decideFound(take){
  if(take&&!canReceive(id))return toast('所持品がいっぱい');
  S.pendingFound=null;
  if(take){
-  S.inventory[id]=(S.inventory[id]||0)+1;
+  S.inventory[id]=(S.inventory[id]||0)+(obj.count||1);
   markObjectTaken(obj);
-  addLog(names[id]+'を取得した');
-  toast('✅ '+names[id]+'を取得');
+  addLog(names[id]+' ×'+(obj.count||1)+'を取得した');
+  toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
  }else{
   if(S.found.length>=FIND_QUEUE_MAX){const old=S.found.shift();addLog(names[stockItemId(old)]+'の古いストックが消えた')}
   S.found.push(obj);
@@ -235,9 +235,9 @@ function takeFound(i){
  setTimeout(()=>{
   const pos=S.found.indexOf(obj);
   if(pos>=0&&canReceive(id)){
-   S.inventory[id]=(S.inventory[id]||0)+1;S.found.splice(pos,1);markObjectTaken(obj);
-   addLog(names[id]+'を探索して回収した');
-   toast('✅ '+names[id]+'を取得');
+   S.inventory[id]=(S.inventory[id]||0)+(obj.count||1);S.found.splice(pos,1);markObjectTaken(obj);
+   addLog(names[id]+' ×'+(obj.count||1)+'を探索して回収した');
+   toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
   }
   S.busy=false;refresh();showStock();
  },1000);
@@ -251,7 +251,7 @@ function showStock(){
   const reason=!room?'所持品が満杯':!energy?'スタミナ不足':'';
   return `<div class="bp-stock-card">
    <div class="bp-stock-picture">${itemIconHTML(id)}</div>
-   <strong class="bp-stock-name">${names[id]}</strong>
+   <strong class="bp-stock-name">${names[id]}${obj.count>1?' ×'+obj.count:''}</strong>
    <span class="bp-stock-detail">所持 ${S.inventory[id]||0}個</span>
    <button onclick="takeFound(${i})" ${canTake?'':'disabled'}>✓ 回収する</button>
    ${reason?`<span class="bp-stock-reason">${reason}</span>`:''}
@@ -271,7 +271,18 @@ function equip(id){
 function unequip(slot){const id=equipped(slot);if(!id)return;if(!canReceive(id))return toast('所持品が満杯');
  S.inventory[id]=(S.inventory[id]||0)+1;S.equipment[slot]=null;addLog(names[id]+'を外した');refresh();showEquipment();
 }
-function discard(id){const count=S.inventory[id]||0;if(!count)return;S.inventory[id]=0;addLog(names[id]+'を'+count+'個すべて捨てた');toast(names[id]+'を全て捨てた');refresh();if($('back').classList.contains('on'))showBag()}
+let droppedSerial=0;
+function discard(id){
+ const count=S.inventory[id]||0;if(!count)return;
+ S.inventory[id]=0;
+ // A discarded stack becomes one discoverable physical pile in the current region.
+ const pile={uid:S.place+':drop:'+(++droppedSerial),id,area:S.place,count,taken:false,dropped:true};
+ (regionObjects[S.place]||(regionObjects[S.place]=[])).push(pile);
+ regionSeen[S.place]?.clear();
+ addLog(names[id]+' ×'+count+'を'+S.place+'に置いた');
+ $('back').classList.remove('on');
+ refresh();toast(names[id]+' ×'+count+'を置いた');
+}
 const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3},"地下機構区画":{"scrap":10,"mystery":5},"神殿区画":{"marble":10,"mystery":5},"工業区画":{"scrap":15,"lighter":5},"海岸区画":{"stone":10,"wood":10,"lighter":3},"港湾区画":{"scrap":12,"wood":8,"lighter":4},"湖畔区画":{"wood":10,"stone":10,"marble":4},"水没施設区画":{"scrap":12,"mystery":5}};
 // Each physical object has its own ID. A lap visits every uncollected object once.
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
