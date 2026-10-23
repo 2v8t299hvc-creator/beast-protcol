@@ -7,7 +7,7 @@
 .inventoryMini .itemQty{position:absolute;right:3px;top:0px;font-size:clamp(9px,1vw,12px);background:#0009;padding:0 2px;border-radius:3px}
 .right .quick{height:12%}.right .row{height:16%}.right .main{height:21%}
 .spacer{flex:1}.row{display:flex;gap:5px;height:19%}.row button{flex:1;font-size:clamp(12px,1.6vw,19px);font-weight:700}.main{height:23%;font-size:clamp(19px,3.3vw,40px);font-weight:900;background:linear-gradient(130deg,#c45414,#f99420);border:2px solid #ffd079;box-shadow:0 0 16px #ff862c88}.main.fight{background:linear-gradient(130deg,#8c1820,#dc3946);border-color:#f7797d}.enemy{position:absolute;left:42%;top:26%;width:22%;height:45%;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;filter:drop-shadow(2px 5px 10px #000)}.enemy.on{display:flex}.enemy .monster{font-size:clamp(62px,11vw,155px);line-height:1}.enemy .ebar{width:100%;height:12px;background:#280e12;border:1px solid white}.enemy .ebar>div{height:100%;background:#e34d51}.enemy strong{background:#10151bcc;padding:4px 12px}.toast{position:absolute;top:36%;left:26%;width:42%;padding:9px;text-align:center;background:#040a13b5;font-weight:700;font-size:clamp(12px,1.65vw,21px);opacity:0;transition:opacity .22s;pointer-events:none}.toast.show{opacity:1}.modalback{position:absolute;inset:0;background:#03080fc4;display:none;align-items:center;justify-content:center}.modalback.on{display:flex}.modal{width:min(680px,88vw);max-height:80vh;overflow:auto;padding:15px;background:#0c1522;border:2px solid #d48031;border-radius:8px;box-shadow:0 10px 40px black}.modal header{display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:bold;margin-bottom:10px}.modal button{padding:9px 12px}.craft{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.recipe{padding:12px;background:#1a2430;border:1px solid #505861;border-radius:7px;font-size:13px}.recipe b{font-size:17px;color:#ffbb72}.recipe button{margin-top:6px;width:100%;background:#b45d20}.small{font-size:12px;color:#abb7c4}.findlist{position:absolute;left:27%;bottom:21%;width:36%;display:flex;flex-direction:column;gap:4px;pointer-events:auto}.findrow{display:flex;align-items:center;justify-content:space-between;padding:4px 7px;background:#0c1522e9;border:1px solid #60738499;font-size:clamp(10px,1.15vw,14px);gap:5px}.findrow button{padding:4px 10px;background:#b96919;font-weight:700}.findrow b{color:#ffd28d}.slotgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.slot{min-height:50px;background:#1a2636;border:1px solid #586779;border-radius:5px;padding:8px;font-size:13px}.slot.empty{opacity:.5}.dropbtn{background:#9b3939;padding:5px 10px;margin-left:8px}.moving{display:flex;gap:7px;flex-wrap:wrap}.moving button{padding:11px}.off{opacity:.5}.hint{position:absolute;bottom:0;right:1%;font-size:9px;color:#abc5d6;opacity:.7}@media(orientation:portrait){#rotate{display:flex}}#rotate{display:none;position:absolute;inset:0;background:#0b1420f2;align-items:center;justify-content:center;z-index:10;text-align:center;padding:30px;font-size:22px}@media(orientation:portrait){#rotate{display:flex}}@media(max-height:430px){.modal{padding:8px}.recipe{padding:7px}.modal header{font-size:16px;margin:0 0 4px}.status{padding:4px}.quick{height:20%}}
-.craftTabs{display:flex;gap:7px;margin:8px 0 12px}.craftTabs button{flex:1;min-width:0;background:#283442;border:1px solid #677788;border-radius:7px;color:#f1f4f8;font-weight:700;padding:10px 5px}.craftTabs button.selected{background:#b45d20;border-color:#ffc17c;color:#fff}.bp-item-art{display:block;width:clamp(27px,3.7vw,48px);height:clamp(27px,3.7vw,48px);background-size:200% 200%;background-repeat:no-repeat;flex-shrink:0}.bp-mini-art{display:inline-block;width:27px;height:27px;vertical-align:middle;margin-right:5px}.slot .bp-item-art{display:inline-block;vertical-align:middle;margin-right:8px}.status{bottom:1.8%;padding:5px 7px;width:24%;font-size:clamp(9px,1.12vw,13px);background:#101824d4}.status .bar{height:6px;margin:1px 0 3px}.statusLine{display:flex;justify-content:space-between;align-items:center;gap:5px}.statusLine .lv{font-size:.75em;font-weight:normal;color:#c6d4e3}.equipOpen{padding:3px 5px;background:#26364bd9;border:1px solid #6c8098;border-radius:5px;color:#fff;font-size:clamp(8px,1vw,12px);cursor:pointer}.vitals{display:flex;flex-direction:column;gap:1px}.masterLine{font-size:.94em}.visuallyHidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.craftTabs{display:flex;gap:7px;margin:8px 0 12px}.craftTabs button{flex:1;min-width:0;background:#283442;border:1px solid #677788;border-radius:7px;color:#f1f4f8;font-weight:700;padding:10px 5px}.craftTabs button.selected{background:#b45d20;border-color:#ffc17c;color:#fff}.bp-craft-subtabs{flex-wrap:wrap}.bp-craft-subtabs button{flex:1 1 auto;min-width:55px;padding:7px 8px;font-size:clamp(10px,1.1vw,13px)}.bp-item-art{display:block;width:clamp(27px,3.7vw,48px);height:clamp(27px,3.7vw,48px);background-size:200% 200%;background-repeat:no-repeat;flex-shrink:0}.bp-mini-art{display:inline-block;width:27px;height:27px;vertical-align:middle;margin-right:5px}.slot .bp-item-art{display:inline-block;vertical-align:middle;margin-right:8px}.status{bottom:1.8%;padding:5px 7px;width:24%;font-size:clamp(9px,1.12vw,13px);background:#101824d4}.status .bar{height:6px;margin:1px 0 3px}.statusLine{display:flex;justify-content:space-between;align-items:center;gap:5px}.statusLine .lv{font-size:.75em;font-weight:normal;color:#c6d4e3}.equipOpen{padding:3px 5px;background:#26364bd9;border:1px solid #6c8098;border-radius:5px;color:#fff;font-size:clamp(8px,1vw,12px);cursor:pointer}.vitals{display:flex;flex-direction:column;gap:1px}.masterLine{font-size:.94em}.visuallyHidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 /* v1.3 — seamless character art and lighter lower-left HUD */
 .leftchar{background:transparent!important;border:0!important;box-shadow:none!important;isolation:isolate;opacity:1}
 .leftchar img{opacity:1!important;background:transparent!important;mix-blend-mode:normal!important;filter:drop-shadow(0 3px 7px rgba(0,0,0,.65))}
@@ -414,12 +414,34 @@ function craftRecipeHTML(r){
   <button ${ok?'':'disabled'} onclick="craft('${r.id}','${r.category}')">${ok?'🔧 製作する':'素材不足／満杯'}</button>
  </div>`;
 }
-function showCraft(category='weapon'){
+// Recipe subcategories are independent of rarity and can be extended as new items arrive.
+const CRAFT_SUBCATEGORIES={
+ weapon:[['fist','拳'],['slash','斬り']],
+ armor:[['head','頭'],['arm','腕'],['body','身体'],['legs','脚'],['accessory','アクセ']],
+ item:[['recovery','回復'],['mineral','鉱石・金属系'],['plant','植物系'],['other','その他']]
+};
+const ITEM_CRAFT_GROUP={
+ kit:'recovery',bronze:'mineral',iron:'mineral',steel:'mineral',blackiron:'mineral',
+ silver:'mineral',whitesilver:'mineral',gold:'mineral',wonderore:'mineral',
+ wonderjewel:'mineral',ruby:'mineral',sapphire:'mineral',diamond:'mineral',
+ charcoal:'plant',discharger:'other'
+};
+let selectedCraftSubcategory=null;
+function recipeSubcategory(r){
+ if(r.category==='weapon')return EQUIPMENT_DEFS[r.id]?.weaponType||'fist';
+ if(r.category==='armor')return EQUIPMENT_DEFS[r.id]?.slot||'body';
+ return ITEM_CRAFT_GROUP[r.id]||'other';
+}
+function showCraft(category='weapon',subcategory=null){
  const tabs=[['weapon','🥊 武器'],['armor','🛡️ 防具'],['item','🧰 アイテム']];
+ const groups=CRAFT_SUBCATEGORIES[category]||CRAFT_SUBCATEGORIES.item;
+ const active=groups.some(([key])=>key===subcategory)?subcategory:groups[0][0];
+ selectedCraftSubcategory=active;
  const tabHtml='<div class="craftTabs">'+tabs.map(([key,label])=>`<button class="${category===key?'selected':''}" onclick="showCraft('${key}')">${label}</button>`).join('')+'</div>';
- const list=recipes.filter(r=>r.category===category);
- const body='<p class="small">素材を確認してワンタップで製作。装備中の素材も使用できます。</p>'+tabHtml+'<div class="craft bp-craft-list">'+
- (list.length?list.map(craftRecipeHTML).join(''):'<p class="small">このカテゴリにはまだレシピがありません。</p>')+'</div>';
+ const subHtml='<div class="craftTabs bp-craft-subtabs">'+groups.map(([key,label])=>`<button class="${active===key?'selected':''}" onclick="showCraft('${category}','${key}')">${label}</button>`).join('')+'</div>';
+ const list=recipes.filter(r=>r.category===category&&recipeSubcategory(r)===active).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
+ const body='<p class="small">製作可能なアイテムを上に表示。装備中の素材も使えます。</p>'+tabHtml+subHtml+'<div class="craft bp-craft-list">'+
+ (list.length?list.map(craftRecipeHTML).join(''):'<p class="small">この分類のレシピはまだありません。</p>')+'</div>';
  modal('🔧 製作',body);
 }
 function craft(id,category){
@@ -427,7 +449,7 @@ function craft(id,category){
  const after=craftConsumption(r);if(!after)return toast('素材不足');
  S.inventory=after.inv;S.equipment=after.equipment;S.inventory[id]=(S.inventory[id]||0)+1;
  const rarity=RECIPE_RARITY[id]||'common';gainXp(CRAFT_XP[rarity]);const weapon=EQUIPMENT_DEFS[id];if(weapon?.slot==='weapon')addMastery(weapon.weaponType,CRAFT_MASTERY[rarity]);
- addLog(r.name+'を製作した！ (+'+CRAFT_XP[rarity]+'XP)');toast('🔧 '+r.name+'完成！');refresh();showCraft(category||r.category);
+ addLog(r.name+'を製作した！ (+'+CRAFT_XP[rarity]+'XP)');toast('🔧 '+r.name+'完成！');refresh();showCraft(category||r.category,selectedCraftSubcategory);
 }
 function showMap(){
  const cards=Object.keys(regionStock).map(area=>{
