@@ -176,12 +176,20 @@ function useItem(id){
 function rest(){if(S.enemy)return toast('接敵中は休息できません');S.hp=Math.min(180,S.hp+25);S.st=Math.min(120,S.st+40);addLog('休息して体力・スタミナを回復した');refresh()}
 function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('back').classList.add('on')};function closeModal(){if(S.pendingFound){showDiscovery();return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
 const itemArt={
+ stone:['basic',0],wood:['basic',1],mystery:['basic',2],marble:['basic',3],
+ lighter:['tools',0],pickaxe:['tools',1],superpickaxe:['tools',2],greatpickaxe:['tools',3],
+ bronze:['metal',0],iron:['metal',1],blackiron:['metal',2],whitesilver:['metal',3],
+ silver:['advanced',0],gold:['advanced',1],wonderore:['advanced',2],wonderjewel:['advanced',3],
+ ruby:['gems',0],sapphire:['gems',1],diamond:['gems',2],obsidian:['gems',3],
+ redstone:['stones',0],bluestone:['stones',1],whitestone:['stones',2],meteorite:['stones',3],
  ragglove:['gloves',0],glove:['gloves',1],reinforced:['gloves',2],plasma:['gloves',3],
  scrap:['materials',0],cloth:['materials',1],scissors:['materials',2],charcoal:['materials',3],
  core:['energy',0],cell:['energy',1],steel:['energy',2],discharger:['energy',3],
  armguard:['gear',0],ration:['gear',1],drink:['gear',2],kit:['gear',3]
 };
 const itemArtSheets={
+ basic:'assets/icon_basic.png',tools:'assets/icon_tools.png',metal:'assets/icon_metal.png',
+ advanced:'assets/icon_advanced.png',gems:'assets/icon_gems.png',stones:'assets/icon_stones.png',
  gloves:'assets/icon_gloves.png',materials:'assets/icon_materials.png',
  energy:'assets/icon_energy.png',gear:'assets/icon_gear.png'
 };
