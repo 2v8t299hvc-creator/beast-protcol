@@ -105,6 +105,7 @@ function equipped(slot){return S.equipment[slot]||null}
 function equipmentDef(id){return EQUIPMENT_DEFS[id]||null}
 function weaponType(){return (equipmentDef(equipped('weapon'))||{}).weaponType||'fist'}
 function masteryCount(type){return S.masteryAttacks[type]||0}
+function masteryProgress(type){const rank=masteryRank(type),total=masteryCount(type);if(rank>=MASTERY_RANKS.length-1)return 'MAX';return (total-MASTERY_THRESHOLDS[rank])+'/'+(MASTERY_THRESHOLDS[rank+1]-MASTERY_THRESHOLDS[rank])}
 function masteryRank(type){let n=masteryCount(type);for(let i=MASTERY_THRESHOLDS.length-1;i>=0;i--)if(n>=MASTERY_THRESHOLDS[i])return i;return 0}
 function totalStat(stat){const atk=stat==='attack';return ACTOR_STATS[atk?'baseAttack':'baseDefense']+ACTOR_STATS[atk?'attackGrowth':'defenseGrowth']*(S.level-1)+Object.values(S.equipment).reduce((n,id)=>n+(equipmentDef(id)?.[stat]||0),0)}
 function combatDamage(attack,defense,type,other=1){return Math.max(1,Math.floor(Math.max(1,attack-Math.max(0,defense)*0.5)*MASTERY_MULTIPLIERS[masteryRank(type)]*other))}
@@ -163,7 +164,7 @@ function renderStageArt(){
  }
 }
 
-function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/180';$('stval').textContent=S.st+'/120';$('hpbar').style.width=S.hp/180*100+'%';$('stbar').style.width=S.st/120*100+'%';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryCount(weaponType())+'/250)';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]:'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');$('enemy').classList.toggle('on',S.enemy);$('ehp').textContent=S.ehp;$('ebar').style.width=Math.max(0,S.ehp/85*100)+'%';$('mainBtn').textContent=S.enemy?'⚔ 攻撃':'⌕ 探索';$('mainBtn').classList.toggle('fight',S.enemy);$('skillBtn').disabled=!S.enemy||Date.now()<S.cool;$('skillBtn').textContent=Date.now()<S.cool?'⚡ '+Math.ceil((S.cool-Date.now())/1000)+'秒':'⚡ スキル';$('clock').textContent=`${String(Math.floor(S.remaining/60)).padStart(2,'0')}:${String(S.remaining%60).padStart(2,'0')}`;}
+function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/180';$('stval').textContent=S.st+'/120';$('hpbar').style.width=S.hp/180*100+'%';$('stbar').style.width=S.st/120*100+'%';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]:'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');$('enemy').classList.toggle('on',S.enemy);$('ehp').textContent=S.ehp;$('ebar').style.width=Math.max(0,S.ehp/85*100)+'%';$('mainBtn').textContent=S.enemy?'⚔ 攻撃':'⌕ 探索';$('mainBtn').classList.toggle('fight',S.enemy);$('skillBtn').disabled=!S.enemy||Date.now()<S.cool;$('skillBtn').textContent=Date.now()<S.cool?'⚡ '+Math.ceil((S.cool-Date.now())/1000)+'秒':'⚡ スキル';$('clock').textContent=`${String(Math.floor(S.remaining/60)).padStart(2,'0')}:${String(S.remaining%60).padStart(2,'0')}`;}
 function occupied(inv=S.inventory){return Object.values(inv).filter(v=>v>0).length}
 function canReceive(id,inv=S.inventory){return (inv[id]||0)>0 || occupied(inv)<BAG_SLOTS}
 function addFound(obj){
@@ -365,7 +366,7 @@ function showEquipment(){
   return `<div class="bp-equip-card"><b>${label}</b><div class="bp-equip-item">${id?itemIconHTML(id)+' '+names[id]:'未装備'}</div>
   ${id?`<small>攻撃 +${def.attack||0} / 防御 +${def.defense||0}</small><button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
- const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryCount(t)+'回)').join(' ／ ');
+ const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
  modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level}　攻撃 ${totalStat('attack')}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button>`);
 }
 function showBag(){
