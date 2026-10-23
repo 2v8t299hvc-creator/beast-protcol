@@ -77,7 +77,7 @@ let tt;function toast(s){$('toast').textContent=s;$('toast').classList.add('show
 
 const stageArtRegistry={
  characters:{kaito:'assets/characters/kaito_stand.png'},
- backgrounds:{'山岳区画':'assets/backgrounds/mountain.png','遺跡区画':'assets/backgrounds/ruins.png','地下機構区画':'assets/backgrounds/underground.png','神殿区画':'assets/backgrounds/temple.png','工業区画':'assets/backgrounds/industrial.png'}
+ backgrounds:{'山岳区画':'assets/backgrounds/mountain.png','遺跡区画':'assets/backgrounds/ruins.png','地下機構区画':'assets/backgrounds/underground.png','神殿区画':'assets/backgrounds/temple.png','工業区画':'assets/backgrounds/industrial.png','海岸区画':'assets/backgrounds/coast.png','港湾区画':'assets/backgrounds/port.png','湖畔区画':'assets/backgrounds/lakeside.png','水没施設区画':'assets/backgrounds/submerged_facility.png'}
 };
 const artLoaded=new Set(),artFailed=new Set(),artLoading=new Map();
 let shownBackgroundPlace=null,shownCharacter=null;
@@ -211,7 +211,7 @@ function equip(id){
  S[type]=id;addLog(names[id]+'を装備した');closeModal();refresh();
 }
 function discard(id){const count=S.inventory[id]||0;if(!count)return;S.inventory[id]=0;addLog(names[id]+'を'+count+'個すべて捨てた');toast(names[id]+'を全て捨てた');refresh();if($('back').classList.contains('on'))showBag()}
-const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3},"地下機構区画":{"scrap":10,"mystery":5},"神殿区画":{"marble":10,"mystery":5},"工業区画":{"scrap":15,"lighter":5}};
+const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3},"地下機構区画":{"scrap":10,"mystery":5},"神殿区画":{"marble":10,"mystery":5},"工業区画":{"scrap":15,"lighter":5},"海岸区画":{"stone":10,"wood":10,"lighter":3},"港湾区画":{"scrap":12,"wood":8,"lighter":4},"湖畔区画":{"wood":10,"stone":10,"marble":4},"水没施設区画":{"scrap":12,"mystery":5}};
 // Each physical object has its own ID. A lap visits every uncollected object once.
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
