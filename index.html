@@ -218,8 +218,7 @@ function decideFound(take){
   addLog(names[id]+' ×'+(obj.count||1)+'を取得した');
   toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
  }else{
-  if(S.found.length>=FIND_QUEUE_MAX){const old=S.found.shift();addLog(names[stockItemId(old)]+'の古いストックが消えた')}
-  S.found.push(obj);
+  pushStock(obj);
   addLog(names[id]+'をストックへ保留した');
   toast('📦 ストックに保存');
  }
@@ -283,8 +282,7 @@ function discard(id){
  regionSeen[S.place]?.clear();
  // Newly discarded piles go to the newest stock position (the fourth can wait).
  // Evicted stock is not destroyed: the underlying dropped pile stays on the map.
- if(S.found.length>=FIND_QUEUE_MAX){const old=S.found.shift();addLog(names[stockItemId(old)]+'の古いストックが押し出された')}
- S.found.push(pile);
+ pushStock(pile);
  addLog(names[id]+' ×'+count+'を'+S.place+'に置き、ストックへ追加した');
  $('back').classList.remove('on');
  refresh();toast(names[id]+' ×'+count+'を置いた');
@@ -311,6 +309,11 @@ function drawRegionItem(area){
 }
 function markObjectTaken(obj){if(obj&&obj.uid){const found=(regionObjects[obj.area]||[]).find(x=>x.uid===obj.uid);if(found){found.taken=true;regionSeen[obj.area].clear();}}}
 function stockItemId(obj){return typeof obj==='string'?obj:obj.id}
+// Newest first. Every new stock entry moves older entries one slot toward the fourth waiting slot.
+function pushStock(obj){
+ S.found.unshift(obj);
+ if(S.found.length>FIND_QUEUE_MAX){const old=S.found.pop();addLog(names[stockItemId(old)]+'の古いストックが押し出された')}
+}
 function primary(){if(S.busy||S.pendingFound)return;if(S.hp<=0){toast('戦闘不能！再読み込みで最初から');return}S.busy=true;const battle=S.enemy;if(!battle&&S.st<3){S.busy=false;toast('スタミナ不足！休息してね');return}if(!battle){S.st-=3;refresh();setTimeout(()=>{S.busy=false;S.ticks++;let r=Math.random();if(r<.16){S.enemy=true;S.ehp=85;S.stacks=0;S.nextEnemyAction=Date.now()+2100;addLog('訓練ドローンと遭遇！');toast('敵と遭遇！探索が攻撃に切り替わった');}else if(r<.84){let obj=drawRegionItem(S.place);if(obj){addFound(obj);}else{addLog('この区画の素材は採り尽くされている');toast('この区画の素材はなくなった');}}else{addLog('何も見つからなかった');toast('探索したが何もなかった');}refresh()},1000)}else{setTimeout(()=>{S.busy=false;if(!S.enemy)return;const type=weaponType();recordAttack(type);const hit=Math.random()*100<MASTERY_ACCURACY[masteryRank(type)];const dmg=hit?combatDamage(totalStat('attack')+rand(7),ENEMY_STATS.defense,type):0;S.ehp=Math.max(0,S.ehp-dmg);S.stacks=Math.min(S.stacks+1,5);addLog(hit?WEAPON_TYPES[type]+'で'+dmg+'ダメージ！':'攻撃が外れた！');gainXp(1);if(S.ehp===0){gainXp(3);S.enemy=false;addFound('scrap');toast('訓練ドローン撃破！ ガラクタを発見');addLog('訓練ドローンが機能停止した');S.stacks=0}else{toast(hit?dmg+'ダメージ！':'MISS！');}refresh()},1000)}}
 function skill(){if(!S.enemy||Date.now()<S.cool||S.st<10)return toast('スキルを使用できません');S.st-=10;S.cool=Date.now()+25000;S.skillUntil=Date.now()+5000;toast('テンポブレイク！敵の行動を遅延');addLog('テンポブレイク発動：5秒間、行動が0.5秒遅くなる');refresh()}
 function useItem(id){
