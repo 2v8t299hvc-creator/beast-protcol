@@ -26,18 +26,27 @@ eq(`regionStock['山岳区画'].feather>0&&regionStock['森林区画'].fur>0&&re
 // All 22 new recipes can produce an item with the declared ingredients.
 const newIds=run(`recipes.slice(-22).map(r=>r.id)`);
 for(const id of newIds){reset();run(`for(const [id,n] of Object.entries(recipes.find(r=>r.id==='${id}').need))assertReceive=receive(id,n);craft('${id}');`);eq(`S.inventory['${id}']`,1);eq(`RECIPE_RARITY['${id}']!==undefined`,true)}
+// Every newly found ranged type starts at its own configured capacity.
+for(const id of run(`Object.keys(EQUIPMENT_DEFS).filter(id=>EQUIPMENT_DEFS[id].ammoType)`)){
+ reset();run(`addFound({id:'${id}',count:1});decideFound(true);equip('${id}',0)`);eq('weaponAmmo()',run(`EQUIPMENT_DEFS['${id}'].capacity`));
+}
+// Manufactured weapons also start full, even when the ingredient was unloaded.
+reset();run(`receive('japanese_bow',1,{ammo:0});receive('wood',1);craft('strong_bow')`);eq('S.bag[0].ammo',20);
+// A dropped empty weapon remains empty when collected directly or via stock.
+reset();run(`receive('handgun',1,{ammo:0});discardStack(0);addFound(S.found.pop());decideFound(true)`);eq('S.bag[0].ammo',0);
+run(`discardStack(0);takeFound(0)`);h.tick();eq('S.bag[0].ammo',0);
 // Magazine refill consumes only the missing rounds and caps apply to carried ammo across stacks.
-reset();run(`receive('handgun',1);receive('bullets',30);equip('handgun');reloadWeapon('bullets');`);
+reset();run(`receive('handgun',1,{ammo:0});receive('bullets',30);equip('handgun');reloadWeapon('bullets');`);
 eq('weaponAmmo()',20);eq('S.inventory.bullets',10);run(`S.equipmentAmmo.weapon=3;reloadWeapon('bullets')`);eq('weaponAmmo()',13);eq('S.inventory.bullets||0',0);
 run(`receive('bullets',99)`);eq(`receive('bullets',1)`,false);eq('S.inventory.bullets',99);eq(`receive('arrows',20)`,true);run(`reloadWeapon('arrows')`);eq('weaponAmmo()',13);eq('S.inventory.arrows',20);
 // Two identical guns retain their own ammunition through exact-stack selection and swapping.
 reset();run(`receive('handgun',1,{ammo:7});receive('handgun',1,{ammo:2});equip('handgun',1)`);eq('weaponAmmo()',2);run(`equip('handgun',0)`);eq('weaponAmmo()',7);eq('S.bag[0].ammo',2);
-run(`unequip('weapon')`);eq('S.bag[1].ammo',7);run(`equip('handgun',1);receive('rifle',1);equip('rifle',1)`);eq('weaponAmmo()',0);eq('S.bag[1].ammo',7);
+run(`unequip('weapon')`);eq('S.bag[1].ammo',7);run(`equip('handgun',1);receive('rifle',1);equip('rifle',1)`);eq('weaponAmmo()',20);eq('S.bag[1].ammo',7);
 // Drop -> world object -> direct discovery pickup and stock recovery preserve loaded ammunition.
 reset();run(`receive('japanese_bow',1,{ammo:9});discardStack(0);addFound(S.found.pop());decideFound(true);equip('japanese_bow',0)`);eq('weaponAmmo()',9);
 run(`unequip('weapon');discardStack(0);takeFound(0)`);h.tick();eq('S.bag[0].ammo',9);
-// Consuming an equipped loaded weapon creates an EMPTY upgraded gun, without stale ammo.
-reset();run(`receive('handgun',1,{ammo:11});equip('handgun');receive('gunpowder',1);craft('hand_blaster')`);eq('S.equipment.weapon',null);eq('S.equipmentAmmo.weapon',undefined);eq('S.bag[0].ammo',0);
+// Consuming an equipped loaded weapon creates a fully loaded upgraded gun, without inheriting stale ammo.
+reset();run(`receive('handgun',1,{ammo:11});equip('handgun');receive('gunpowder',1);craft('hand_blaster')`);eq('S.equipment.weapon',null);eq('S.equipmentAmmo.weapon',undefined);eq('S.bag[0].ammo',20);
 // Atomic crafting capacity checks: a full bag can craft only when the output fits after consumption.
 reset();run(`receive('rubber',1);receive('fur',1);for(const id of ['stone','wood','wire','cloth'])receive(id,1);craft('rubbery_hide')`);eq('S.inventory.rubbery_hide',1);eq('S.inventory.rubber||0',0);
 reset();run(`receive('rubber',2);receive('fur',2);for(const id of ['stone','wood','wire','cloth'])receive(id,1);craft('rubbery_hide')`);eq('S.inventory.rubbery_hide||0',0);eq('S.inventory.rubber',2);
