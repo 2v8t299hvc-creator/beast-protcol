@@ -95,13 +95,20 @@ const EQUIPMENT_DEFS={
  reinforced:{slot:'weapon',weaponType:'fist',attack:24,defense:0},plasma:{slot:'weapon',weaponType:'fist',attack:38,defense:0},
  pickaxe:{slot:'weapon',weaponType:'slash',attack:10,defense:0},superpickaxe:{slot:'weapon',weaponType:'slash',attack:20,defense:0},
  greatpickaxe:{slot:'weapon',weaponType:'slash',attack:20,defense:0},
- wood_sword:{slot:'weapon',weaponType:'slash',attack:0,defense:0},survival_knife:{slot:'weapon',weaponType:'slash',attack:0,defense:0},
- sea_sword:{slot:'weapon',weaponType:'slash',attack:0,defense:0},rubber_gloves:{slot:'weapon',weaponType:'fist',attack:0,defense:0},
- swimsuit:{slot:'body',attack:0,defense:0},bikini_pants:{slot:'body',attack:0,defense:0},
- passion_bikini:{slot:'body',attack:0,defense:0},rubber_suit:{slot:'body',attack:0,defense:0},
- insulated_suit:{slot:'body',attack:0,defense:0},charged_suit:{slot:'body',attack:0,defense:0},
- needle_suit:{slot:'body',attack:0,defense:0},stinger_suit:{slot:'body',attack:0,defense:0},
- onyx_suit:{slot:'body',attack:0,defense:0},armguard:{slot:'arm',attack:0,defense:8}
+ wood_sword:{slot:'weapon',weaponType:'slash',attack:12,defense:0},survival_knife:{slot:'weapon',weaponType:'slash',attack:18,defense:0},
+ sea_sword:{slot:'weapon',weaponType:'slash',attack:33,defense:0},rubber_gloves:{slot:'weapon',weaponType:'fist',attack:24,defense:0},
+ swimsuit:{slot:'body',attack:0,defense:8},bikini_pants:{slot:'body',attack:0,defense:15},
+ passion_bikini:{slot:'body',attack:0,defense:48},rubber_suit:{slot:'body',attack:0,defense:20},
+ insulated_suit:{slot:'body',attack:0,defense:30},charged_suit:{slot:'body',attack:0,defense:46},
+ needle_suit:{slot:'body',attack:0,defense:25},stinger_suit:{slot:'body',attack:0,defense:46},
+ onyx_suit:{slot:'body',attack:0,defense:52},armguard:{slot:'arm',attack:0,defense:8}
+};
+const EQUIPMENT_SPECIAL_EFFECTS={
+ passion_bikini:{name:'情熱の紅',description:'与ダメージ＋2・被発見率＋5%',damageBonus:2,discoveryRateBonus:0.05},
+ charged_suit:{name:'帯電',description:'銃で被ダメージ時、攻撃者の銃耐久値－1（クールタイム90秒）',gunDurabilityRetaliation:1,cooldownSeconds:90},
+ needle_suit:{name:'トゲ',description:'拳で被ダメージ時、攻撃者に2ダメージ',fistCounterDamage:2},
+ stinger_suit:{name:'鋭いトゲ',description:'拳で被ダメージ時、攻撃者に4ダメージ',fistCounterDamage:4},
+ onyx_suit:{name:'黒曜のトゲ',description:'拳の被ダメージ－10%・攻撃者に2ダメージ',fistDamageReduction:0.10,fistCounterDamage:2}
 };
 const MASTERY_RANKS=['F','F+','E','E+','D','D+','C','C+','B','B+','A','A+','S','S+','SS'];
 const MASTERY_THRESHOLDS=[0,3,7,12,18,26,36,49,65,85,105,132,165,205,250];
@@ -439,7 +446,7 @@ function showEquipment(){
  const cards=Object.entries(EQUIPMENT_SLOTS).map(([slot,label])=>{
   const id=equipped(slot),def=equipmentDef(id);
   return `<div class="bp-equip-card"><b>${label}</b><div class="bp-equip-item">${id?itemIconHTML(id)+' '+names[id]:'未装備'}</div>
-  ${id?`<small>攻撃 +${def.attack||0} / 防御 +${def.defense||0}</small><button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
+  ${id?`<small>攻撃 +${def.attack||0} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
  const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
  modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${totalStat('attack')}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button>`);
