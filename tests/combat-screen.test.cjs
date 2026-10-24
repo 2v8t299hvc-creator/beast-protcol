@@ -15,7 +15,7 @@ function harness(){
 let h=harness();let run=s=>h.run(s);const eq=(s,v)=>assert.equal(run(s),v,s);
 function fixture(kind='bird'){
  // Pin a real instance to an open candidate area to exercise the real encounter/attack entrypoints.
- run(`matchClock.section=4;matchClock.sectionEndsAt=Date.now()+180000;matchClock.blocked=[];matchClock.nextBlocked=[];matchClock.result=null;matchClock.ended=false;S.hp=180;S.busy=false;S.enemy=false;S.enemyKind=null;S.pendingFound=null;S.pendingDroneLoot=null;S.statusEffects={};S.place=DRONE_DEFS['${kind}'].areas[0];Object.assign(drones['${kind}'],{spawned:true,hp:DRONE_DEFS['${kind}'].hp,area:S.place,generation:1});`);
+ run(`matchClock.section=4;matchClock.sectionEndsAt=Date.now()+180000;matchClock.blocked=[];matchClock.nextBlocked=[];matchClock.result=null;matchClock.ended=false;S.hp=180;S.busy=false;S.enemy=false;S.enemyKind=null;S.pendingFound=null;S.corpseVisit=null;S.corpseId=null;corpses.length=0;S.statusEffects={};S.place=DRONE_DEFS['${kind}'].areas[0];Object.assign(drones['${kind}'],{spawned:true,hp:DRONE_DEFS['${kind}'].hp,area:S.place,generation:1});`);
  run(`discoverDrone('${kind}')`);
 }
 // Section unlocks and real 85% discovery, without the obsolete 16% training-drone roll.
@@ -43,14 +43,14 @@ run(`S.statusEffects={};S.equipment={};S.level=1;Math.random=()=>0;var hpBefore=
 run(`S.statusEffects={};applyStatus('blackInk');applyStatus('blackInk')`);eq(`droneAccuracy(DRONE_DEFS.octopus,'fist')`,run(`MASTERY_ACCURACY[masteryRank('fist')]-7`));
 // Full combat round: one attack, one counter only while alive, HP feedback then two-choice loot.
 fixture('scorpion');run('Math.random=()=>0;var ticksBefore=S.ticks;primary();primary();skill()');eq('S.busy',true);h.tickAction(false);eq(`statusStacks('purplePoison')`,1);eq('S.enemy',true);eq('S.ticks===ticksBefore',true);h.tickFeedback();eq('S.enemy',false);
-fixture('bird');run('S.equipment={};drones.bird.hp=1;S.ehp=1;var generation=drones.bird.generation;var before=S.hp;Math.random=()=>0;primary()');h.tickAction(false);eq('S.hp===before',true);eq('drones.bird.spawned',false);eq('S.pendingDroneLoot',null);eq(`$('ebar').style.width`,'0%');h.tickFeedback();eq('S.pendingDroneLoot.options.length',2);
-run(`S.bag=['stone','wood','wire','cloth','fur','rubber'].map(id=>({id,count:10}));syncInventory();chooseDroneLoot('egg')`);eq('S.pendingDroneLoot',null);eq('S.pendingFound.id','egg');run('decideFound(true)');eq('S.pendingFound.id','egg');run('decideFound(false)');eq('S.found[0].id','egg');eq('S.inventory.egg||0',0);
-// Repeated reward clicks cannot duplicate, cooldown recreates exactly one fresh individual.
-run(`chooseDroneLoot('feather')`);eq('S.pendingFound',null);run('updateDrones()');eq('drones.bird.spawned',false);
+fixture('bird');run('S.equipment={};drones.bird.hp=1;S.ehp=1;var generation=drones.bird.generation;var before=S.hp;Math.random=()=>0;primary()');h.tickAction(false);eq('S.hp===before',true);eq('drones.bird.spawned',false);eq('S.corpseVisit',null);eq(`$('ebar').style.width`,'0%');h.tickFeedback();eq('findCorpse(S.corpseVisit.id).items.length',2);
+run(`var bodyId=S.corpseVisit.id;var token=S.corpseVisit.token;S.bag=['stone','wood','wire','cloth','fur','rubber'].map(id=>({id,count:10}));syncInventory();takeCorpseItem(1,token)`);eq('S.corpseVisit.token===token',true);eq('S.inventory.egg||0',0);eq('findCorpse(bodyId).items.length',2);
+run(`discardStack(0);renderCorpse();takeCorpseItem(1,token)`);eq('S.corpseVisit',null);eq('S.inventory.egg',1);eq('findCorpse(bodyId).items.length',1);
+run(`takeCorpseItem(0,token)`);eq('S.inventory.feather||0',0);run('updateDrones()');eq('drones.bird.spawned',false);
 h.advance(59999);eq('drones.bird.spawned',false);h.advance(1);eq('drones.bird.spawned',true);eq('drones.bird.hp',50);eq('drones.bird.generation===generation+1',true);run('updateDrones();updateDrones()');eq('drones.bird.generation===generation+1',true);
 // A representative late build (Lv7, B fist mastery, rare reinforced gloves) matches the requested hit ranges.
 run(`S.level=7;S.equipment={weapon:'reinforced'};S.masteryAttacks.fist=65;S.statusEffects={};var hitCounts=Object.fromEntries(Object.entries(DRONE_DEFS).map(([k,d])=>[k,Math.ceil(d.hp/damageToDrone(d,'fist',totalStat('attack')))]))`);
 for(const [k,n] of Object.entries({bird:1,fish:1,dog:2,humanoid:2,scorpion:6,octopus:4}))eq(`hitCounts.${k}`,n);
 // Closure during pending attack/feedback still cancels the encounter without loot or resurrection.
-fixture('scorpion');run('S.place=matchClock.nextBlocked[0]||S.place;matchClock.nextBlocked=[S.place];primary()');h.setNow(run('matchClock.sectionEndsAt'));h.tickAction();eq('S.hp',0);eq('S.enemy',false);eq('S.pendingDroneLoot',null);
+fixture('scorpion');run('S.place=matchClock.nextBlocked[0]||S.place;matchClock.nextBlocked=[S.place];primary()');h.setNow(run('matchClock.sectionEndsAt'));h.tickAction();eq('S.hp',0);eq('S.enemy',false);eq('S.corpseVisit',null);
 console.log('PASS: six species, section spawns, 85% discovery, HP persistence/respawn, shell, poison/ink clocks, loot capacity, representative hit counts and lockdown cancellation');
