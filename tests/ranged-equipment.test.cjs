@@ -9,7 +9,7 @@ function harness(){
  const document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id)},createElement:element,querySelector(){return null},querySelectorAll(){return []}};
  const context=vm.createContext({document,Image:class {},getComputedStyle:()=>({backgroundImage:''}),setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearTimeout(){},setInterval(){},console});
  vm.runInContext(source,context);
- return {run:code=>vm.runInContext(code,context),tick(){const i=timers.findIndex(t=>t.ms===1000);assert(i>=0,'pending game action');timers.splice(i,1)[0].fn()}};
+ return {run:code=>vm.runInContext(code,context),tick(){const i=timers.findIndex(t=>t.ms===1000);assert(i>=0,'pending game action');timers.splice(i,1)[0].fn();const feedback=timers.findIndex(t=>t.ms===900);if(feedback>=0)timers.splice(feedback,1)[0].fn()}};
 }
 const h=harness(),run=h.run;
 function reset(){run(`matchClock.section=1;matchClock.sectionEndsAt=Date.now()+180000;matchClock.blocked=[];matchClock.nextBlocked=planNextBlocked(1,[]);matchClock.ended=false;matchClock.result=null;S.bag=[];syncInventory();Object.keys(S.equipment).forEach(k=>S.equipment[k]=null);S.equipmentAmmo={};S.masteryAttacks={fist:0,slash:0,gun:0,bow:0};S.level=1;S.xp=0;S.hp=180;S.st=120;S.busy=false;S.enemy=false;S.pendingFound=null;S.found=[];`)}
