@@ -44,3 +44,14 @@ for(const action of ['search','stock','attack']){
 // Ending the match never upgrades an already eliminated player's result to a draw.
 h.advance(1350000);eq('matchClock.result','eliminated');
 console.log('PASS: preparation, all section boundaries, fixed warnings, rotating/permanent closures, forbidden movement, deadline draw, background catch-up and async cancellation');
+
+// Movement pays available stamina first, then HP; exhaustion alone never prevents travel.
+for(const [st,hp,expectedSt,expectedHp] of [[10,20,5,20],[5,20,0,20],[2,20,0,17],[0,20,0,15],[0,3,0,0]]){
+ h=harness();h.advance(30000);run(`S.st=${st};S.hp=${hp};move('森林区画')`);eq('S.place','森林区画');eq('S.st',expectedSt);eq('S.hp',expectedHp);
+ if(expectedHp===0){eq('matchClock.result','eliminated');eq('corpses.find(c=>c.id===S.corpseId).area','森林区画')}
+}
+// Invalid destinations, the current region and lockdowns do not consume either resource.
+h=harness();h.advance(30000);run(`S.st=0;S.hp=20;move(S.place);move('不明');matchClock.blocked=['森林区画'];move('森林区画')`);eq('S.hp',20);eq('S.st',0);eq('S.place','山岳区画');
+// Preparation remains free even with no stamina.
+h=harness();run(`S.st=0;S.hp=20;move('森林区画')`);eq('S.place','森林区画');eq('S.hp',20);
+console.log('PASS: stamina-first travel, HP fallback, lethal travel, invalid/locked destinations and free preparation');

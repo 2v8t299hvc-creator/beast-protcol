@@ -51,3 +51,9 @@ for(const [own,roll,found] of [[true,0.099999,true],[true,0.10,false],[false,0.0
 }
 active();run(`var other={id:'enemy-2'};var victim={id:'victim',name:'敵',place:S.place,hp:1,bag:[{id:'wood',count:1}],equipment:{}};var body=defeatPlayer(victim,other)`);eq('body.killerId','enemy-2');eq('body.ownerId','victim');eq('corpseDiscoveryRate(body,S)',0.05);eq('corpseDiscoveryRate(body,other)',0.10);eq('S.corpseVisit',null);eq('body.expiresAt',null);
 console.log('PASS: all species timing boundaries, killer provenance and exact discovery thresholds');
+
+// Water and lighter rewards are each one normal exploration set (three units).
+active();run(`var fishBody=createDroneCorpse('fish',S.place);var humanBody=createDroneCorpse('humanoid',S.place);openCorpse(fishBody.id);var token=S.corpseVisit.token;takeCorpseItem(1,token)`);eq('S.inventory.water',3);eq('humanBody.items.find(x=>x.id==="lighter").count',3);eq('fishBody.items[0].count',1);
+run(`openCorpse(humanBody.id);takeCorpseItem(1,S.corpseVisit.token)`);eq('S.inventory.lighter',3);
+eq(`Object.values(regionObjects).flat().filter(x=>x.id==='water'||x.id==='lighter').every(x=>x.count===3)`,true);
+console.log('PASS: complete water/lighter sets in exploration and corpse loot');

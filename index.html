@@ -264,6 +264,7 @@ function renderCombat(){
 const FISH_ITEMS=new Set(['swordfish','minefish','porcupinefish','paradisefish']);
 // Provisional: arrows share the 99-item carried cap; reloading is immediate and costs no stamina.
 const AMMO_LIMITS={bullets:99,arrows:99};
+function itemSetCount(id){return AMMO_LIMITS[id]?20:(id==='water'||id==='lighter')?3:1}
 function stackLimit(id){return AMMO_LIMITS[id]||(FISH_ITEMS.has(id)||!!equipmentDef(id)?1:10)}
 function totalIn(stacks,id){return stacks.reduce((sum,x)=>sum+(x.id===id?x.count:0),0)}
 function syncInventory(){const obj={};for(const x of S.bag)obj[x.id]=(obj[x.id]||0)+x.count;S.inventory=obj}
@@ -403,7 +404,7 @@ laurelAreas.slice(0,3).forEach(area=>{regionStock[area].laurel=1});
 // Each physical object has its own ID. A lap visits every uncollected object once.
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
- return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:AMMO_LIMITS[id]?20:(id==='water'||id==='lighter')?3:1,taken:false})))];
+ return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:itemSetCount(id),taken:false})))];
 }));
 const regionSeen=Object.fromEntries(Object.keys(regionStock).map(area=>[area,new Set()]));
 // Durations are wall-clock seconds. S.remaining includes the 30-second preparation.
@@ -589,7 +590,7 @@ function defeatPlayer(player,killer=null){
  return corpse;
 }
 function createDroneCorpse(kind,area,now=Date.now(),killerId=actorIdentity(S)){
- const def=DRONE_DEFS[kind];return createCorpse('drone',def.name,area,def.drops.map(id=>({id,count:1})),now,{killerId,lifetimeMs:def.respawn*1000});
+ const def=DRONE_DEFS[kind];return createCorpse('drone',def.name,area,def.drops.map(id=>({id,count:itemSetCount(id)})),now,{killerId,lifetimeMs:def.respawn*1000});
 }
 function pruneCorpses(now=Date.now()){
  for(let i=corpses.length-1;i>=0;i--)if(!corpseAvailable(corpses[i],now))corpses.splice(i,1);
@@ -941,7 +942,7 @@ function showMap(updateClock=true){
  }).join('');
  const phase=matchClock?.section||0;
  mapRenderKey=phase+':'+matchClock?.result+':'+matchClock?.ended;
- const guide=phase===0?'開始前：開始区画を選択できます（スタミナ消費なし）':'移動時スタミナ −5。⚠の区画は次セクション開始時に封鎖';
+ const guide=phase===0?'開始前：開始区画を選択できます（スタミナ消費なし）':'移動コスト5（スタミナ不足分はHP消費）。⚠の区画は次セクション開始時に封鎖';
  modal('📍 エリア選択',`<div class="bp-region-picker"><div class="bp-section-status">${phase===0?'開始前':'セクション '+phase}　残り <span id="mapSectionClock">${formatTime(sectionSeconds())}</span> ｜ 封鎖 ${matchClock?.blocked.length||0}/18区画</div><p class="bp-region-guide">${guide}　現在地：<b>${S.place}</b></p><div class="bp-region-grid">${cards}</div></div>`);
 }
 function move(p){
@@ -952,8 +953,11 @@ function move(p){
  if(S.busy||S.pendingFound)return toast('探索中は移動できません');
  if(p===S.place)return;
  S.place=p;S.enemy=false;S.stacks=0;S.found=[];
- if(matchClock.section>0)S.st=Math.max(0,S.st-5);
- addLog(p+'へ移動した（発見履歴は破棄）');closeModal();refresh();
+ let staminaCost=0,hpCost=0;
+ if(matchClock.section>0){staminaCost=Math.min(S.st,5);hpCost=5-staminaCost;S.st-=staminaCost;S.hp=Math.max(0,S.hp-hpCost);}
+ addLog(p+'へ移動した（スタミナ −'+staminaCost+(hpCost?'／HP −'+hpCost:'')+'・発見履歴は破棄）');closeModal();
+ if(S.hp===0)eliminatePlayer('移動時のHP消費により脱落しました。');
+ refresh();
 }
 initializeMatch();
 initializeDrones();
