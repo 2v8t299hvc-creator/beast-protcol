@@ -429,7 +429,7 @@ function showItemStack(index){
 }
 function showItem(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)showItemStack(i);else {closeModal();refresh()}}
 function showRecipesFor(id){
- const list=recipes.filter(r=>Object.hasOwn(r.need,id));
+ const list=recipes.filter(r=>Object.hasOwn(r.need,id)).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
  modal('🔧 '+names[id]+'から製作',list.map(r=>{
  const ok=canCraft(r);
  return craftRecipeHTML(r);
@@ -464,8 +464,9 @@ function craftRecipeHTML(r){
  }).join('');
  return `<div class="recipe bp-craft-card" data-recipe-id="${r.id}">
   <div class="bp-craft-head">${itemIconHTML(r.id)}<div class="bp-craft-info"><strong>${r.name}</strong><span>${r.desc||''}</span></div><span class="bp-craft-status ${ok?'ready':'locked'}">${ok?'製作可能':'素材を確認'}</span></div>
+  ${ok?`<button onclick="craft('${r.id}','${r.category}')">🔧 製作する</button>`:''}
   <div class="bp-craft-materials">${materials}</div>
-  <button ${ok?'':'disabled'} onclick="craft('${r.id}','${r.category}')">${ok?'🔧 製作する':'素材不足／満杯'}</button>
+  ${ok?'':`<button disabled>素材不足／満杯</button>`}
   ${recipes.some(next=>Object.hasOwn(next.need,r.id))?`<button class="bp-related-link" onclick="focusRelatedRecipe(\'${r.id}\')">↗ 関連製作へ</button>`:'' }
  </div>`;
 }
@@ -518,7 +519,7 @@ function refreshCraftCards(){
 }
 function focusRelatedRecipe(sourceId){
  materialSourceReturn=null;
- const related=recipes.filter(r=>Object.hasOwn(r.need,sourceId));
+ const related=recipes.filter(r=>Object.hasOwn(r.need,sourceId)).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
  if(!related.length)return;
  if(!craftOrigin){craftOrigin={category:document.querySelector('.craftTabs button.selected')?.getAttribute('onclick')?.match(/showCraft\('([^']+)'/)?.[1]||'item',subcategory:selectedCraftSubcategory,scroll:currentCraftScroll(),source:sourceId}}
  const html='<button onclick="returnToCraft()">← 元の製作一覧へ戻る</button><p class="small">'+names[sourceId]+'を素材とするレシピ</p><div class="craft bp-craft-list">'+related.map(craftRecipeHTML).join('')+'</div>';
