@@ -192,7 +192,7 @@ function craftConsumption(r){
  }return {stacks,equipment,equipmentAmmo};
 }
 const BAG_SLOTS=6, FIND_SLOTS=3, FIND_QUEUE_MAX=4;
-let S={found:[],pendingFound:null,hp:180,st:120,ehp:0,enemy:false,enemyKind:null,corpseVisit:null,corpseId:null,statusEffects:{},stacks:0,lastHit:0,skillUntil:0,cool:0,level:1,xp:0,character:'kaito',masteryAttacks:{fist:0,slash:0,gun:0,bow:0},equipmentAmmo:{},equipment:{weapon:null,head:null,arm:null,body:null,legs:null,accessory:null},bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},place:'山岳区画',busy:false,ticks:0,remaining:1350};
+let S={found:[],pendingFound:null,hp:180,st:120,ehp:0,enemy:false,enemyKind:null,corpseVisit:null,corpseId:null,statusEffects:{},recoveryReadyAt:{hp:0,stamina:0},stacks:0,lastHit:0,skillUntil:0,cool:0,level:1,xp:0,character:'kaito',masteryAttacks:{fist:0,slash:0,gun:0,bow:0},equipmentAmmo:{},equipment:{weapon:null,head:null,arm:null,body:null,legs:null,accessory:null},bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},place:'山岳区画',busy:false,ticks:0,remaining:1350};
 const $=id=>document.getElementById(id);const rand=n=>Math.floor(Math.random()*n);
 function addLog(s){let d=document.createElement('div');d.textContent='› '+s;$('log').prepend(d);while($('log').children.length>5)$('log').lastChild.remove()}
 let tt;function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('toast').classList.remove('show'),1400)}
@@ -243,7 +243,7 @@ function renderStageArt(){
  }
 }
 
-function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/'+maxHp();$('stval').textContent=S.st+'/'+maxSt();$('hpbar').style.width=S.hp/maxHp()*100+'%';$('stbar').style.width=S.st/maxSt()*100+'%';$('levelProgress').textContent='Lv.'+S.level+' ('+levelProgress()+')';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]+ammoLabel(equipped('weapon'),S.equipmentAmmo.weapon)+(equipmentDef(equipped('weapon'))?.ammoType&&!weaponAmmo()?' →素手':''):'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');renderCombat();renderStatusEffects();$('clock').textContent=formatTime(S.remaining);renderMatchStatus();}
+function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/'+maxHp();$('stval').textContent=S.st+'/'+maxSt();$('hpbar').style.width=S.hp/maxHp()*100+'%';$('stbar').style.width=S.st/maxSt()*100+'%';$('levelProgress').textContent='Lv.'+S.level+' ('+levelProgress()+')';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]+ammoLabel(equipped('weapon'),S.equipmentAmmo.weapon)+(equipmentDef(equipped('weapon'))?.ammoType&&!weaponAmmo()?' →素手':''):'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');renderCombat();renderStatusEffects();renderRecoveryCooldowns();$('clock').textContent=formatTime(S.remaining);renderMatchStatus();}
 function renderCombat(){
  const fighting=!!S.enemy;
  $('game').classList.toggle('in-combat',fighting);$('enemy').classList.toggle('on',fighting);
@@ -681,23 +681,42 @@ function primary(){
  },1000);
 }
 function skill(){if(S.enemy)return ignoreDiscoveredDrone();toast('探索型戦闘ではスキルは準備中です')}
+const RECOVERY_COOLDOWN_MS=3000;
+const RECOVERY_ITEMS={
+ ration:{group:'hp',amount:20},kit:{group:'hp',amount:60},
+ seaweed:{group:'hp',amount:10},seaweed_soup:{group:'hp',amount:30},fried_swordfish:{group:'hp',amount:40},
+ swordfish_sashimi:{group:'hp',amount:30},minefish_sashimi:{group:'hp',amount:25},paradise_sashimi:{group:'hp',amount:20},
+ paradise_platter:{group:'hp',amount:100},paradise_broth:{group:'hp',amount:30},
+ drink:{group:'stamina',amount:40},water:{group:'stamina',amount:10}
+};
+function recoveryWait(group,now=Date.now()){return Math.max(0,(S.recoveryReadyAt[group]||0)-now)}
+function recoveryButtonHTML(id,label){
+ const group=RECOVERY_ITEMS[id].group,wait=recoveryWait(group);
+ return `<button class="bp-recovery-use" data-recovery-group="${group}" data-use-label="${label}" onclick="useItem('${id}')" ${wait?'disabled':''}>${wait?'あと '+(wait/1000).toFixed(1)+'秒':label}</button>`;
+}
+function renderRecoveryCooldowns(){
+ document.querySelectorAll('.bp-recovery-use').forEach(button=>{
+  const wait=recoveryWait(button.dataset.recoveryGroup);
+  button.disabled=wait>0;
+  button.textContent=wait?'あと '+(wait/1000).toFixed(1)+'秒':button.dataset.useLabel;
+ });
+}
 function useItem(id){
  if(!allowMatchAction())return;
  if(AMMO_LIMITS[id])return reloadWeapon(id);
- if(!['ration','drink','kit','water','seaweed','seaweed_soup','fried_swordfish','swordfish_sashimi','minefish_sashimi','paradise_sashimi','paradise_platter','paradise_broth'].includes(id)||!S.inventory[id])return toast('アイテムがありません');
- if(id!=='drink'&&id!=='water'&&S.hp>=maxHp())return toast('HPは満タンです');
- if((id==='drink'||id==='water')&&S.st>=maxSt())return toast('スタミナは満タンです');
- takeFromBag(id,1);
- if(id==='ration')S.hp=Math.min(maxHp(),S.hp+20);
- if(id==='drink')S.st=Math.min(maxSt(),S.st+40);
- if(id==='kit')S.hp=Math.min(maxHp(),S.hp+60);
- if(id==='water')S.st=Math.min(maxSt(),S.st+10);
- const hpRecovery={seaweed:10,seaweed_soup:30,fried_swordfish:40,swordfish_sashimi:30,minefish_sashimi:25,paradise_sashimi:20,paradise_platter:100,paradise_broth:30};
- if(hpRecovery[id])S.hp=Math.min(maxHp(),S.hp+hpRecovery[id]);
- addLog(names[id]+'を使用した');
- toast(names[id]+'を使用した');
- refresh();
- if($('back').classList.contains('on')&&$('modalTitle').textContent.startsWith('📦')){if(S.inventory[id])showItem(id);else closeModal();}
+ const item=RECOVERY_ITEMS[id];
+ if(!item||!S.inventory[id])return toast('アイテムがありません');
+ const now=Date.now(),wait=recoveryWait(item.group,now);
+ if(wait)return toast((item.group==='hp'?'HP':'スタミナ')+'回復はあと '+(wait/1000).toFixed(1)+'秒');
+ if(item.group==='hp'&&S.hp>=maxHp())return toast('HPは満タンです');
+ if(item.group==='stamina'&&S.st>=maxSt())return toast('スタミナは満タンです');
+ if(!takeFromBag(id,1))return toast('アイテムがありません');
+ if(item.group==='hp')S.hp=Math.min(maxHp(),S.hp+item.amount);
+ else S.st=Math.min(maxSt(),S.st+item.amount);
+ S.recoveryReadyAt[item.group]=now+RECOVERY_COOLDOWN_MS;
+ addLog(names[id]+'を使用した');toast(names[id]+'を使用した');
+ // Successful recovery always closes inventory/item/corpse menus, including when the stack remains.
+ closeModal();refresh();
 }
 function rest(){if(!allowMatchAction())return;if(S.enemy)return toast('接敵中は休息できません');S.hp=Math.min(maxHp(),S.hp+25);S.st=Math.min(maxSt(),S.st+40);addLog('休息して体力・スタミナを回復した');refresh()}
 function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modalCloseBtn').textContent=S.pendingFound?'📦 保留':'✕ 閉じる';$('back').classList.add('on')};function closeModal(){S.corpseVisit=null;if(S.pendingFound){decideFound(false);return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
@@ -766,11 +785,11 @@ function renderInventory(){
 }
 function showItemStack(index){
  const entry=S.bag[index];if(!entry){closeModal();refresh();return}const id=entry.id;
- const healing=['ration','drink','kit','water','seaweed','seaweed_soup','fried_swordfish','swordfish_sashimi','minefish_sashimi','paradise_sashimi','paradise_platter','paradise_broth'].includes(id);
+ const healing=!!RECOVERY_ITEMS[id];
  const related=recipes.filter(r=>Object.hasOwn(r.need,id));
  const controls=[
  AMMO_LIMITS[id]?`<button onclick="reloadWeapon('${id}')">装備武器に装填</button>`:'',
- healing?`<button onclick="useItem('${id}')">使用する</button>`:'',
+ healing?recoveryButtonHTML(id,'使用する'):'',
  equipmentDef(id)?`<button onclick="equip('${id}',${index})">装備する</button>`:'',
  related.length?`<button onclick="showRecipesFor('${id}')">製作する（${related.length}件）</button>`:'',
  `<button class="dropbtn" onclick="discardStack(${index})">このスタックを捨てる</button>`
@@ -796,8 +815,8 @@ function showEquipment(){
 }
 function showBag(){
  const slots=orderedInventory().map(([k,v],i)=>{
-  const canUse=['ration','drink','kit','water','seaweed','seaweed_soup','fried_swordfish','swordfish_sashimi','minefish_sashimi','paradise_sashimi','paradise_platter','paradise_broth'].includes(k);
-  const useButton=AMMO_LIMITS[k]?`<button onclick="reloadWeapon('${k}')">装填</button>`:canUse?`<button onclick="useItem('${k}')">使用</button>`:'';
+  const canUse=!!RECOVERY_ITEMS[k];
+  const useButton=AMMO_LIMITS[k]?`<button onclick="reloadWeapon('${k}')">装填</button>`:canUse?recoveryButtonHTML(k,'使用'):'';
   const equipButton=equipmentDef(k)?`<button onclick="equip('${k}',${i})">装備</button>`:'';
   return `<div class="slot">${names[k]} ${ammoLabel(k,S.bag[i].ammo)} × ${v}/${stackLimit(k)}${useButton}${equipButton}<button class="dropbtn" onclick="discardStack(${i})">このスタックを捨てる</button></div>`;
  });
