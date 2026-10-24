@@ -12,7 +12,7 @@ function harness(){
  return {run:code=>vm.runInContext(code,context),tick(){const i=timers.findIndex(t=>t.ms===1000);assert(i>=0,'pending game action');timers.splice(i,1)[0].fn()}};
 }
 const h=harness(),run=h.run;
-function reset(){run(`S.bag=[];syncInventory();Object.keys(S.equipment).forEach(k=>S.equipment[k]=null);S.equipmentAmmo={};S.masteryAttacks={fist:0,slash:0,gun:0,bow:0};S.level=1;S.xp=0;S.hp=180;S.st=120;S.busy=false;S.enemy=false;S.pendingFound=null;S.found=[];`)}
+function reset(){run(`matchClock.section=1;matchClock.sectionEndsAt=Date.now()+180000;matchClock.blocked=[];matchClock.nextBlocked=planNextBlocked(1,[]);matchClock.ended=false;matchClock.result=null;S.bag=[];syncInventory();Object.keys(S.equipment).forEach(k=>S.equipment[k]=null);S.equipmentAmmo={};S.masteryAttacks={fist:0,slash:0,gun:0,bow:0};S.level=1;S.xp=0;S.hp=180;S.st=120;S.busy=false;S.enemy=false;S.pendingFound=null;S.found=[];`)}
 function eq(expr,expected){assert.equal(run(expr),expected,expr)}
 // All new recipe inputs exist and every new equipment item has provisional zero stats.
 eq(`Object.values(EQUIPMENT_DEFS).filter(d=>d.ammoType).length`,20);
