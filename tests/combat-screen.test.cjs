@@ -11,32 +11,46 @@ function harness(){
  return {run:code=>vm.runInContext(code,context),setNow:x=>{now=x},advance(ms){now+=ms;vm.runInContext('tickMatchClock()',context)},tickAction(complete=true){const i=timers.findIndex(t=>t.ms===1000);assert(i>=0);timers.splice(i,1)[0].fn();if(complete)this.tickFeedback()},tickFeedback(){const i=timers.findIndex(t=>t.ms===900);if(i>=0)timers.splice(i,1)[0].fn()}};
 }
 
-let h=harness();let run=s=>h.run(s);const eq=(s,v)=>assert.equal(run(s),v,s);
-h.advance(30000);
-run('discoverDrone()');
-eq('S.enemy',true);eq(`$('enemy').classList.contains('on')`,true);eq(`$('game').classList.contains('in-combat')`,true);
-eq(`$('mainBtn').textContent`,'⚔ 攻撃');eq(`$('skillBtn').textContent`,'↩ 逃走');eq(`$('skillBtn').disabled`,false);eq(`$('moveBtn').disabled`,true);eq(`$('back').classList.contains('on')`,false);
-assert(!html.includes('id="ehp"'),'Enemy exact HP must not appear in markup');
-assert(!/HP\s*<span id="ehp"/.test(html));
-run('S.ehp=34;refresh()');eq(`$('ebar').style.width`,'40%');
-run('var oldPlace=S.place;move("森林区画")');eq('S.place===oldPlace',true);
-// Main action attacks once, not another search. Double tap and escape during an attack are ignored.
-run('Math.random=()=>0;var beforeTicks=S.ticks;primary()');eq('S.busy',true);eq(`$('mainBtn').disabled`,true);eq(`$('skillBtn').disabled`,true);
-run('primary();skill()');eq('S.enemy',true);h.tickAction(false);eq('S.enemy',true);eq('S.busy',true);eq(`$('enemy').classList.contains('on')`,true);eq(`$('mainBtn').disabled`,true);eq(`$('skillBtn').disabled`,true);eq(`parseFloat($('ebar').style.width)<40`,true);h.tickFeedback();eq('S.ticks===beforeTicks',true);eq('S.enemy',false);eq('S.busy',false);eq('droneHp()<85',true);
-eq(`$('mainBtn').textContent`,'⌕ 探索');eq(`$('enemy').classList.contains('on')`,false);eq(`$('moveBtn').disabled`,false);
-// Escape does not attack, spend ammunition, reset HP or grant XP.
-run(`discoverDrone();var savedHp=droneHp();var xpBefore=S.xp;var masteryBefore=S.masteryAttacks.fist;skill()`);
-eq('S.enemy',false);eq('droneHp()===savedHp',true);eq('S.xp===xpBefore',true);eq('S.masteryAttacks.fist===masteryBefore',true);
-run('discoverDrone()');eq('S.ehp===savedHp',true);run('skill()');
-// Last bullet + empty weapon fallback are visible in the combat controls.
-run(`droneHpByArea[S.place]=85;receive('handgun',1,{ammo:1});equip('handgun');discoverDrone()`);
-eq(`$('combatWeapon').textContent.includes('1/20')`,true);run('primary()');h.tickAction();run('discoverDrone()');
-eq(`$('combatWeapon').textContent.includes('弾切れ・素手で攻撃')`,true);run('skill()');
-// Killing a drone hides the enemy and opens the existing loot screen.
-run('S.enemy=true;S.ehp=1;primary()');h.tickAction(false);eq(`$('ebar').style.width`,'0%');eq('S.enemy',true);eq('S.pendingFound',null);h.tickFeedback();eq('S.enemy',false);eq('S.pendingFound.id','scrap');eq(`$('enemy').classList.contains('on')`,false);
-// Section lockdown terminates the combat screen and disables escape/attack.
-h=harness();h.advance(30000);run('S.place=matchClock.nextBlocked[0];discoverDrone()');h.setNow(run('matchClock.sectionEndsAt'));run('tickMatchClock()');eq('S.enemy',false);eq(`$('enemy').classList.contains('on')`,false);eq(`$('mainBtn').disabled`,true);eq(`$('skillBtn').disabled`,true);
-console.log('PASS: central enemy state, HP bar only, main attack routing, escape, button locking, preserved HP, ammo fallback, loot and lockdown cleanup');
 
-// Lockdown during feedback cannot produce loot or revive combat after elimination.
-h=harness();h.advance(30000);run('S.place=matchClock.nextBlocked[0];discoverDrone();S.ehp=1;Math.random=()=>0;primary()');h.tickAction(false);h.setNow(run('matchClock.sectionEndsAt'));run('tickMatchClock()');h.tickFeedback();eq('S.enemy',false);eq('S.hp',0);eq('S.pendingFound',null);
+let h=harness();let run=s=>h.run(s);const eq=(s,v)=>assert.equal(run(s),v,s);
+function fixture(kind='bird'){
+ // Pin a real instance to an open candidate area to exercise the real encounter/attack entrypoints.
+ run(`matchClock.section=4;matchClock.sectionEndsAt=Date.now()+180000;matchClock.blocked=[];matchClock.nextBlocked=[];matchClock.result=null;matchClock.ended=false;S.hp=180;S.busy=false;S.enemy=false;S.enemyKind=null;S.pendingFound=null;S.pendingDroneLoot=null;S.statusEffects={};S.place=DRONE_DEFS['${kind}'].areas[0];Object.assign(drones['${kind}'],{spawned:true,hp:DRONE_DEFS['${kind}'].hp,area:S.place,generation:1});`);
+ run(`discoverDrone('${kind}')`);
+}
+// Section unlocks and real 85% discovery, without the obsolete 16% training-drone roll.
+eq('Object.values(drones).filter(d=>d.spawned).length',0);h.advance(30000);eq('Object.values(drones).filter(d=>d.spawned).length',0);
+h.advance(180000);eq('drones.bird.spawned&&drones.fish.spawned',true);eq('drones.dog.spawned',false);
+h.advance(180000);eq('drones.dog.spawned&&drones.humanoid.spawned',true);h.advance(180000);eq('drones.scorpion.spawned&&drones.octopus.spawned',true);
+for(const kind of ['bird','fish','dog','humanoid','scorpion','octopus']){
+ fixture(kind);eq('S.enemy',true);eq(`$('enemyName').textContent`,run(`DRONE_DEFS['${kind}'].name`));eq(`$('mainBtn').textContent`,'⚔ 攻撃');eq(`$('skillBtn').textContent`,'↩ 逃走');
+ eq(`$('enemyArt').src`,run(`DRONE_DEFS['${kind}'].art`));eq(`$('ebar').style.width`,'100%');run('skill()');eq('S.enemy',false);
+}
+assert(!html.includes('training_drone'),'Old training asset must no longer be referenced');assert(!html.includes('id="ehp"'));assert(!html.includes('DRONE_ENCOUNTER_CHANCE'));
+fixture();run(`ignoreDiscoveredDrone();Math.random=()=>0.849;primary()`);h.tickAction();eq('S.enemy',true);
+fixture();run(`ignoreDiscoveredDrone();Math.random=()=>0.85;primary()`);h.tickAction();eq('S.enemy',false);
+// State survives escape and relocation; blocked candidate sets hide an instance until one reopens.
+fixture('dog');run('drones.dog.hp=71;S.ehp=71;skill();discoverDrone("dog")');eq('S.ehp',71);run('skill();matchClock.blocked=[...DRONE_DEFS.dog.areas];updateDrones()');eq('drones.dog.area',null);eq('drones.dog.hp',71);run('matchClock.blocked=[];updateDrones()');eq('DRONE_DEFS.dog.areas.includes(drones.dog.area)',true);eq('drones.dog.hp',71);
+// Rare shell mitigation, epic exemption and unarmed/empty-magazine classification.
+fixture('scorpion');run(`S.bag=[];syncInventory();receive('reinforced',1);equip('reinforced');`);
+eq(`damageToDrone(DRONE_DEFS.scorpion,'fist',100)`,Math.floor(run(`combatDamage(100,28,'fist')`)*0.85));
+run(`receive('plasma',1);equip('plasma')`);eq(`damageToDrone(DRONE_DEFS.scorpion,'fist',100)`,run(`combatDamage(100,28,'fist')`));
+run(`receive('laser_rifle',1,{ammo:0});equip('laser_rifle')`);eq(`damageToDrone(DRONE_DEFS.scorpion,weaponType(),100)`,Math.floor(run(`combatDamage(100,28,'fist')`)*0.85));
+// Reapplication resets a status clock, including at the maximum; long pauses decay multiple stacks.
+fixture('scorpion');run(`applyStatus('purplePoison');applyStatus('purplePoison')`);eq(`statusStacks('purplePoison')`,2);h.advance(4000);run(`applyStatus('purplePoison')`);h.advance(1000);eq(`statusStacks('purplePoison')`,3);h.advance(4000);eq(`statusStacks('purplePoison')`,2);
+run(`for(let i=0;i<15;i++)applyStatus('purplePoison')`);eq(`statusStacks('purplePoison')`,10);h.advance(4000);run(`applyStatus('purplePoison')`);h.advance(1000);eq(`statusStacks('purplePoison')`,10);h.advance(49000);eq(`statusStacks('purplePoison')`,0);
+run(`S.statusEffects={};S.equipment={};S.level=1;Math.random=()=>0;var hpBefore=S.hp;var first=droneCounterDamage(DRONE_DEFS.scorpion);var second=droneCounterDamage(DRONE_DEFS.scorpion)`);eq('first',37);eq('second',38);eq('S.hp===hpBefore',true); // poison alone never ticks damage
+run(`S.statusEffects={};applyStatus('blackInk');applyStatus('blackInk')`);eq(`droneAccuracy(DRONE_DEFS.octopus,'fist')`,run(`MASTERY_ACCURACY[masteryRank('fist')]-7`));
+// Full combat round: one attack, one counter only while alive, HP feedback then two-choice loot.
+fixture('scorpion');run('Math.random=()=>0;var ticksBefore=S.ticks;primary();primary();skill()');eq('S.busy',true);h.tickAction(false);eq(`statusStacks('purplePoison')`,1);eq('S.enemy',true);eq('S.ticks===ticksBefore',true);h.tickFeedback();eq('S.enemy',false);
+fixture('bird');run('S.equipment={};drones.bird.hp=1;S.ehp=1;var generation=drones.bird.generation;var before=S.hp;Math.random=()=>0;primary()');h.tickAction(false);eq('S.hp===before',true);eq('drones.bird.spawned',false);eq('S.pendingDroneLoot',null);eq(`$('ebar').style.width`,'0%');h.tickFeedback();eq('S.pendingDroneLoot.options.length',2);
+run(`S.bag=['stone','wood','wire','cloth','fur','rubber'].map(id=>({id,count:10}));syncInventory();chooseDroneLoot('egg')`);eq('S.pendingDroneLoot',null);eq('S.pendingFound.id','egg');run('decideFound(true)');eq('S.pendingFound.id','egg');run('decideFound(false)');eq('S.found[0].id','egg');eq('S.inventory.egg||0',0);
+// Repeated reward clicks cannot duplicate, cooldown recreates exactly one fresh individual.
+run(`chooseDroneLoot('feather')`);eq('S.pendingFound',null);run('updateDrones()');eq('drones.bird.spawned',false);
+h.advance(59999);eq('drones.bird.spawned',false);h.advance(1);eq('drones.bird.spawned',true);eq('drones.bird.hp',50);eq('drones.bird.generation===generation+1',true);run('updateDrones();updateDrones()');eq('drones.bird.generation===generation+1',true);
+// A representative late build (Lv7, B fist mastery, rare reinforced gloves) matches the requested hit ranges.
+run(`S.level=7;S.equipment={weapon:'reinforced'};S.masteryAttacks.fist=65;S.statusEffects={};var hitCounts=Object.fromEntries(Object.entries(DRONE_DEFS).map(([k,d])=>[k,Math.ceil(d.hp/damageToDrone(d,'fist',totalStat('attack')))]))`);
+for(const [k,n] of Object.entries({bird:1,fish:1,dog:2,humanoid:2,scorpion:6,octopus:4}))eq(`hitCounts.${k}`,n);
+// Closure during pending attack/feedback still cancels the encounter without loot or resurrection.
+fixture('scorpion');run('S.place=matchClock.nextBlocked[0]||S.place;matchClock.nextBlocked=[S.place];primary()');h.setNow(run('matchClock.sectionEndsAt'));h.tickAction();eq('S.hp',0);eq('S.enemy',false);eq('S.pendingDroneLoot',null);
+console.log('PASS: six species, section spawns, 85% discovery, HP persistence/respawn, shell, poison/ink clocks, loot capacity, representative hit counts and lockdown cancellation');

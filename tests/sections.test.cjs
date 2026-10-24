@@ -38,7 +38,7 @@ for(const action of ['search','stock','attack']){
  h=harness();h.advance(30000);run('S.place=matchClock.nextBlocked[0];var xpBefore=S.xp;var bagBefore=JSON.stringify(S.bag)');
  if(action==='search')run('primary()');
  if(action==='stock')run(`S.found=[{id:'stone',count:1}];takeFound(0)`);
- if(action==='attack')run('S.enemy=true;S.ehp=85;attackDiscoveredDrone()');
+ if(action==='attack')run('S.enemyKind="bird";Object.assign(drones.bird,{area:S.place,hp:85,spawned:true,generation:1});S.enemy=true;S.ehp=85;attackDiscoveredDrone()');
  h.setNow(run('matchClock.sectionEndsAt'));h.tickAction();eq('matchClock.result','eliminated');eq('S.hp',0);eq('S.xp===xpBefore',true);eq('JSON.stringify(S.bag)===bagBefore',true);eq('S.pendingFound',null);eq('S.busy',false);
 }
 // Ending the match never upgrades an already eliminated player's result to a draw.
