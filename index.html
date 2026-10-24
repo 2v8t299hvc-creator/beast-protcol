@@ -205,7 +205,7 @@ function renderStageArt(){
  }
 }
 
-function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/'+maxHp();$('stval').textContent=S.st+'/'+maxSt();$('hpbar').style.width=S.hp/maxHp()*100+'%';$('stbar').style.width=S.st/maxSt()*100+'%';$('levelProgress').textContent='Lv.'+S.level+' ('+levelProgress()+')';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]:'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');$('enemy').classList.toggle('on',S.enemy);$('ehp').textContent=S.ehp;$('ebar').style.width=Math.max(0,S.ehp/85*100)+'%';$('mainBtn').textContent=S.enemy?'⚔ 攻撃':'⌕ 探索';$('mainBtn').classList.toggle('fight',S.enemy);$('skillBtn').disabled=!S.enemy||Date.now()<S.cool;$('skillBtn').textContent=Date.now()<S.cool?'⚡ '+Math.ceil((S.cool-Date.now())/1000)+'秒':'⚡ スキル';$('clock').textContent=`${String(Math.floor(S.remaining/60)).padStart(2,'0')}:${String(S.remaining%60).padStart(2,'0')}`;}
+function refresh(){renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/'+maxHp();$('stval').textContent=S.st+'/'+maxSt();$('hpbar').style.width=S.hp/maxHp()*100+'%';$('stbar').style.width=S.st/maxSt()*100+'%';$('levelProgress').textContent='Lv.'+S.level+' ('+levelProgress()+')';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]:'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');$('enemy').classList.toggle('on',false);$('ehp').textContent=S.ehp;$('ebar').style.width=Math.max(0,S.ehp/85*100)+'%';$('mainBtn').textContent='⌕ 探索';$('mainBtn').classList.toggle('fight',false);$('skillBtn').disabled=true;$('skillBtn').textContent=Date.now()<S.cool?'⚡ '+Math.ceil((S.cool-Date.now())/1000)+'秒':'⚡ スキル';$('clock').textContent=`${String(Math.floor(S.remaining/60)).padStart(2,'0')}:${String(S.remaining%60).padStart(2,'0')}`;}
 const FISH_ITEMS=new Set(['swordfish','minefish','porcupinefish','paradisefish']);
 function stackLimit(id){return FISH_ITEMS.has(id)||!!equipmentDef(id)?1:10}
 function totalIn(stacks,id){return stacks.reduce((sum,x)=>sum+(x.id===id?x.count:0),0)}
@@ -343,8 +343,66 @@ function pushStock(obj){
  S.found.unshift(obj);
  if(S.found.length>FIND_QUEUE_MAX){const old=S.found.pop();addLog(names[stockItemId(old)]+'の古いストックが押し出された')}
 }
-function primary(){if(S.busy||S.pendingFound)return;if(S.hp<=0){toast('戦闘不能！再読み込みで最初から');return}S.busy=true;const battle=S.enemy;if(!battle&&S.st<3){S.busy=false;toast('スタミナ不足！休息してね');return}if(!battle){S.st-=3;refresh();setTimeout(()=>{S.busy=false;S.ticks++;let r=Math.random();if(r<.16){S.enemy=true;S.ehp=85;S.stacks=0;S.nextEnemyAction=Date.now()+2100;addLog('訓練ドローンと遭遇！');toast('敵と遭遇！探索が攻撃に切り替わった');}else if(r<.84){let obj=drawRegionItem(S.place);if(obj){addFound(obj);}else{addLog('この区画の素材は採り尽くされている');toast('この区画の素材はなくなった');}}else{addLog('何も見つからなかった');toast('探索したが何もなかった');}refresh()},1000)}else{setTimeout(()=>{S.busy=false;if(!S.enemy)return;const type=weaponType();recordAttack(type);const hit=Math.random()*100<MASTERY_ACCURACY[masteryRank(type)];const dmg=hit?combatDamage(totalStat('attack')+rand(7),ENEMY_STATS.defense,type):0;S.ehp=Math.max(0,S.ehp-dmg);S.stacks=Math.min(S.stacks+1,5);addLog(hit?WEAPON_TYPES[type]+'で'+dmg+'ダメージ！':'攻撃が外れた！');gainXp(1);if(S.ehp===0){gainXp(3);S.enemy=false;addFound('scrap');toast('訓練ドローン撃破！ ガラクタを発見');addLog('訓練ドローンが機能停止した');S.stacks=0}else{toast(hit?dmg+'ダメージ！':'MISS！');}refresh()},1000)}}
-function skill(){if(!S.enemy||Date.now()<S.cool||S.st<10)return toast('スキルを使用できません');S.st-=10;S.cool=Date.now()+25000;S.skillUntil=Date.now()+5000;toast('テンポブレイク！敵の行動を遅延');addLog('テンポブレイク発動：5秒間、行動が0.5秒遅くなる');refresh()}
+const DRONE_DISCOVERY_RATE=0.85;
+const DRONE_ENCOUNTER_CHANCE=0.16;
+const droneHpByArea={};
+function droneHp(area=S.place){return Object.hasOwn(droneHpByArea,area)?droneHpByArea[area]:85}
+function discoverDrone(){
+ S.enemy=true;S.ehp=droneHp();
+ addLog('訓練ドローンを発見！');
+ modal('🤖 訓練ドローンを発見！','<p>HP '+S.ehp+'/85</p><p>どうする？</p><button onclick="attackDiscoveredDrone()">⚔ 攻撃する</button><button onclick="ignoreDiscoveredDrone()">↩ 見逃す</button>');
+ refresh();
+}
+function ignoreDiscoveredDrone(){
+ if(S.busy)return;S.enemy=false;closeModal();addLog('ドローンを見逃した');refresh();
+}
+function attackDiscoveredDrone(){
+ if(!S.enemy||S.busy)return;
+ if(S.hp<=0)return toast('戦闘不能！');
+ closeModal();S.busy=true;refresh();
+ setTimeout(()=>{
+  const type=weaponType();recordAttack(type);
+  const hit=Math.random()*100<MASTERY_ACCURACY[masteryRank(type)];
+  const bonus=EQUIPMENT_SPECIAL_EFFECTS[equipped('body')]?.damageBonus||0;
+  const dmg=hit?combatDamage(totalStat('attack')+rand(7),ENEMY_STATS.defense,type)+bonus:0;
+  S.ehp=Math.max(0,S.ehp-dmg);
+  droneHpByArea[S.place]=S.ehp;
+  addLog(hit?WEAPON_TYPES[type]+'で'+dmg+'ダメージ！':'攻撃が外れた！');
+  gainXp(1);
+  if(S.ehp===0){
+   gainXp(3);addLog('訓練ドローンが機能停止した');
+   S.busy=false;S.enemy=false;S.stacks=0;
+   toast('訓練ドローン撃破！');
+   addFound('scrap');
+  }else{
+   const counter=Math.max(1,Math.floor(rand(7)+5-totalStat('defense')*0.5));
+   S.hp=Math.max(0,S.hp-counter);
+   addLog('訓練ドローンの反撃！ '+counter+'ダメージ');
+   S.busy=false;S.enemy=false;
+   toast(S.hp===0?'HPが0！ 演習脱落':hit?dmg+'ダメージ！':'MISS！');
+  }
+  refresh();
+ },1000);
+}
+function primary(){
+ if(S.busy||S.pendingFound||S.enemy)return;
+ if(S.hp<=0)return toast('戦闘不能！再読み込みで最初から');
+ if(S.st<3)return toast('スタミナ不足！休息してね');
+ S.busy=true;S.st-=3;refresh();
+ setTimeout(()=>{
+  S.busy=false;S.ticks++;
+  const r=Math.random();
+  if(r<DRONE_ENCOUNTER_CHANCE&&droneHp()>0&&Math.random()<DRONE_DISCOVERY_RATE){
+   discoverDrone();
+  }else if(r<0.84){
+   const obj=drawRegionItem(S.place);
+   if(obj)addFound(obj);
+   else{addLog('この区画の素材は採り尽くされている');toast('この区画の素材はなくなった')}
+  }else{addLog('何も見つからなかった');toast('探索したが何もなかった')}
+  refresh();
+ },1000);
+}
+function skill(){toast('探索型戦闘ではスキルは準備中です')}
 function useItem(id){
  if(!['ration','drink','kit','water','seaweed','seaweed_soup','fried_swordfish','swordfish_sashimi','minefish_sashimi','paradise_sashimi','paradise_platter','paradise_broth'].includes(id)||!S.inventory[id])return toast('アイテムがありません');
  if(id!=='drink'&&id!=='water'&&S.hp>=maxHp())return toast('HPは満タンです');
@@ -574,6 +632,6 @@ function showMap(){
 }
 function move(p){if(S.busy||S.pendingFound)return toast('探索中は移動できません');S.place=p;S.enemy=false;S.stacks=0;S.found=[];S.st=Math.max(0,S.st-5);addLog(p+'へ移動した（発見履歴は破棄）');closeModal();refresh()}
 setInterval(()=>{if(S.remaining>0)S.remaining--;refresh()},1000);
-setInterval(()=>{if(!S.enemy||S.hp<=0)return;let now=Date.now();if(!S.nextEnemyAction)S.nextEnemyAction=now+2000;if(now>=S.nextEnemyAction){let slowed=now<S.skillUntil;S.nextEnemyAction=now+2000+(slowed?500:0);let hit=Math.max(1,Math.floor(rand(7)+5-totalStat('defense')*0.5));S.hp=Math.max(0,S.hp-hit);addLog('訓練ドローンの攻撃！ '+hit+'ダメージ');if(S.hp===0){S.enemy=false;toast('HPが0！ 演習脱落');}refresh()}},200);
+
 addLog('仮想演習へログインした。');addLog('山岳区画で素材を探索しよう。素材の配置数には上限がある。');refresh();
 </script></body></html>
