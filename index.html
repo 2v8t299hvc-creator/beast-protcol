@@ -495,8 +495,12 @@ function showMaterialSource(id,fromRecipe){
  const areas=Object.entries(regionStock).filter(([area,stock])=>(stock[id]||0)>0);
  const makers=recipes.filter(r=>r.id===id);
  const areaHtml=areas.length?areas.map(([area,stock])=>'<div class="bp-source-place">'+area+(area===S.place?' <b>● 現在地</b>':'')+' <small>探索物体 '+stock[id]+'件</small></div>').join(''):'<p class="small">通常の区画配置にはありません。</p>';
- const makerHtml=makers.length?makers.map(r=>'<div class="bp-source-craft">'+craftRecipeHTML(r)+'</div>').join(''):'<p class="small">現時点では製作レシピがありません。</p>';
+ const makerHtml=makers.length?makers.map(r=>'<div class="bp-source-craft"><p>'+r.name+'：'+Object.entries(r.need).map(([k,n])=>names[k]+' ×'+n).join(' ＋ ')+'</p><button onclick="openMaterialRecipe(\''+r.id+'\')">🔧 このレシピへ移動</button></div>').join(''):'<p class="small">現時点では製作レシピがありません。</p>';
  modal('🔎 '+names[id]+'の入手方法','<button onclick="returnFromMaterialSource()">← 元の製作画面へ戻る</button><h3>📍 探索で入手</h3>'+areaHtml+'<h3>🔧 製作で入手</h3>'+makerHtml);
+}
+function openMaterialRecipe(id){
+ const r=recipes.find(x=>x.id===id);if(!r)return;
+ modal('🔧 '+r.name+'の製作','<button onclick="returnFromMaterialSource()">← 元の製作画面へ戻る</button><div class="craft bp-craft-list">'+craftRecipeHTML(r)+'</div>');
 }
 function returnFromMaterialSource(){
  const state=materialSourceReturn;if(!state)return;
