@@ -688,11 +688,12 @@ function primary(){
 function skill(){if(S.enemy)return ignoreDiscoveredDrone();toggleRecoveryMode('hp')}
 const RECOVERY_COOLDOWN_MS=3000;
 const RECOVERY_ITEMS={
+ egg:{group:'hp',amount:10},beast_meat:{group:'hp',amount:30},premium_ration:{group:'hp',amount:80},energy_drink:{group:'stamina',amount:50},
  ration:{group:'hp',amount:20},kit:{group:'hp',amount:60},
  seaweed:{group:'hp',amount:10},seaweed_soup:{group:'hp',amount:30},fried_swordfish:{group:'hp',amount:40},
  swordfish_sashimi:{group:'hp',amount:30},minefish_sashimi:{group:'hp',amount:25},paradise_sashimi:{group:'hp',amount:20},
  paradise_platter:{group:'hp',amount:100},paradise_broth:{group:'hp',amount:30},
- drink:{group:'stamina',amount:40},water:{group:'stamina',amount:10}
+ drink:{group:'stamina',amount:20},water:{group:'stamina',amount:10}
 };
 function recoveryWait(group,now=Date.now()){return Math.max(0,(S.recoveryReadyAt[group]||0)-now)}
 function recoveryButtonHTML(id,label){
@@ -779,7 +780,9 @@ const itemArt={
  needle_suit:['water_gear_3',0],stinger_suit:['water_gear_3',1],onyx_suit:['water_gear_3',2]
 };
 Object.assign(itemArt,{"handgun":["guns_1",0],"hand_blaster":["guns_1",1],"magma_blaster":["guns_1",2],"rifle":["guns_1",3],"sniper_rifle":["guns_2",0],"laser_rifle":["guns_2",1],"cannon":["guns_2",2],"blizzard_cannon":["guns_2",3],"japanese_bow":["bows_1",0],"strong_bow":["bows_1",1],"mighty_bow":["bows_1",2],"azusa_bow":["bows_1",3],"unerring_bow":["bows_2",0],"western_bow":["bows_2",1],"longbow":["bows_2",2],"silver_bow":["bows_2",3],"golden_bow":["bows_3",0],"eros_bow":["bows_3",1],"amalgam_bow":["bows_3",2],"apollo_bow":["bows_3",3],"telescope":["optics",0],"optical_sight":["optics",1],"stargazing_telescope":["optics",2],"mythic_telescope":["optics",3],"angel_wing":["hides_feathers",0],"feather":["hides_feathers",1],"fur":["hides_feathers",2],"rubbery_hide":["hides_feathers",3],"gunpowder":["ranged_materials",0],"wire":["ranged_materials",1],"reinforced_wire":["ranged_materials",2],"laurel":["ranged_materials",3],"bullets":["ammo",0],"arrows":["ammo",1]});
+Object.assign(itemArt,{egg:['drone_drops_1',0],fish_scale:['drone_drops_1',1],beast_meat:['drone_drops_1',2],premium_ration:['drone_drops_1',3],energy_drink:['drone_drops_2',0]});
 const itemArtSheets={
+ drone_drops_1:'assets/icon_drone_drops_1.webp',drone_drops_2:'assets/icon_drone_drops_2.webp',
  basic:'assets/icon_basic.png',tools:'assets/icon_tools.png',metal:'assets/icon_metal.png',
  advanced:'assets/icon_advanced.png',gems:'assets/icon_gems.png',stones:'assets/icon_stones.png',
  gloves:'assets/icon_gloves.png',materials:'assets/icon_materials.png',
@@ -832,7 +835,7 @@ function showItemStack(index){
  related.length?`<button onclick="showRecipesFor('${id}')">製作する（${related.length}件）</button>`:'',
  `<button class="dropbtn" onclick="discardStack(${index})">このスタックを捨てる</button>`
  ].filter(Boolean).join('');
- modal('📦 '+names[id],`${['premium_ration','energy_drink'].includes(id)?'<p class="small">回復効果は未設定です。</p>':''}<p>${ammoLabel(id,entry.ammo)} 選択スタック：${entry.count}/${stackLimit(id)}個（同種合計：${S.inventory[id]||0}個）</p><div class="rowItemActions">${controls}</div>`);
+ modal('📦 '+names[id],`<p>${ammoLabel(id,entry.ammo)} 選択スタック：${entry.count}/${stackLimit(id)}個（同種合計：${S.inventory[id]||0}個）</p><div class="rowItemActions">${controls}</div>`);
 }
 function showItem(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)showItemStack(i);else {closeModal();refresh()}}
 function showRecipesFor(id){
