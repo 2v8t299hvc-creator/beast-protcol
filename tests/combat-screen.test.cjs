@@ -47,7 +47,7 @@ fixture('bird');run('S.equipment={};drones.bird.hp=1;S.ehp=1;var generation=dron
 run(`var bodyId=S.corpseVisit.id;var token=S.corpseVisit.token;S.bag=['stone','wood','wire','cloth','fur','rubber'].map(id=>({id,count:10}));syncInventory();takeCorpseItem(1,token)`);eq('S.corpseVisit.token===token',true);eq('S.inventory.egg||0',0);eq('findCorpse(bodyId).items.length',2);
 run(`discardStack(0);renderCorpse();takeCorpseItem(1,token)`);eq('S.corpseVisit',null);eq('S.inventory.egg',1);eq('findCorpse(bodyId).items.length',1);
 run(`takeCorpseItem(0,token)`);eq('S.inventory.feather||0',0);run('updateDrones()');eq('drones.bird.spawned',false);
-h.advance(59999);eq('drones.bird.spawned',false);h.advance(1);eq('drones.bird.spawned',true);eq('drones.bird.hp',50);eq('drones.bird.generation===generation+1',true);run('updateDrones();updateDrones()');eq('drones.bird.generation===generation+1',true);
+h.advance(79999);eq('drones.bird.spawned',false);h.advance(1);eq('drones.bird.spawned',true);eq('drones.bird.hp',50);eq('drones.bird.generation===generation+1',true);run('updateDrones();updateDrones()');eq('drones.bird.generation===generation+1',true);
 // A representative late build (Lv7, B fist mastery, rare reinforced gloves) matches the requested hit ranges.
 run(`S.level=7;S.equipment={weapon:'reinforced'};S.masteryAttacks.fist=65;S.statusEffects={};var hitCounts=Object.fromEntries(Object.entries(DRONE_DEFS).map(([k,d])=>[k,Math.ceil(d.hp/damageToDrone(d,'fist',totalStat('attack')))]))`);
 for(const [k,n] of Object.entries({bird:1,fish:1,dog:2,humanoid:2,scorpion:6,octopus:4}))eq(`hitCounts.${k}`,n);

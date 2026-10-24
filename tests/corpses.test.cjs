@@ -27,8 +27,8 @@ run(`showBag();discardStack(0)`);eq('S.corpseVisit.token===token',true);eq(`$('m
 // An explicit close relinquishes the visit without removing an item; a corpse remains rediscoverable.
 run('openCorpse(body.id);var oldToken=S.corpseVisit.token;closeModal();takeCorpseItem(0,oldToken)');eq('body.items.length',1);eq('S.inventory.wood||0',0);
 run('Math.random=()=>0;primary()');h.tickAction();eq('S.corpseVisit.id===body.id',true);run('takeCorpseItem(0,S.corpseVisit.token)');eq('S.inventory.wood',10);eq('body.items.length',0);eq('corpses.includes(body)',true);
-// Drone corpses expire exactly two minutes after death, even with their screen open.
-active();run(`var body=createDroneCorpse('bird',S.place);openCorpse(body.id);var token=S.corpseVisit.token`);h.advance(119999);eq('!!findCorpse(body.id)',true);h.advance(1);eq('findCorpse(body.id)',undefined);eq('S.corpseVisit',null);run('takeCorpseItem(0,token)');eq('S.inventory.feather||0',0);
+// Drone corpses expire exactly the species lifetime after death, even with their screen open.
+active();run(`var body=createDroneCorpse('bird',S.place);openCorpse(body.id);var token=S.corpseVisit.token`);h.advance(79999);eq('!!findCorpse(body.id)',true);h.advance(1);eq('findCorpse(body.id)',undefined);eq('S.corpseVisit',null);run('takeCorpseItem(0,token)');eq('S.inventory.feather||0',0);
 // Expiry is also checked directly on click, without relying on an interval tick.
 active();run(`var body=createDroneCorpse('bird',S.place);openCorpse(body.id);var token=S.corpseVisit.token`);h.setNow(run('body.expiresAt'));run('takeCorpseItem(0,token)');eq('S.inventory.feather||0',0);
 // Player corpses survive beyond the drone lifetime, but cannot be accessed from a different region.
@@ -38,3 +38,16 @@ active();run(`receive('rifle',1,{ammo:0});equip('rifle');receive('stone',10);eli
 // A lockdown while inspecting closes the claim and does not award the selected item.
 active();run(`var body=createDroneCorpse('bird',S.place);openCorpse(body.id);var token=S.corpseVisit.token;matchClock.nextBlocked=[S.place]`);h.setNow(run('matchClock.sectionEndsAt'));run('takeCorpseItem(0,token)');eq('S.hp',0);eq('S.corpseVisit',null);eq('S.inventory.feather||0',0);
 console.log('PASS: twelve slots, player death transfer, ammo metadata, one-stack visit tokens, capacity, inventory return, rediscovery, exact expiry and lockdown cancellation');
+// Species cooldown and corpse lifetime share the exact same deadline for all six kinds.
+for(const [kind,seconds] of Object.entries({bird:80,fish:80,dog:100,humanoid:100,scorpion:120,octopus:120})){
+ active();run(`matchClock.section=4;var body=createDroneCorpse('${kind}',S.place);Object.assign(drones['${kind}'],{spawned:false,area:null,hp:0,respawnAt:body.expiresAt});`);
+ eq(`DRONE_DEFS['${kind}'].respawn`,seconds);eq('body.expiresAt-body.createdAt',seconds*1000);
+ h.advance(seconds*1000-1);eq('!!findCorpse(body.id)',true);eq(`drones['${kind}'].spawned`,false);
+ h.advance(1);eq('findCorpse(body.id)',undefined);eq(`drones['${kind}'].spawned`,true);
+}
+// Actual exploration uses the recorded killer identity and strict 10%/5% thresholds.
+for(const [own,roll,found] of [[true,0.099999,true],[true,0.10,false],[false,0.049999,true],[false,0.05,false]]){
+ active();run(`var body=createDroneCorpse('bird',S.place,Date.now(),${own?'actorIdentity(S)':"'someone-else'"});Math.random=()=>${roll};primary()`);h.tickAction();eq('!!S.corpseVisit',found);
+}
+active();run(`var other={id:'enemy-2'};var victim={id:'victim',name:'敵',place:S.place,hp:1,bag:[{id:'wood',count:1}],equipment:{}};var body=defeatPlayer(victim,other)`);eq('body.killerId','enemy-2');eq('body.ownerId','victim');eq('corpseDiscoveryRate(body,S)',0.05);eq('corpseDiscoveryRate(body,other)',0.10);eq('S.corpseVisit',null);eq('body.expiresAt',null);
+console.log('PASS: all species timing boundaries, killer provenance and exact discovery thresholds');

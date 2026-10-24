@@ -157,7 +157,7 @@ function levelProgress(){return S.level>=MAX_LEVEL?'MAX':S.xp+'/'+LEVEL_XP_STEPS
 function gainXp(amount){if(S.level>=MAX_LEVEL||amount<=0)return;S.xp+=amount;while(S.level<MAX_LEVEL&&S.xp>=LEVEL_XP_STEPS[S.level-1]){S.xp-=LEVEL_XP_STEPS[S.level-1];S.level++;S.hp=Math.min(maxHp(),S.hp+ACTOR_STATS.hpGrowth+Math.ceil(maxHp()*0.1));S.st=Math.min(maxSt(),S.st+ACTOR_STATS.stGrowth+Math.ceil(maxSt()*0.1));addLog('レベルアップ！ Lv.'+S.level+' HP・スタミナ回復');}if(S.level>=MAX_LEVEL)S.xp=0}
 
 const COMBAT_FEEDBACK_MS=900;
-const DRONE_DEFS={"bird":{"name":"鳥型ドローン","hp":50,"attack":18,"defense":0,"section":2,"respawn":60,"areas":["山岳区画","射撃演習区画","森林区画"],"drops":["feather","egg"],"art":"assets/enemies/bird.webp"},"fish":{"name":"魚型ドローン","hp":60,"attack":12,"defense":8,"section":2,"respawn":60,"areas":["海岸区画","港湾区画","湖畔区画"],"drops":["fish_scale","water"],"art":"assets/enemies/fish.webp"},"dog":{"name":"犬型ドローン","hp":120,"attack":32,"defense":6,"section":3,"respawn":90,"areas":["住宅区画","公園区画","商業区画"],"drops":["fur","beast_meat"],"art":"assets/enemies/dog.webp"},"humanoid":{"name":"人型ドローン","hp":130,"attack":25,"defense":12,"section":3,"respawn":90,"areas":["工業区画","戦闘演習区画","医療区画"],"drops":["cell","lighter"],"art":"assets/enemies/humanoid.webp"},"scorpion":{"name":"サソリ型ドローン","hp":300,"attack":36,"defense":28,"section":4,"respawn":120,"areas":["遺跡区画","神殿区画","密林区画"],"drops":["wonderjewel","premium_ration"],"shell":true,"poison":true,"art":"assets/enemies/scorpion.webp"},"octopus":{"name":"タコ型ドローン","hp":250,"attack":40,"defense":18,"section":4,"respawn":120,"areas":["水没施設区画","地下機構区画","海底研究区画"],"drops":["rubbery_hide","energy_drink"],"evasion":5,"ink":true,"art":"assets/enemies/octopus.webp"}};
+const DRONE_DEFS={"bird":{"name":"鳥型ドローン","hp":50,"attack":18,"defense":0,"section":2,"respawn":80,"areas":["山岳区画","射撃演習区画","森林区画"],"drops":["feather","egg"],"art":"assets/enemies/bird.webp"},"fish":{"name":"魚型ドローン","hp":60,"attack":12,"defense":8,"section":2,"respawn":80,"areas":["海岸区画","港湾区画","湖畔区画"],"drops":["fish_scale","water"],"art":"assets/enemies/fish.webp"},"dog":{"name":"犬型ドローン","hp":120,"attack":32,"defense":6,"section":3,"respawn":100,"areas":["住宅区画","公園区画","商業区画"],"drops":["fur","beast_meat"],"art":"assets/enemies/dog.webp"},"humanoid":{"name":"人型ドローン","hp":130,"attack":25,"defense":12,"section":3,"respawn":100,"areas":["工業区画","戦闘演習区画","医療区画"],"drops":["cell","lighter"],"art":"assets/enemies/humanoid.webp"},"scorpion":{"name":"サソリ型ドローン","hp":300,"attack":36,"defense":28,"section":4,"respawn":120,"areas":["遺跡区画","神殿区画","密林区画"],"drops":["wonderjewel","premium_ration"],"shell":true,"poison":true,"art":"assets/enemies/scorpion.webp"},"octopus":{"name":"タコ型ドローン","hp":250,"attack":40,"defense":18,"section":4,"respawn":120,"areas":["水没施設区画","地下機構区画","海底研究区画"],"drops":["rubbery_hide","energy_drink"],"evasion":5,"ink":true,"art":"assets/enemies/octopus.webp"}};
 function equipped(slot){return S.equipment[slot]||null}
 function equipmentDef(id){return EQUIPMENT_DEFS[id]||null}
 function weaponAmmo(id=equipped('weapon'),ammo=S.equipmentAmmo.weapon||0){const def=equipmentDef(id);return def?.ammoType?Math.max(0,Math.min(def.capacity,Number(ammo)||0)):0}
@@ -435,9 +435,9 @@ function isBlocked(area){return !!matchClock?.blocked.includes(area)}
 function nextClosingAreas(){return matchClock?matchClock.nextBlocked.filter(area=>!matchClock.blocked.includes(area)):[]}
 function sectionSeconds(now=Date.now()){return !matchClock||matchClock.ended?0:Math.max(0,Math.ceil((matchClock.sectionEndsAt-now)/1000))}
 function formatTime(seconds){return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
-function eliminatePlayer(reason){
+function eliminatePlayer(reason,killerId=null){
  if(matchClock.result)return;
- createPlayerCorpse(S,S.place);S.hp=0;S.busy=false;S.enemy=false;S.pendingFound=null;S.corpseVisit=null;matchClock.result='eliminated';
+ createPlayerCorpse(S,S.place,Date.now(),killerId);S.hp=0;S.busy=false;S.enemy=false;S.pendingFound=null;S.corpseVisit=null;matchClock.result='eliminated';
  addLog(reason);modal('演習脱落','<p>'+reason+'</p><p>セクション進行とマップは引き続き確認できます。</p><button onclick="location.reload()">新しい演習を開始</button>');
 }
 function finishMatch(){
@@ -559,41 +559,43 @@ function ignoreDiscoveredDrone(){
  S.enemy=false;closeModal();addLog(DRONE_DEFS[S.enemyKind].name+'から逃走した');toast('逃走した');refresh();
 }
 // Corpse entries preserve whole stacks and ranged-weapon ammunition. One entry per encounter.
-const CORPSE_DISCOVERY_RATE=0.25; // Provisional roll, only when a nonempty corpse exists in this region.
+const CORPSE_DISCOVERY_RATES={killer:0.10,other:0.05};
 const DRONE_CORPSE_LIFETIME=120000;
-let corpseSerial=0,corpseVisitSerial=0;
+let corpseSerial=0,corpseVisitSerial=0,actorSerial=0;
+function actorIdentity(actor){if(!actor)return null;if(typeof actor==='string')return actor;return actor.id||(actor.id='actor-'+(++actorSerial))}
+function corpseDiscoveryRate(corpse,actor=S){const id=actorIdentity(actor);return corpse.killerId&&corpse.killerId===id?CORPSE_DISCOVERY_RATES.killer:CORPSE_DISCOVERY_RATES.other}
 const corpses=[];
 function corpseAvailable(c,now=Date.now()){return !!c&&(c.expiresAt===null||now<c.expiresAt)}
 function findCorpse(id){return corpses.find(c=>c.id===id&&corpseAvailable(c))}
-function createCorpse(kind,name,area,entries,now=Date.now()){
+function createCorpse(kind,name,area,entries,now=Date.now(),details={}){
  const items=entries.filter(x=>x&&x.id&&x.count>0).map(x=>({...x}));
  if(items.length>12)throw new Error('死体の所持品は最大12枠です');
- const corpse={id:'corpse-'+(++corpseSerial),kind,name,area,createdAt:now,expiresAt:kind==='drone'?now+DRONE_CORPSE_LIFETIME:null,items};
+ const corpse={id:'corpse-'+(++corpseSerial),kind,name,area,createdAt:now,killerId:details.killerId||null,ownerId:details.ownerId||null,expiresAt:kind==='drone'?now+(details.lifetimeMs??DRONE_CORPSE_LIFETIME):null,items};
  corpses.push(corpse);return corpse;
 }
-function createPlayerCorpse(player,area=player.place,now=Date.now()){
+function createPlayerCorpse(player,area=player.place,now=Date.now(),killerId=null){
  const existing=corpses.find(c=>c.id===player.corpseId);if(existing)return existing;
  const entries=(player.bag||[]).map(x=>({...x,source:'所持品'}));
  for(const [slot,id] of Object.entries(player.equipment||{}))if(id)entries.push({id,count:1,source:EQUIPMENT_SLOTS[slot],...(equipmentDef(id)?.ammoType?{ammo:player.equipmentAmmo?.[slot]||0}:{})});
- const corpse=createCorpse('player',player.name||(player.character==='kaito'?'カイト':'プレイヤー'),area,entries,now);
+ const corpse=createCorpse('player',player.name||(player.character==='kaito'?'カイト':'プレイヤー'),area,entries,now,{killerId,ownerId:actorIdentity(player)});
  player.corpseId=corpse.id;player.bag=[];player.inventory={};player.equipment=Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null]));player.equipmentAmmo={};
  return corpse;
 }
 // Shared entry point for future COM players using the same bag/equipment schema as S.
-function defeatPlayer(player){
- if(player===S){eliminatePlayer('プレイヤーとの戦闘で脱落しました。');return corpses.find(c=>c.id===S.corpseId)}
- const corpse=createPlayerCorpse(player,player.place);player.hp=0;
- if(player!==S&&allowMatchAction())openCorpse(corpse.id);
+function defeatPlayer(player,killer=null){
+ if(player===S){eliminatePlayer('プレイヤーとの戦闘で脱落しました。',actorIdentity(killer));return corpses.find(c=>c.id===S.corpseId)}
+ const killerId=actorIdentity(killer||S);const corpse=createPlayerCorpse(player,player.place,Date.now(),killerId);player.hp=0;
+ if(killerId===actorIdentity(S)&&allowMatchAction())openCorpse(corpse.id);
  return corpse;
 }
-function createDroneCorpse(kind,area,now=Date.now()){
- const def=DRONE_DEFS[kind];return createCorpse('drone',def.name,area,def.drops.map(id=>({id,count:1})),now);
+function createDroneCorpse(kind,area,now=Date.now(),killerId=actorIdentity(S)){
+ const def=DRONE_DEFS[kind];return createCorpse('drone',def.name,area,def.drops.map(id=>({id,count:1})),now,{killerId,lifetimeMs:def.respawn*1000});
 }
 function pruneCorpses(now=Date.now()){
  for(let i=corpses.length-1;i>=0;i--)if(!corpseAvailable(corpses[i],now))corpses.splice(i,1);
  if(S.corpseVisit&&!corpses.some(c=>c.id===S.corpseVisit.id)){
   S.corpseVisit=null;
-  if($('modalTitle').textContent.startsWith('死体：'))modal('死体は消滅しました','<p>ドローンの死体は死亡から2分で消滅します。</p>');
+  if($('modalTitle').textContent.startsWith('死体：'))modal('死体は消滅しました','<p>このドローンの死体は消滅しました。</p>');
  }
 }
 function escapeCorpseText(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -643,7 +645,7 @@ function attackDiscoveredDrone(){
    gainXp(3);addLog(def.name+'を撃破した');S.stacks=0;toast(def.name+'撃破！');
   }else{
    const counter=droneCounterDamage(def);S.hp=Math.max(0,S.hp-counter);
-   if(S.hp===0)eliminatePlayer(def.name+'との戦闘で脱落しました。');
+   if(S.hp===0)eliminatePlayer(def.name+'との戦闘で脱落しました。','drone-'+d.kind+'-'+generation);
    addLog(def.name+'の反撃！ '+counter+'ダメージ');toast(S.hp===0?'HPが0！ 演習脱落':hit?dmg+'ダメージ！':'MISS！');
   }
   refresh();if(!S.enemy)return;
@@ -664,7 +666,8 @@ function primary(){
   if(!allowMatchAction())return;
   S.busy=false;S.ticks++;
   const bodies=corpses.filter(c=>corpseAvailable(c)&&c.area===S.place&&c.items.length>0);
-  if(bodies.length&&Math.random()<CORPSE_DISCOVERY_RATE){openCorpse(bodies[rand(bodies.length)].id);refresh();return}
+  const body=bodies.length?bodies[rand(bodies.length)]:null;
+  if(body&&Math.random()<corpseDiscoveryRate(body)){openCorpse(body.id);refresh();return}
   const present=Object.values(drones).some(d=>d.spawned&&d.hp>0&&d.area===S.place);
   const r=Math.random();
   if(present&&r<DRONE_DISCOVERY_RATE){
