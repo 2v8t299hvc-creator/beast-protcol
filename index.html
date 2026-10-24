@@ -316,7 +316,7 @@ function discardStack(index){
  $('back').classList.remove('on');refresh();toast(names[id]+' ×'+count+'を置いた');
 }
 function discard(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)discardStack(i)}
-const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1,"wood_sword":2},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3,"survival_knife":2},"地下機構区画":{"scrap":10,"mystery":5,"oil":5},"神殿区画":{"marble":10,"mystery":5,"wood_sword":2},"工業区画":{"scrap":15,"lighter":5,"oil":8,"survival_knife":3},"海岸区画":{"stone":6,"wood":6,"water":5,"seaweed":8,"swimsuit":5,"rubber":3,"oil":2,"lighter":2,"swordfish":4,"porcupinefish":4,"paradisefish":2,"survival_knife":1,"wood_sword":1},"港湾区画":{"scrap":8,"wood":6,"water":3,"seaweed":3,"swimsuit":2,"rubber":8,"oil":8,"lighter":6,"swordfish":3,"porcupinefish":2,"survival_knife":4,"wood_sword":1},"湖畔区画":{"wood":8,"stone":6,"marble":4,"water":10,"seaweed":8,"swimsuit":2,"rubber":2,"lighter":1,"minefish":6,"paradisefish":6,"wood_sword":2},"水没施設区画":{"scrap":8,"mystery":4,"water":6,"seaweed":5,"swimsuit":4,"rubber":6,"oil":4,"lighter":2,"swordfish":2,"minefish":3,"porcupinefish":2,"paradisefish":3,"survival_knife":2}};
+const regionStock={"山岳区画":{"stone":10,"wood":10,"mystery":3,"pickaxe":1,"wood_sword":2},"遺跡区画":{"stone":10,"mystery":5,"pickaxe":3,"survival_knife":2},"地下機構区画":{"scrap":10,"mystery":5,"oil":5},"神殿区画":{"marble":10,"mystery":5,"wood_sword":2},"工業区画":{"scrap":15,"lighter":5,"oil":8,"survival_knife":3},"海岸区画":{"stone":6,"wood":6,"water":5,"seaweed":8,"swimsuit":5,"rubber":3,"oil":2,"lighter":2,"swordfish":4,"porcupinefish":4,"paradisefish":2,"survival_knife":1,"wood_sword":1},"港湾区画":{"scrap":8,"wood":6,"water":3,"seaweed":3,"swimsuit":2,"rubber":8,"oil":8,"lighter":6,"swordfish":3,"porcupinefish":2,"survival_knife":4,"wood_sword":1},"湖畔区画":{"wood":8,"stone":6,"marble":4,"water":10,"seaweed":8,"swimsuit":2,"rubber":2,"lighter":1,"minefish":6,"paradisefish":6,"wood_sword":2},"水没施設区画":{"scrap":8,"mystery":4,"water":6,"seaweed":5,"swimsuit":4,"rubber":6,"oil":4,"lighter":2,"swordfish":2,"minefish":3,"porcupinefish":2,"paradisefish":3,"survival_knife":2},"射撃演習区画":{},"戦闘演習区画":{},"住宅区画":{},"公園区画":{},"医療区画":{},"森林区画":{},"密林区画":{},"商業区画":{},"海底研究区画":{}};
 // Each physical object has its own ID. A lap visits every uncollected object once.
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
@@ -624,8 +624,8 @@ function showMap(){
  const cards=Object.keys(regionStock).map(area=>{
   const current=area===S.place,art=stageArtRegistry.backgrounds[area]||'';
   return `<button type="button" class="bp-region-card ${current?'current':''}" onclick="move('${area}')" ${current?'disabled':''} aria-label="${area}${current?' 現在地':'へ移動'}">
-   <span class="bp-region-image" style="background-image:linear-gradient(0deg,#07111cf0 0%,#07111c00 72%),url('${art}')"></span>
-   <span class="bp-region-footer"><strong>${area}</strong><small>${current?'● 現在地':'移動する ›'}</small></span>
+   <span class="bp-region-image" style="background-image:${art?`linear-gradient(0deg,#07111cf0 0%,#07111c00 72%),url(\'${art}\')`:`linear-gradient(135deg,#203e53,#0c1623)`}"></span>
+   <span class="bp-region-footer"><strong>${area}</strong><small>${current?'● 現在地':art?'移動する ›':'準備中・移動可能 ›'}</small></span>
   </button>`;
  }).join('');
  modal('📍 エリア選択',`<div class="bp-region-picker"><p class="bp-region-guide">行きたい区画の背景をタップして移動！　現在地：<b>${S.place}</b>　／　移動時スタミナ −5</p><div class="bp-region-grid">${cards}</div></div>`);
