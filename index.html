@@ -269,7 +269,7 @@ function renderCombat(){
  const fighting=!!S.enemy;
  $('game').classList.toggle('in-combat',fighting);$('enemy').classList.toggle('on',fighting);
  const opponent=S.enemyPlayerId&&findActor(S.enemyPlayerId);
- const def=opponent?{name:actorName(opponent),hp:actorMax(opponent,'hp'),art:'assets/characters/hayate_encounter.webp'}:DRONE_DEFS[S.enemyKind];
+ const def=opponent?{name:actorName(opponent),hp:actorMax(opponent,'hp'),art:'assets/characters/hayate_encounter_transparent.webp'}:DRONE_DEFS[S.enemyKind];
  $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?'🦅':'🛰️';
  if(def&&$('enemyArt').getAttribute('src')!==def.art){$('enemyArt').hidden=false;$('enemyFallback').hidden=true;$('enemyArt').src=def.art;$('enemyArt').alt=def.name;}
  $('droneTraits').innerHTML=def?.shell?'<span>頑丈な殻</span><span>毒針</span>':def?.ink?'<span>ぬめぬめ</span><span>タコ墨ブレス</span>':'';
