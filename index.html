@@ -157,8 +157,9 @@ const RECIPE_RARITY={
 };
 Object.assign(RECIPE_RARITY,{"handgun":"common","hand_blaster":"rare","magma_blaster":"epic","rifle":"common","sniper_rifle":"rare","laser_rifle":"epic","cannon":"rare","blizzard_cannon":"epic","telescope":"uncommon","optical_sight":"uncommon","stargazing_telescope":"rare","mythic_telescope":"epic","japanese_bow":"common","strong_bow":"uncommon","reinforced_wire":"uncommon","mighty_bow":"rare","azusa_bow":"epic","unerring_bow":"epic","western_bow":"common","longbow":"uncommon","silver_bow":"rare","golden_bow":"rare","angel_wing":"rare","eros_bow":"epic","amalgam_bow":"epic","apollo_bow":"epic","rubbery_hide":"uncommon","gunpowder":"common","wire":"common","feather":"common","fur":"common","laurel":"epic","bullets":"common","arrows":"common"});
 const MASTERY_ACCURACY=[85,86,87,88,89,90,91,92,93,94,95,96,97,98,99];
-function maxHp(){return ACTOR_STATS.baseHp+ACTOR_STATS.hpGrowth*(S.level-1)}
-function maxSt(){return ACTOR_STATS.baseSt+ACTOR_STATS.stGrowth*(S.level-1)}
+function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return stat==='hp'?growth.baseHp+growth.hpGrowth*(actor.level-1):growth.baseSt+growth.stGrowth*(actor.level-1)}
+function maxHp(){return actorMax(S,'hp')}
+function maxSt(){return actorMax(S,'stamina')}
 function levelProgress(){return S.level>=MAX_LEVEL?'MAX':S.xp+'/'+LEVEL_XP_STEPS[S.level-1]}
 function gainXp(amount){if(S.level>=MAX_LEVEL||amount<=0)return;S.xp+=amount;while(S.level<MAX_LEVEL&&S.xp>=LEVEL_XP_STEPS[S.level-1]){S.xp-=LEVEL_XP_STEPS[S.level-1];S.level++;S.hp=Math.min(maxHp(),S.hp+ACTOR_STATS.hpGrowth+Math.ceil(maxHp()*0.1));S.st=Math.min(maxSt(),S.st+ACTOR_STATS.stGrowth+Math.ceil(maxSt()*0.1));addLog('レベルアップ！ Lv.'+S.level+' HP・スタミナ回復');}if(S.level>=MAX_LEVEL)S.xp=0}
 
@@ -274,7 +275,7 @@ const AMMO_LIMITS={bullets:99,arrows:99};
 function itemSetCount(id){return AMMO_LIMITS[id]?20:(id==='water'||id==='lighter')?3:1}
 function stackLimit(id){return AMMO_LIMITS[id]||(FISH_ITEMS.has(id)||!!equipmentDef(id)?1:10)}
 function totalIn(stacks,id){return stacks.reduce((sum,x)=>sum+(x.id===id?x.count:0),0)}
-function syncInventory(){const obj={};for(const x of S.bag)obj[x.id]=(obj[x.id]||0)+x.count;S.inventory=obj}
+function syncInventory(actor=S){const obj={};for(const x of actor.bag)obj[x.id]=(obj[x.id]||0)+x.count;actor.inventory=obj}
 function occupied(stacks=S.bag){return stacks.length}
 function addToStacks(stacks,id,count,metadata=null){
  if(AMMO_LIMITS[id]&&totalIn(stacks,id)+count>AMMO_LIMITS[id])return null;
@@ -288,8 +289,8 @@ function removeFromStacks(stacks,id,count){
  let left=count;for(let i=0;i<next.length&&left;){if(next[i].id!==id){i++;continue}const n=Math.min(left,next[i].count);next[i].count-=n;left-=n;if(!next[i].count)next.splice(i,1);else i++}return next;
 }
 function canReceive(id,inv=S.bag,count=1){return !!addToStacks(Array.isArray(inv)?inv:S.bag,id,count)}
-function receive(id,count,metadata=null){const next=addToStacks(S.bag,id,count,metadata);if(!next)return false;S.bag=next;syncInventory();return true}
-function takeFromBag(id,count){const next=removeFromStacks(S.bag,id,count);if(!next)return false;S.bag=next;syncInventory();return true}
+function receive(id,count,metadata=null,actor=S){const next=addToStacks(actor.bag,id,count,metadata);if(!next)return false;actor.bag=next;syncInventory(actor);return true}
+function takeFromBag(id,count,actor=S){const next=removeFromStacks(actor.bag,id,count);if(!next)return false;actor.bag=next;syncInventory(actor);return true}
 function addFound(obj){
  const id=stockItemId(obj);
  S.pendingFound=typeof obj==='string'?{id:obj,uid:null,area:null}:obj;
@@ -464,9 +465,11 @@ function syncMatchClock(now=Date.now()){
  if(!matchClock||matchClock.ended)return;
  // Process every crossed boundary, including when Safari resumes after background throttling.
  while(matchClock.section<10&&now>=matchClock.sectionEndsAt){
+  updateComActors(matchClock.sectionEndsAt-1);
   if(matchClock.section===0&&S.place==='待機所'&&!matchClock.result)eliminatePlayer('30秒以内に待機所から出発しなかったため脱落しました。');
   matchClock.section++;
   matchClock.blocked=[...matchClock.nextBlocked];
+  for(const actor of comActors)if(actor.hp>0&&(isBlocked(actor.place)||actor.place==='待機所'))eliminateCom(actor,'区域封鎖・出発期限',matchClock.sectionEndsAt);
   if(matchClock.section===10){finishMatch();return}
   matchClock.sectionEndsAt+=SECTION_RULES[matchClock.section].seconds*1000;
   matchClock.nextBlocked=planNextBlocked(matchClock.section,matchClock.blocked);
@@ -474,7 +477,7 @@ function syncMatchClock(now=Date.now()){
   if(isBlocked(S.place)&&!matchClock.result)eliminatePlayer(S.place+'の封鎖により脱落しました。');
  }
  S.remaining=Math.max(0,Math.ceil((matchClock.startedAt+MATCH_DURATION*1000-now)/1000));
- updateDrones(now);updateRecoveryMode(now);
+ updateComActors(now);updateDrones(now);updateRecoveryMode(now);
 }
 function allowMatchAction(preparation=false){
  syncMatchClock();
@@ -499,20 +502,21 @@ function renderMatchStatus(){
  }
 }
 function tickMatchClock(){syncMatchClock();refresh();const c=S.corpseVisit&&findCorpse(S.corpseVisit.id);if(c&&c.kind==='drone')$('corpseLifetime').textContent='消滅まで '+formatTime(Math.max(0,Math.ceil((c.expiresAt-Date.now())/1000)))}
-function drawRegionItem(area){
+function drawRegionItem(area,actor=S){
+ const seen=actor===S?regionSeen[area]:(actor.seen[area]||(actor.seen[area]=new Set()));
  const objects=regionObjects[area]||[];
- let unseen=objects.filter(obj=>!obj.taken&&!regionSeen[area].has(obj.uid)&&!S.found.includes(obj)&&S.pendingFound!==obj);
+ let unseen=objects.filter(obj=>!obj.taken&&!seen.has(obj.uid)&&!S.found.includes(obj)&&S.pendingFound!==obj);
  if(!unseen.length){
-  regionSeen[area].clear();
+  seen.clear();
   unseen=objects.filter(obj=>!obj.taken&&!S.found.includes(obj)&&S.pendingFound!==obj);
-  if(unseen.length)addLog(area+'の探索が一周した');
+  if(unseen.length&&actor===S)addLog(area+'の探索が一周した');
  }
  if(!unseen.length)return null;
  const obj=unseen[rand(unseen.length)];
- regionSeen[area].add(obj.uid);
+ seen.add(obj.uid);
  return obj;
 }
-function markObjectTaken(obj){if(obj&&obj.uid){const found=(regionObjects[obj.area]||[]).find(x=>x.uid===obj.uid);if(found){found.taken=true;regionSeen[obj.area].clear();}}}
+function markObjectTaken(obj){if(obj&&obj.uid){const found=(regionObjects[obj.area]||[]).find(x=>x.uid===obj.uid);if(found){found.taken=true;regionSeen[obj.area].clear();for(const actor of comActors)actor.seen[obj.area]?.clear();}}}
 function stockItemId(obj){return typeof obj==='string'?obj:obj.id}
 // Newest first. Every new stock entry moves older entries one slot toward the fourth waiting slot.
 function pushStock(obj){
@@ -714,6 +718,12 @@ function renderRecoveryCooldowns(){
   button.textContent=wait?'あと '+(wait/1000).toFixed(1)+'秒':button.dataset.useLabel;
  });
 }
+function recoverActor(actor,id,now=Date.now()){
+ const item=RECOVERY_ITEMS[id];if(!item||actor.hp<=0||(actor.recoveryReadyAt[item.group]||0)>now)return false;
+ const key=item.group==='hp'?'hp':'st',limit=actorMax(actor,item.group);
+ if(actor[key]>=limit||!takeFromBag(id,1,actor))return false;
+ actor[key]=Math.min(limit,actor[key]+item.amount);actor.recoveryReadyAt[item.group]=now+RECOVERY_COOLDOWN_MS;return true;
+}
 function useItem(id){
  if(!allowMatchAction())return;
  if(AMMO_LIMITS[id])return reloadWeapon(id);
@@ -723,10 +733,7 @@ function useItem(id){
  if(wait)return toast((item.group==='hp'?'HP':'スタミナ')+'回復はあと '+(wait/1000).toFixed(1)+'秒');
  if(item.group==='hp'&&S.hp>=maxHp())return toast('HPは満タンです');
  if(item.group==='stamina'&&S.st>=maxSt())return toast('スタミナは満タンです');
- if(!takeFromBag(id,1))return toast('アイテムがありません');
- if(item.group==='hp')S.hp=Math.min(maxHp(),S.hp+item.amount);
- else S.st=Math.min(maxSt(),S.st+item.amount);
- S.recoveryReadyAt[item.group]=now+RECOVERY_COOLDOWN_MS;
+ if(!recoverActor(S,id,now))return toast('アイテムがありません');
  addLog(names[id]+'を使用した');toast(names[id]+'を使用した');
  // Successful recovery always closes inventory/item/corpse menus, including when the stack remains.
  closeModal();refresh();
@@ -861,7 +868,7 @@ function showEquipment(){
   ${id?`<small>攻撃 +${def.attack||0} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=def.capacity||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
  const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
- modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${totalStat('attack')}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button>`);
+ modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${totalStat('attack')}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showComStatus()">開発用：COM行動確認</button>`);
 }
 function showBag(){
  const slots=orderedInventory().map(([k,v],i)=>{
@@ -1012,14 +1019,82 @@ function move(p){
  if(S.busy||S.pendingFound)return toast('探索中は移動できません');
  if(p===S.place)return;
  stopRecoveryMode();S.place=p;S.enemy=false;S.stacks=0;S.found=[];
- let staminaCost=0,hpCost=0;
- if(matchClock.section>0){staminaCost=Math.min(S.st,5);hpCost=5-staminaCost;S.st-=staminaCost;S.hp=Math.max(0,S.hp-hpCost);}
+ const {staminaCost,hpCost}=payMovementCost(S);
  addLog(p+'へ移動した（スタミナ −'+staminaCost+(hpCost?'／HP −'+hpCost:'')+'・発見履歴は破棄）');closeModal();
  if(S.hp===0)eliminatePlayer('移動時のHP消費により脱落しました。');
  refresh();
 }
+// Phase 1-2 COM: provisional neutral stats copied from Kaito; no combat, crafting or victory yet.
+// No hidden actor positions/inventories or unseen remaining resource counts are used by the policy.
+const comActors=[];
+const COM_ACTION_MS=1000;
+function payMovementCost(actor){
+ const staminaCost=matchClock.section>0?Math.min(actor.st,5):0,hpCost=matchClock.section>0?5-staminaCost:0;
+ actor.st-=staminaCost;actor.hp=Math.max(0,actor.hp-hpCost);return {staminaCost,hpCost};
+}
+function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>40)actor.history.shift()}
+function initializeComActors(){
+ comActors.length=0;
+ comActors.push({id:'hayate',name:'ハヤテ',character:'hayate',level:1,xp:0,hp:180,st:120,
+  masteryAttacks:initialMastery('hayate'),place:'待機所',starterWeapon:null,
+  equipment:Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null])),equipmentAmmo:{},
+  bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},
+  recoveryReadyAt:{hp:0,stamina:0},seen:{},history:[],action:'出発準備',searches:0,
+  nextActionAt:matchClock.startedAt+COM_ACTION_MS,corpseId:null});
+}
+function eliminateCom(actor,reason,now){
+ if(actor.corpseId)return;
+ createPlayerCorpse(actor,actor.place,now,null);actor.hp=0;comLog(actor,'脱落：'+reason,now);
+}
+function comMove(actor,now,reason){
+ const safe=Object.keys(regionStock).filter(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a));
+ // Public item distribution is known. Prefer bow supplies, but never inspect live resource counts.
+ const useful=safe.filter(a=>['wood','arrows','wire','feather','water'].some(id=>regionStock[a][id]));
+ const choices=useful.length?useful:safe;if(!choices.length)return false;
+ actor.place=choices[rand(choices.length)];actor.searches=0;actor.seen={};payMovementCost(actor);
+ comLog(actor,reason+' → '+actor.place,now);if(actor.hp<=0)eliminateCom(actor,'移動時のHP消費',now);return true;
+}
+function stepCom(actor,now){
+ if(actor.place==='待機所'){
+  if(!actor.starterWeapon){actor.starterWeapon='practice_bow';actor.equipment.weapon='practice_bow';actor.equipmentAmmo.weapon=20;comLog(actor,'練習用の弓を選択',now);return}
+  comMove(actor,now,'待機所から出発');return;
+ }
+ if(matchClock.section===0)return;
+ if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=10000){comMove(actor,now,'封鎖予告を見て退避');return}
+ for(const group of ['hp','stamina']){
+  const key=group==='hp'?'hp':'st',max=actorMax(actor,group);
+  if(actor[key]<=max*(group==='hp'?0.65:0.3)){
+   const id=actor.bag.find(x=>RECOVERY_ITEMS[x.id]?.group===group)?.id;
+   if(id&&recoverActor(actor,id,now)){comLog(actor,names[id]+'を使用',now);return}
+   // One second of exclusive rest/treatment; cannot search or move in the same action.
+   actor[key]=Math.min(max,actor[key]+RECOVERY_MODE_RATES[group]);comLog(actor,group==='hp'?'HP不足のため治療':'ST不足のため休憩',now);return;
+  }
+ }
+ if(actor.searches>=8){comMove(actor,now,'探索を続けたため別区画へ');return}
+ actor.st-=3;actor.searches++;
+ if(Math.random()>=0.84){comLog(actor,'探索：何も見つからない',now);return}
+ const obj=drawRegionItem(actor.place,actor);
+ if(!obj){comMove(actor,now,'探索して物資切れを確認');return}
+ // Reserve player discoveries; never steal pending items or stock entries.
+ const useful=!!RECOVERY_ITEMS[obj.id]||['wood','arrows','wire','feather','lighter'].includes(obj.id);
+ if(useful&&receive(obj.id,obj.count||1,obj,actor)){markObjectTaken(obj);comLog(actor,'探索・取得：'+names[obj.id]+' ×'+(obj.count||1),now)}
+ else comLog(actor,'探索・保留：'+names[obj.id]+(useful?'（バッグ満杯）':'（今は不要）'),now);
+}
+function updateComActors(now){
+ if(!matchClock||matchClock.ended)return;
+ for(const actor of comActors){
+  // Match duration caps catch-up at 1,350 one-second actions per actor.
+  while(actor.hp>0&&actor.nextActionAt<=now){const at=actor.nextActionAt;actor.nextActionAt+=COM_ACTION_MS;stepCom(actor,at)}
+ }
+}
+function showComStatus(){
+ modal('開発用：COM行動確認', '<p>探索・取得・回復・移動を検証中。制作・対人戦・ドローン戦・勝利判定は未接続。能力値はカイトと同じ仮値。</p>'+comActors.map(a=>
+  '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+' ｜ 弓D＋</p><p>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-15).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('')).join('')+'<button onclick="showComStatus()">更新</button>');
+}
+
 initializeMatch();
 initializeDrones();
+initializeComActors();
 setInterval(tickMatchClock,250);
 document.addEventListener?.('visibilitychange',tickMatchClock);
 globalThis.addEventListener?.('pageshow',tickMatchClock);
