@@ -25,7 +25,7 @@ eq(`new Set(Object.values(regionObjects).flat().filter(x=>x.id==='laurel').map(x
 eq(`Object.values(regionObjects).flat().filter(x=>x.id==='bullets'||x.id==='arrows').every(x=>x.count===20)`,true);
 eq(`regionStock['山岳区画'].feather>0&&regionStock['森林区画'].fur>0&&regionStock['密林区画'].fur>0`,true);
 // All 22 new recipes can produce an item with the declared ingredients.
-const newIds=run(`recipes.slice(-22).map(r=>r.id)`);
+const newIds=run(`recipes.filter(r=>equipmentDef(r.id)?.ammoType||['reinforced_wire','optical_sight','stargazing_telescope','mythic_telescope','angel_wing'].includes(r.id)).map(r=>r.id)`);
 for(const id of newIds){reset();run(`for(const [id,n] of Object.entries(recipes.find(r=>r.id==='${id}').need))assertReceive=receive(id,n);craft('${id}');`);eq(`S.inventory['${id}']`,1);eq(`RECIPE_RARITY['${id}']!==undefined`,true)}
 // Every newly found ranged type starts at its own configured capacity.
 for(const id of run(`Object.keys(EQUIPMENT_DEFS).filter(id=>EQUIPMENT_DEFS[id].ammoType)`)){
