@@ -161,7 +161,7 @@ function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||AC
 function maxHp(){return actorMax(S,'hp')}
 function maxSt(){return actorMax(S,'stamina')}
 function levelProgress(){return S.level>=MAX_LEVEL?'MAX':S.xp+'/'+LEVEL_XP_STEPS[S.level-1]}
-function gainXp(amount){if(S.level>=MAX_LEVEL||amount<=0)return;S.xp+=amount;while(S.level<MAX_LEVEL&&S.xp>=LEVEL_XP_STEPS[S.level-1]){S.xp-=LEVEL_XP_STEPS[S.level-1];S.level++;S.hp=Math.min(maxHp(),S.hp+ACTOR_STATS.hpGrowth+Math.ceil(maxHp()*0.1));S.st=Math.min(maxSt(),S.st+ACTOR_STATS.stGrowth+Math.ceil(maxSt()*0.1));addLog('レベルアップ！ Lv.'+S.level+' HP・スタミナ回復');}if(S.level>=MAX_LEVEL)S.xp=0}
+function gainXp(amount,actor=S){if(actor.level>=MAX_LEVEL||amount<=0)return;actor.xp+=amount;while(actor.level<MAX_LEVEL&&actor.xp>=LEVEL_XP_STEPS[actor.level-1]){actor.xp-=LEVEL_XP_STEPS[actor.level-1];actor.level++;actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+(CHARACTER_GROWTH[actor.character]||ACTOR_STATS).hpGrowth+Math.ceil(actorMax(actor,'hp')*0.1));actor.st=Math.min(actorMax(actor,'stamina'),actor.st+(CHARACTER_GROWTH[actor.character]||ACTOR_STATS).stGrowth+Math.ceil(actorMax(actor,'stamina')*0.1));if(actor===S)addLog('レベルアップ！ Lv.'+actor.level+' HP・スタミナ回復');}if(actor.level>=MAX_LEVEL)actor.xp=0}
 
 const COMBAT_FEEDBACK_MS=900;
 const DRONE_DEFS={"bird":{"name":"鳥型ドローン","hp":50,"attack":18,"defense":0,"section":2,"respawn":80,"areas":["山岳区画","射撃演習区画","森林区画"],"drops":["feather","egg"],"art":"assets/enemies/bird.webp"},"fish":{"name":"魚型ドローン","hp":60,"attack":12,"defense":8,"section":2,"respawn":80,"areas":["海岸区画","港湾区画","湖畔区画"],"drops":["fish_scale","water"],"art":"assets/enemies/fish.webp"},"dog":{"name":"犬型ドローン","hp":120,"attack":32,"defense":6,"section":3,"respawn":100,"areas":["住宅区画","公園区画","商業区画"],"drops":["fur","beast_meat"],"art":"assets/enemies/dog.webp"},"humanoid":{"name":"人型ドローン","hp":130,"attack":25,"defense":12,"section":3,"respawn":100,"areas":["工業区画","戦闘演習区画","医療区画"],"drops":["cell","lighter"],"art":"assets/enemies/humanoid.webp"},"scorpion":{"name":"サソリ型ドローン","hp":300,"attack":36,"defense":28,"section":4,"respawn":120,"areas":["遺跡区画","神殿区画","密林区画"],"drops":["wonderjewel","premium_ration"],"shell":true,"poison":true,"art":"assets/enemies/scorpion.webp"},"octopus":{"name":"タコ型ドローン","hp":250,"attack":40,"defense":18,"section":4,"respawn":120,"areas":["水没施設区画","地下機構区画","海底研究区画"],"drops":["rubbery_hide","energy_drink"],"evasion":5,"ink":true,"art":"assets/enemies/octopus.webp"}};
@@ -177,20 +177,19 @@ function reloadWeapon(ammoId){
  if(!def?.ammoType||def.ammoType!==ammoId)return toast('対応する武器を装備してください');
  const amount=Math.min(def.capacity-weaponAmmo(),S.inventory[ammoId]||0);
  if(!amount)return toast(weaponAmmo()>=def.capacity?'装填済みです':'弾薬がありません');
- const loaded=weaponAmmo();if(!takeFromBag(ammoId,amount))return;
- S.equipmentAmmo.weapon=loaded+amount;
+ if(!reloadActor(S))return;
  addLog(names[id]+'に'+names[ammoId]+'を'+amount+'装填した');
  toast('装填 '+weaponAmmo()+'/'+def.capacity);refresh();showEquipment();
 }
-function masteryCount(type){return S.masteryAttacks[type]||0}
+function masteryCount(type,actor=S){return actor.masteryAttacks[type]||0}
 function masteryProgress(type){const rank=masteryRank(type),total=masteryCount(type);if(rank>=MASTERY_RANKS.length-1)return 'MAX';return (total-MASTERY_THRESHOLDS[rank])+'/'+(MASTERY_THRESHOLDS[rank+1]-MASTERY_THRESHOLDS[rank])}
-function masteryRank(type){let n=masteryCount(type);for(let i=MASTERY_THRESHOLDS.length-1;i>=0;i--)if(n>=MASTERY_THRESHOLDS[i])return i;return 0}
-function totalStat(stat){const atk=stat==='attack';return ACTOR_STATS[atk?'baseAttack':'baseDefense']+ACTOR_STATS[atk?'attackGrowth':'defenseGrowth']*(S.level-1)+Object.values(S.equipment).reduce((n,id)=>n+(equipmentDef(id)?.[stat]||0),0)}
-function combatDamage(attack,defense,type,other=1){return Math.max(1,Math.floor(Math.max(1,attack-Math.max(0,defense)*0.5)*MASTERY_MULTIPLIERS[masteryRank(type)]*other))}
-function addMastery(type,amount){if(!WEAPON_TYPES[type]||amount<=0)return;const before=masteryRank(type);S.masteryAttacks[type]=(S.masteryAttacks[type]||0)+amount;const after=masteryRank(type);if(after>before)addLog(WEAPON_TYPES[type]+'熟練度が'+MASTERY_RANKS[after]+'に上昇！')}
+function masteryRank(type,actor=S){let n=masteryCount(type,actor);for(let i=MASTERY_THRESHOLDS.length-1;i>=0;i--)if(n>=MASTERY_THRESHOLDS[i])return i;return 0}
+function totalStat(stat,actor=S){const atk=stat==='attack',growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return growth[atk?'baseAttack':'baseDefense']+growth[atk?'attackGrowth':'defenseGrowth']*(actor.level-1)+Object.values(actor.equipment).reduce((n,id)=>n+(equipmentDef(id)?.[stat]||0),0)}
+function combatDamage(attack,defense,type,other=1,actor=S){return Math.max(1,Math.floor(Math.max(1,attack-Math.max(0,defense)*0.5)*MASTERY_MULTIPLIERS[masteryRank(type,actor)]*other))}
+function addMastery(type,amount,actor=S){if(!WEAPON_TYPES[type]||amount<=0)return;const before=masteryRank(type,actor);actor.masteryAttacks[type]=(actor.masteryAttacks[type]||0)+amount;const after=masteryRank(type,actor);if(after>before&&actor===S)addLog(WEAPON_TYPES[type]+'熟練度が'+MASTERY_RANKS[after]+'に上昇！')}
 function recordAttack(type){addMastery(type,1)}
-function craftConsumption(r){
- let stacks=S.bag.map(x=>({...x})),equipment={...S.equipment},equipmentAmmo={...S.equipmentAmmo};
+function craftConsumption(r,actor=S){
+ let stacks=actor.bag.map(x=>({...x})),equipment={...actor.equipment},equipmentAmmo={...actor.equipmentAmmo};
  for(const [id,count] of Object.entries(r.need)){
   let left=count,fromBag=Math.min(totalIn(stacks,id),left);
   if(fromBag){stacks=removeFromStacks(stacks,id,fromBag);left-=fromBag}
@@ -376,11 +375,7 @@ function equip(id,index=null){
  const def=equipmentDef(id);if(!def)return;
  if(index===null)index=S.bag.findIndex(x=>x.id===id);
  const entry=S.bag[index];if(!entry||entry.id!==id)return;
- const slot=def.slot,previous=equipped(slot);let next=S.bag.map(x=>({...x}));
- next.splice(index,1);
- if(previous){next=addToStacks(next,previous,1,{ammo:S.equipmentAmmo[slot]});if(!next)return toast('装備交換には所持品の空きが必要です')}
- S.bag=next;S.equipment[slot]=id;
- if(def.ammoType)S.equipmentAmmo[slot]=weaponAmmo(id,entry.ammo||0);else delete S.equipmentAmmo[slot];
+ if(!equipActor(S,index))return toast('装備交換には所持品の空きが必要です');
  syncInventory();addLog(names[id]+'を装備した');closeModal();refresh();
 }
 function unequip(slot){
@@ -461,7 +456,7 @@ function finishMatch(){
  else addLog('セクション10：全区域封鎖。演習終了。');
 }
 function syncMatchClock(now=Date.now()){
- updateStatusEffects(now);pruneCorpses(now);
+ updateStatusEffects(now);
  if(!matchClock||matchClock.ended)return;
  // Process every crossed boundary, including when Safari resumes after background throttling.
  while(matchClock.section<10&&now>=matchClock.sectionEndsAt){
@@ -477,7 +472,7 @@ function syncMatchClock(now=Date.now()){
   if(isBlocked(S.place)&&!matchClock.result)eliminatePlayer(S.place+'の封鎖により脱落しました。');
  }
  S.remaining=Math.max(0,Math.ceil((matchClock.startedAt+MATCH_DURATION*1000-now)/1000));
- updateComActors(now);updateDrones(now);updateRecoveryMode(now);
+ updateComActors(now);updateDrones(now);pruneCorpses(now);updateRecoveryMode(now);
 }
 function allowMatchAction(preparation=false){
  syncMatchClock();
@@ -538,30 +533,48 @@ function updateDrones(now=Date.now()){
  }
 }
 const STATUS_DEFS={purplePoison:{name:'蠍の紫毒',icon:'☠'},blackInk:{name:'蛸の黒墨',icon:'●'}};
-function updateStatusEffects(now=Date.now()){
- for(const state of Object.values(S.statusEffects)){
+function updateStatusEffects(now=Date.now(),actor=S){
+ for(const state of Object.values(actor.statusEffects||{})){
   if(state.stacks>0&&now>=state.nextDecayAt){const n=1+Math.floor((now-state.nextDecayAt)/5000);state.stacks=Math.max(0,state.stacks-n);state.nextDecayAt=state.stacks?state.nextDecayAt+n*5000:0;}
  }
 }
-function statusStacks(id){return S.statusEffects[id]?.stacks||0}
-function applyStatus(id,now=Date.now()){
- updateStatusEffects(now);const state=S.statusEffects[id]||(S.statusEffects[id]={stacks:0,nextDecayAt:0});
+function statusStacks(id,actor=S){return actor.statusEffects?.[id]?.stacks||0}
+function applyStatus(id,now=Date.now(),actor=S){
+ updateStatusEffects(now,actor);actor.statusEffects||={};const state=actor.statusEffects[id]||(actor.statusEffects[id]={stacks:0,nextDecayAt:0});
  state.stacks=Math.min(10,state.stacks+1);state.nextDecayAt=now+5000;
 }
 function renderStatusEffects(){
  $('statusEffects').innerHTML=Object.entries(STATUS_DEFS).filter(([id])=>statusStacks(id)>0).map(([id,def])=>'<span title="'+def.name+'：5秒ごとに1減少">'+def.icon+' '+def.name+' ×'+statusStacks(id)+'（'+Math.max(0,Math.ceil((S.statusEffects[id].nextDecayAt-Date.now())/1000))+'秒）</span>').join('');
 }
-function droneAccuracy(def,type){return Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type)]-(def.evasion||0)-statusStacks('blackInk')))}
-function damageToDrone(def,type,attack,bonus=0){
- let damage=combatDamage(attack,def.defense,type)+bonus;
- const rarity=type==='fist'&&equipmentDef(equipped('weapon'))?.ammoType?'common':RECIPE_RARITY[equipped('weapon')]||'common';
+function droneAccuracy(def,type,actor=S){return Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,actor)]-(def.evasion||0)-statusStacks('blackInk',actor)))}
+function damageToDrone(def,type,attack,bonus=0,actor=S){
+ let damage=combatDamage(attack,def.defense,type,1,actor)+bonus;
+ const weapon=actor.equipment.weapon;
+ const rarity=type==='fist'&&equipmentDef(weapon)?.ammoType?'common':RECIPE_RARITY[weapon]||'common';
  if(def.shell&&['common','uncommon','rare'].includes(rarity))damage=Math.floor(damage*0.85);
  return Math.max(1,damage);
 }
-function droneCounterDamage(def){
- if(def.poison)applyStatus('purplePoison');
- if(def.ink)applyStatus('blackInk');
- return Math.max(1,Math.floor(def.attack+rand(7)-totalStat('defense')*0.5))+(def.poison?statusStacks('purplePoison'):0);
+function droneCounterDamage(def,actor=S,now=Date.now()){
+ if(def.poison)applyStatus('purplePoison',now,actor);
+ if(def.ink)applyStatus('blackInk',now,actor);
+ return Math.max(1,Math.floor(def.attack+rand(7)-totalStat('defense',actor)*0.5))+(def.poison?statusStacks('purplePoison',actor):0);
+}
+function actorWeaponType(actor){const def=equipmentDef(actor.equipment.weapon);return def?.ammoType&&!weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)?'fist':def?.weaponType||'fist'}
+function strikeDrone(actor,d,now){
+ if(actor.hp<=0||!d?.spawned||d.hp<=0||d.area!==actor.place)return null;
+ const def=DRONE_DEFS[d.kind],type=actorWeaponType(actor),weapon=equipmentDef(actor.equipment.weapon),ranged=weapon?.ammoType;
+ if(ranged&&type!=='fist')actor.equipmentAmmo.weapon=weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)-1;
+ addMastery(type,1,actor);
+ const hit=Math.random()*100<droneAccuracy(def,type,actor),bonus=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.damageBonus||0;
+ const attack=totalStat('attack',actor)-(ranged&&type==='fist'?(weapon.attack||0):0)+rand(7);
+ const damage=hit?damageToDrone(def,type,attack,bonus,actor):0;
+ d.hp=Math.max(0,d.hp-damage);gainXp(1,actor);
+ let body=null,counter=0;
+ if(d.hp===0){
+  body=createDroneCorpse(d.kind,actor.place,now,actorIdentity(actor));
+  d.spawned=false;d.area=null;d.respawnAt=now+def.respawn*1000;gainXp(3,actor);
+ }else{counter=droneCounterDamage(def,actor,now);actor.hp=Math.max(0,actor.hp-counter);}
+ return {type,hit,damage,counter,body,defeated:d.hp===0};
 }
 function discoverDrone(kind){
  if(!allowMatchAction()||S.busy||S.pendingFound||S.corpseVisit||S.enemy)return;
@@ -644,23 +657,14 @@ function attackDiscoveredDrone(){
  const d=drones[S.enemyKind],def=DRONE_DEFS[S.enemyKind];if(!d||!def||d.area!==S.place||d.hp<=0)return;
  stopRecoveryMode();const generation=d.generation;closeModal();S.busy=true;refresh();
  setTimeout(()=>{
-  if(!allowMatchAction()||!S.enemy||d.generation!==generation||d.area!==S.place)return;
-  const type=weaponType(),ranged=equipmentDef(equipped('weapon'))?.ammoType;
-  if(ranged){if(type==='fist')addLog('弾切れのため素手で攻撃する');else S.equipmentAmmo.weapon=weaponAmmo()-1;}
-  recordAttack(type);
-  const hit=Math.random()*100<droneAccuracy(def,type);
-  const bonus=EQUIPMENT_SPECIAL_EFFECTS[equipped('body')]?.damageBonus||0;
-  const attack=totalStat('attack')-(ranged&&type==='fist'?(equipmentDef(equipped('weapon'))?.attack||0):0)+rand(7);
-  const dmg=hit?damageToDrone(def,type,attack,bonus):0;
-  d.hp=Math.max(0,d.hp-dmg);S.ehp=d.hp;
-  addLog(hit?WEAPON_TYPES[type]+'で'+dmg+'ダメージ！':'攻撃が外れた！');gainXp(1);
-  const defeated=d.hp===0;
-  const body=defeated?createDroneCorpse(d.kind,S.place):null;
-  if(defeated){
-   d.spawned=false;d.area=null;d.respawnAt=Date.now()+def.respawn*1000;
-   gainXp(3);addLog(def.name+'を撃破した');S.stacks=0;toast(def.name+'撃破！');
-  }else{
-   const counter=droneCounterDamage(def);receiveAttackDamage(counter,def.name+'との戦闘で脱落しました。','drone-'+d.kind+'-'+generation);
+  if(!allowMatchAction())return;
+  if(!S.enemy||d.generation!==generation||d.area!==S.place||!d.spawned||d.hp<=0){S.busy=false;S.enemy=false;refresh();return}
+  const result=strikeDrone(S,d,Date.now());if(!result){S.busy=false;S.enemy=false;refresh();return}
+  const {type,hit,damage:dmg,counter,body,defeated}=result;S.ehp=d.hp;
+  addLog(hit?WEAPON_TYPES[type]+'で'+dmg+'ダメージ！':'攻撃が外れた！');
+  if(defeated){S.stacks=0;addLog(def.name+'を撃破した');toast(def.name+'撃破！')}
+  else{
+   if(S.hp===0)eliminatePlayer(def.name+'との戦闘で脱落しました。','drone-'+d.kind+'-'+generation);
    addLog(def.name+'の反撃！ '+counter+'ダメージ');toast(S.hp===0?'HPが0！ 演習脱落':hit?dmg+'ダメージ！':'MISS！');
   }
   refresh();if(!S.enemy)return;
@@ -972,14 +976,19 @@ function showCraft(category='weapon',subcategory=null){
  (list.length?list.map(craftRecipeHTML).join(''):'<p class="small">この分類のレシピはまだありません。</p>')+'</div>';
  modal('🔧 製作',body);
 }
+function craftActor(actor,r){
+ const after=craftConsumption(r,actor);if(!after)return false;
+ const packed=addToStacks(after.stacks,r.id,r.count||1);if(!packed)return false;
+ actor.bag=packed;actor.equipment=after.equipment;actor.equipmentAmmo=after.equipmentAmmo;syncInventory(actor);
+ const rarity=RECIPE_RARITY[r.id]||'common';gainXp(CRAFT_XP[rarity],actor);
+ const weapon=equipmentDef(r.id);if(weapon?.slot==='weapon')addMastery(weapon.weaponType,CRAFT_MASTERY[rarity],actor);return true;
+}
 function craft(id,category){
  if(!allowMatchAction())return;
  if(S.busy||S.pendingFound)return toast('ほかの行動中です');
  const r=recipes.find(x=>x.id===id);if(!r||!canCraft(r))return toast('素材不足または所持品が満杯');
- const after=craftConsumption(r);if(!after)return toast('素材不足');
- const packed=addToStacks(after.stacks,id,r.count||1);if(!packed)return toast('完成品が全量入らない');
- S.bag=packed;syncInventory();S.equipment=after.equipment;S.equipmentAmmo=after.equipmentAmmo;
- const rarity=RECIPE_RARITY[id]||'common';gainXp(CRAFT_XP[rarity]);const weapon=EQUIPMENT_DEFS[id];if(weapon?.slot==='weapon')addMastery(weapon.weaponType,CRAFT_MASTERY[rarity]);
+ if(!craftActor(S,r))return toast('完成品が全量入らない');
+ const rarity=RECIPE_RARITY[id]||'common';
  addLog(r.name+'を製作した！ (+'+CRAFT_XP[rarity]+'XP)');toast('🔧 '+r.name+'完成！');refresh();
  if($('back').classList.contains('on')&&$('modalTitle').textContent.includes('製作'))refreshCraftCards();
 }
@@ -1024,72 +1033,206 @@ function move(p){
  if(S.hp===0)eliminatePlayer('移動時のHP消費により脱落しました。');
  refresh();
 }
-// Phase 1-2 COM: provisional neutral stats copied from Kaito; no combat, crafting or victory yet.
-// No hidden actor positions/inventories or unseen remaining resource counts are used by the policy.
+// Phase 3-4: real shared resources, recipe-driven planning and discovered-drone combat.
+// Hayate's provisional growth matches Kaito. No PvP, character skills or victory logic yet.
 const comActors=[];
 const COM_ACTION_MS=1000;
+const COM_POLICY={searchesWithoutProgress:12,maxSearchesPerVisit:36,retreatHp:0.4,warningMs:10000};
+const COM_GOALS=['strong_bow','armguard','rubber_suit','mighty_bow','azusa_bow'];
 function payMovementCost(actor){
  const staminaCost=matchClock.section>0?Math.min(actor.st,5):0,hpCost=matchClock.section>0?5-staminaCost:0;
  actor.st-=staminaCost;actor.hp=Math.max(0,actor.hp-hpCost);return {staminaCost,hpCost};
 }
-function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>40)actor.history.shift()}
+function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>60)actor.history.shift()}
 function initializeComActors(){
  comActors.length=0;
  comActors.push({id:'hayate',name:'ハヤテ',character:'hayate',level:1,xp:0,hp:180,st:120,
   masteryAttacks:initialMastery('hayate'),place:'待機所',starterWeapon:null,
   equipment:Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null])),equipmentAmmo:{},
   bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},
-  recoveryReadyAt:{hp:0,stamina:0},seen:{},history:[],action:'出発準備',searches:0,
+  recoveryReadyAt:{hp:0,stamina:0},statusEffects:{},seen:{},history:[],action:'出発準備',searches:0,noProgress:0,
+  completedGoals:[],goal:null,enemy:null,loot:null,leaveDanger:false,restMode:null,visited:{},exhausted:{},
   nextActionAt:matchClock.startedAt+COM_ACTION_MS,corpseId:null});
 }
-function eliminateCom(actor,reason,now){
+function eliminateCom(actor,reason,now,killerId=null){
  if(actor.corpseId)return;
- createPlayerCorpse(actor,actor.place,now,null);actor.hp=0;comLog(actor,'脱落：'+reason,now);
+ createPlayerCorpse(actor,actor.place,now,killerId);actor.hp=0;actor.enemy=null;actor.loot=null;comLog(actor,'脱落：'+reason,now);
 }
-function comMove(actor,now,reason){
+function actorOwned(actor,id){return totalIn(actor.bag,id)+Object.values(actor.equipment).filter(x=>x===id).length}
+function comPlan(actor,id){
+ const available={...actor.inventory};for(const item of Object.values(actor.equipment))if(item)available[item]=(available[item]||0)+1;
+ const missing={},needed={},crafts=[];
+ function need(item,count,path=[]){
+  needed[item]=(needed[item]||0)+count;
+  const take=Math.min(available[item]||0,count);available[item]=(available[item]||0)-take;count-=take;if(!count)return;
+  const r=recipes.find(x=>x.id===item);
+  if(!r||path.includes(item)){missing[item]=(missing[item]||0)+count;return}
+  const batches=Math.ceil(count/(r.count||1));
+  for(let i=0;i<batches;i++){for(const [material,n] of Object.entries(r.need))need(material,n,[...path,item]);crafts.push(r.id)}
+  available[item]=(available[item]||0)+batches*(r.count||1)-count;
+ }
+ if(id)need(id,1);return {id,missing,needed,crafts};
+}
+function comCurrentPlan(actor){
+ for(const id of COM_GOALS){
+  if(actor.completedGoals.includes(id))continue;
+  if(actorOwned(actor,id)){actor.completedGoals.push(id);continue}
+  const plan=comPlan(actor,id);
+  // Only public closure/distribution data and personally observed empty regions affect feasibility.
+  const feasible=Object.keys(plan.missing).every(item=>Object.keys(regionStock).some(area=>!isBlocked(area)&&regionStock[area][item]&&!actor.exhausted[area]));
+  if(feasible){actor.goal=id;return plan}
+ }
+ actor.goal=null;return {id:null,missing:{},needed:{},crafts:[]};
+}
+function comDrop(actor,index,now){
+ const entry=actor.bag[index];if(!entry)return false;
+ const obj={...entry,uid:'drop:'+(++droppedSerial),area:actor.place,dropped:true,taken:false};
+ regionObjects[actor.place].push(obj);regionSeen[actor.place].clear();actor.seen[actor.place]?.clear();
+ actor.bag.splice(index,1);syncInventory(actor);comLog(actor,'バッグ整理：'+names[entry.id]+'を現地に置いた',now);return true;
+}
+function comMakeRoom(actor,id,count,plan,now){
+ if(addToStacks(actor.bag,id,count))return false;
+ // Preserve planned ingredients and a recovery stack per category. Drop only one stack per action.
+ const candidates=actor.bag.map((x,i)=>({x,i,score:plan.needed[x.id]?100:RECOVERY_ITEMS[x.id]?50:x.id==='arrows'?40:0}));
+ candidates.sort((a,b)=>a.score-b.score);
+ const c=candidates.find(({x,score})=>score<100&&x.id!==id);
+ return !!c&&comDrop(actor,c.i,now);
+}
+function equipActor(actor,index){
+ const entry=actor.bag[index],def=equipmentDef(entry?.id);if(!def)return false;
+ const old=actor.equipment[def.slot];let next=actor.bag.map(x=>({...x}));next.splice(index,1);
+ if(old){next=addToStacks(next,old,1,{ammo:actor.equipmentAmmo[def.slot]});if(!next)return false}
+ actor.bag=next;actor.equipment[def.slot]=entry.id;
+ if(def.ammoType)actor.equipmentAmmo[def.slot]=weaponAmmo(entry.id,entry.ammo||0);else delete actor.equipmentAmmo[def.slot];syncInventory(actor);return true;
+}
+function comEquipBetter(actor,now){
+ const index=actor.bag.findIndex(x=>{
+  const d=equipmentDef(x.id);if(!d||(d.slot==='weapon'&&d.weaponType!=='bow'))return false;
+  const old=equipmentDef(actor.equipment[d.slot]);
+  return !old||(d.attack||0)+(d.defense||0)>(old.attack||0)+(old.defense||0);
+ });
+ if(index<0)return false;const id=actor.bag[index].id;
+ if(!equipActor(actor,index))return false;comLog(actor,'装備更新：'+names[id],now);return true;
+}
+function reloadActor(actor){
+ const id=actor.equipment.weapon,def=equipmentDef(id);if(!def?.ammoType)return 0;
+ const loaded=weaponAmmo(id,actor.equipmentAmmo.weapon),amount=Math.min(def.capacity-loaded,actor.inventory[def.ammoType]||0);
+ if(amount<=0||!takeFromBag(def.ammoType,amount,actor))return 0;
+ actor.equipmentAmmo.weapon=loaded+amount;return amount;
+}
+function comMove(actor,now,reason,plan=comCurrentPlan(actor)){
  const safe=Object.keys(regionStock).filter(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a));
- // Public item distribution is known. Prefer bow supplies, but never inspect live resource counts.
- const useful=safe.filter(a=>['wood','arrows','wire','feather','water'].some(id=>regionStock[a][id]));
- const choices=useful.length?useful:safe;if(!choices.length)return false;
- actor.place=choices[rand(choices.length)];actor.searches=0;actor.seen={};payMovementCost(actor);
- comLog(actor,reason+' → '+actor.place,now);if(actor.hp<=0)eliminateCom(actor,'移動時のHP消費',now);return true;
+ if(!safe.length)return false;
+ const needs=Object.keys(plan.missing);
+ if((actor.equipmentAmmo.weapon||0)<5&&(actor.inventory.arrows||0)<20)needs.push('arrows');
+ if(actor.st<60)needs.push('water','drink','energy_drink');
+ const score=area=>needs.reduce((n,id)=>n+(regionStock[area][id]?10:0),0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.1;
+ const best=Math.max(...safe.map(score)),choices=safe.filter(a=>score(a)===best);
+ actor.visited[actor.place]=(actor.visited[actor.place]||0)+1;actor.place=choices[rand(choices.length)];
+ actor.searches=0;actor.noProgress=0;actor.seen={};actor.enemy=null;actor.loot=null;actor.restMode=null;actor.leaveDanger=false;payMovementCost(actor);
+ comLog(actor,reason+(actor.goal?'（目標：'+names[actor.goal]+'）':'')+' → '+actor.place,now);
+ if(actor.hp<=0)eliminateCom(actor,'移動時のHP消費',now);return true;
+}
+function comWants(actor,id,plan){
+ if(plan.missing[id]>0)return true;
+ if(id==='arrows')return (actor.inventory.arrows||0)<40;
+ const recovery=RECOVERY_ITEMS[id];if(recovery){return actor.bag.filter(x=>RECOVERY_ITEMS[x.id]?.group===recovery.group).reduce((n,x)=>n+x.count,0)<4}
+ const def=equipmentDef(id);if(def&&def.slot!=='weapon'){
+  const old=equipmentDef(actor.equipment[def.slot]);return !old||(def.attack||0)+(def.defense||0)>(old.attack||0)+(old.defense||0);
+ }
+ return false;
+}
+function comLoot(actor,now,plan){
+ const c=corpses.find(x=>x.id===actor.loot);if(!c||!corpseAvailable(c,now)||c.area!==actor.place||S.corpseVisit?.id===c.id){actor.loot=null;return false}
+ const index=c.items.findIndex(x=>comWants(actor,x.id,plan));
+ if(index<0){actor.loot=null;return false}
+ const entry=c.items[index];
+ if(!receive(entry.id,entry.count,entry,actor)){
+  if(comMakeRoom(actor,entry.id,entry.count,plan,now))return true;
+  actor.loot=null;return false;
+ }
+ c.items.splice(index,1);actor.loot=null;comLog(actor,'死体から取得：'+names[entry.id]+' ×'+entry.count,now);return true;
+}
+function comFight(actor,now){
+ const ref=actor.enemy,d=drones[ref.kind],def=DRONE_DEFS[ref.kind];
+ if(!d?.spawned||d.generation!==ref.generation||d.area!==actor.place||d.hp<=0){actor.enemy=null;comLog(actor,'発見した敵は既にいない',now);return}
+ const type=actorWeaponType(actor),attack=totalStat('attack',actor)-(type==='fist'&&equipmentDef(actor.equipment.weapon)?.ammoType?(equipmentDef(actor.equipment.weapon).attack||0):0);
+ const estimated=damageToDrone(def,type,attack,0,actor),hits=Math.ceil(d.hp/Math.max(1,estimated*droneAccuracy(def,type,actor)/100));
+ const counter=Math.max(1,def.attack+6-totalStat('defense',actor)*0.5)+(def.poison?statusStacks('purplePoison',actor)+hits:0);
+ if(actor.hp<actorMax(actor,'hp')*COM_POLICY.retreatHp||counter*Math.max(0,hits-1)>=actor.hp-10){
+  actor.enemy=null;actor.leaveDanger=true;comLog(actor,'撤退：'+def.name+'との戦闘は危険',now);return;
+ }
+ const loaded=weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon);
+ if(equipmentDef(actor.equipment.weapon)?.ammoType&&loaded===0&&reloadActor(actor)){comLog(actor,'戦闘前に矢を装填',now);return}
+ const result=strikeDrone(actor,d,now);actor.enemy=null;if(!result)return;
+ if(S.enemy&&S.enemyKind===d.kind&&S.place===actor.place){S.ehp=d.hp;if(result.defeated&&!S.busy)S.enemy=false;}
+ comLog(actor,def.name+'へ'+(result.hit?result.damage+'ダメージ':'攻撃失敗')+(result.defeated?'・撃破':'／反撃'+result.counter),now);
+ if(actor.hp<=0){eliminateCom(actor,def.name+'の反撃',now,'drone-'+d.kind+'-'+d.generation);return}
+ if(result.body)actor.loot=result.body.id;
 }
 function stepCom(actor,now){
+ updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
   if(!actor.starterWeapon){actor.starterWeapon='practice_bow';actor.equipment.weapon='practice_bow';actor.equipmentAmmo.weapon=20;comLog(actor,'練習用の弓を選択',now);return}
   comMove(actor,now,'待機所から出発');return;
  }
  if(matchClock.section===0)return;
- if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=10000){comMove(actor,now,'封鎖予告を見て退避');return}
+ const plan=comCurrentPlan(actor);
+ if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=COM_POLICY.warningMs){comMove(actor,now,'封鎖予告を見て退避',plan);return}
+ if(actor.enemy){comFight(actor,now);return}
+ if(actor.leaveDanger){comMove(actor,now,'敵から離れる',plan);return}
  for(const group of ['hp','stamina']){
-  const key=group==='hp'?'hp':'st',max=actorMax(actor,group);
-  if(actor[key]<=max*(group==='hp'?0.65:0.3)){
+  const key=group==='hp'?'hp':'st',max=actorMax(actor,group),threshold=group==='hp'?0.65:0.3;
+  if(actor[key]<=max*threshold||actor.restMode===group){
    const id=actor.bag.find(x=>RECOVERY_ITEMS[x.id]?.group===group)?.id;
-   if(id&&recoverActor(actor,id,now)){comLog(actor,names[id]+'を使用',now);return}
-   // One second of exclusive rest/treatment; cannot search or move in the same action.
-   actor[key]=Math.min(max,actor[key]+RECOVERY_MODE_RATES[group]);comLog(actor,group==='hp'?'HP不足のため治療':'ST不足のため休憩',now);return;
+   if(id&&recoverActor(actor,id,now)){actor.restMode=null;comLog(actor,names[id]+'を使用',now);return}
+   actor.restMode=group;actor[key]=Math.min(max,actor[key]+RECOVERY_MODE_RATES[group]);
+   if(actor[key]>=max*0.8)actor.restMode=null;
+   comLog(actor,group==='hp'?'HP不足のため治療':'ST不足のため休憩',now);return;
   }
  }
- if(actor.searches>=8){comMove(actor,now,'探索を続けたため別区画へ');return}
- actor.st-=3;actor.searches++;
+ if(actor.loot&&comLoot(actor,now,plan))return;
+ if(comEquipBetter(actor,now))return;
+ if((actor.equipmentAmmo.weapon||0)<=5&&reloadActor(actor)){comLog(actor,'矢を補充・装填',now);return}
+ for(const id of plan.crafts){const r=recipes.find(x=>x.id===id);if(!craftConsumption(r,actor))continue;
+  if(craftActor(actor,r)){actor.noProgress=0;comLog(actor,'目標のため制作：'+names[id],now);return}
+  if(comMakeRoom(actor,id,r.count||1,plan,now))return;
+ }
+ const localNeed=Object.keys(plan.missing).some(id=>regionStock[actor.place][id]);
+ if((plan.id&&!localNeed)||actor.noProgress>=COM_POLICY.searchesWithoutProgress||actor.searches>=COM_POLICY.maxSearchesPerVisit){
+  comMove(actor,now,plan.id&&!localNeed?'不足素材を求めて移動':'探索を続けたため別区画へ',plan);return;
+ }
+ // Discover only local corpses and drones during a paid search, matching player search probabilities.
+ actor.st-=3;actor.searches++;actor.noProgress++;
+ const bodies=corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&c.items.length>0&&S.corpseVisit?.id!==c.id);
+ const body=bodies.length?bodies[rand(bodies.length)]:null;
+ if(body&&Math.random()<corpseDiscoveryRate(body,actor)){actor.loot=body.id;comLog(actor,'探索：死体を発見',now);return}
+ const present=Object.values(drones).filter(d=>d.spawned&&d.hp>0&&d.area===actor.place);
+ if(present.length&&Math.random()<DRONE_DISCOVERY_RATE){
+  const d=present[rand(present.length)];actor.enemy={kind:d.kind,generation:d.generation};actor.restMode=null;
+  comLog(actor,'探索：'+DRONE_DEFS[d.kind].name+'を発見',now);return;
+ }
  if(Math.random()>=0.84){comLog(actor,'探索：何も見つからない',now);return}
  const obj=drawRegionItem(actor.place,actor);
- if(!obj){comMove(actor,now,'探索して物資切れを確認');return}
- // Reserve player discoveries; never steal pending items or stock entries.
- const useful=!!RECOVERY_ITEMS[obj.id]||['wood','arrows','wire','feather','lighter'].includes(obj.id);
- if(useful&&receive(obj.id,obj.count||1,obj,actor)){markObjectTaken(obj);comLog(actor,'探索・取得：'+names[obj.id]+' ×'+(obj.count||1),now)}
- else comLog(actor,'探索・保留：'+names[obj.id]+(useful?'（バッグ満杯）':'（今は不要）'),now);
+ if(!obj){actor.exhausted[actor.place]=true;comLog(actor,'探索して物資切れを確認',now);return}
+ if(comWants(actor,obj.id,plan)){
+  if(receive(obj.id,obj.count||1,obj,actor)){markObjectTaken(obj);actor.noProgress=0;comLog(actor,'探索・取得：'+names[obj.id]+' ×'+(obj.count||1),now);return}
+  // Leave the object in the world while one inventory stack is cleared; it can be rediscovered.
+  if(comMakeRoom(actor,obj.id,obj.count||1,plan,now))return;
+ }
+ comLog(actor,'探索・保留：'+names[obj.id],now);
 }
 function updateComActors(now){
  if(!matchClock||matchClock.ended)return;
  for(const actor of comActors){
-  // Match duration caps catch-up at 1,350 one-second actions per actor.
-  while(actor.hp>0&&actor.nextActionAt<=now){const at=actor.nextActionAt;actor.nextActionAt+=COM_ACTION_MS;stepCom(actor,at)}
+  while(actor.hp>0&&actor.nextActionAt<=now){const at=actor.nextActionAt;actor.nextActionAt+=COM_ACTION_MS;updateDrones(at);stepCom(actor,at)}
  }
 }
 function showComStatus(){
- modal('開発用：COM行動確認', '<p>探索・取得・回復・移動を検証中。制作・対人戦・ドローン戦・勝利判定は未接続。能力値はカイトと同じ仮値。</p>'+comActors.map(a=>
-  '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+' ｜ 弓D＋</p><p>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-15).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('')).join('')+'<button onclick="showComStatus()">更新</button>');
+ modal('開発用：COM行動確認','<p>制作目標・素材集め・装備更新・矢の補充・ドローン戦を検証中。対人戦・勝利判定は未接続。能力値はカイトと同じ仮値。通常弓は攻撃0のため、練習用の弓より弱ければ持ち替えません。</p>'+comActors.map(a=>{
+  const plan=comCurrentPlan(a),ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t,a)]).join(' ／ ');
+  return '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ Lv.'+a.level+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+'</p><p>目標：'+(a.goal?names[a.goal]:'物資・回復の確保')+'<br>不足：'+(Object.entries(plan.missing).map(([id,n])=>names[id]+' ×'+n).join('、')||'なし')+'</p><p>武器：'+(names[a.equipment.weapon]||'なし')+ammoLabel(a.equipment.weapon,a.equipmentAmmo.weapon)+'<br>'+ranks+'</p><p>装備：'+Object.values(a.equipment).filter(Boolean).map(id=>names[id]).join('、')+'<br>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-20).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('');
+ }).join('')+'<button onclick="showComStatus()">更新</button>');
 }
 
 initializeMatch();
