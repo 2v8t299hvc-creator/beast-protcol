@@ -24,9 +24,9 @@ run('stepCom(a,Date.now());stepCom(a,Date.now()+1000);stepCom(a,Date.now()+2000)
 assert.equal(run('JSON.stringify({bag:S.bag,xp:S.xp,mastery:S.masteryAttacks})'),playerBefore);
 // Actual inputs and post-consumption capacity are atomic, including equipped recipe ingredients.
 fixture();run('a.bag=[{id:"scrap",count:10},{id:"cloth",count:10},{id:"wood",count:10},{id:"feather",count:10},{id:"arrows",count:99},{id:"ration",count:10}];syncInventory(a)');
-const before=run('JSON.stringify(a)');eq('craftActor(a,recipes.find(r=>r.id==="armguard"))',false);eq('JSON.stringify(a)',before);
-run('comMakeRoom(a,"armguard",1,comPlan(a,"armguard"),Date.now())');eq('a.bag.length',5);eq('regionObjects[a.place].at(-1).dropped',true);
-eq('craftActor(a,recipes.find(r=>r.id==="armguard"))',true);run('comEquipBetter(a,Date.now())');eq('a.equipment.arm','armguard');eq('totalStat("defense",a)',8);
+const before=run('JSON.stringify(a)');eq('craftActor(a,recipes.find(r=>r.id==="simple_armguard"))',false);eq('JSON.stringify(a)',before);
+run('comMakeRoom(a,"simple_armguard",1,comPlan(a,"simple_armguard"),Date.now())');eq('a.bag.length',5);eq('regionObjects[a.place].at(-1).dropped',true);
+eq('craftActor(a,recipes.find(r=>r.id==="simple_armguard"))',true);run('comEquipBetter(a,Date.now())');eq('a.equipment.arm','simple_armguard');eq('totalStat("defense",a)',12);
 run('a.equipment.weapon="strong_bow";a.equipmentAmmo.weapon=7;a.bag=[];syncInventory(a);receive("reinforced_wire",1,null,a)');
 eq('craftActor(a,recipes.find(r=>r.id==="mighty_bow"))',true);eq('a.equipment.weapon',null);eq('a.inventory.mighty_bow',1);eq('a.bag.find(x=>x.id==="mighty_bow").ammo',8);
 // Goal route uses missing materials and public distributions; configured exhaustion replaces fixed eight-search travel.

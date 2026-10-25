@@ -15,7 +15,7 @@ function harness(){
 let h=harness();let run=s=>h.run(s);const eq=(s,v)=>assert.equal(run(s),v,s);
 function active(){h=harness();h.advance(30000);run(`matchClock.sectionEndsAt=Date.now()+10000000;matchClock.nextBlocked=[];S.bag=[];syncInventory();Math.random=()=>0.99`)}
 active();
-run(`var victim={name:'敵プレイヤー',hp:100,place:S.place,bag:[{id:'handgun',count:1,ammo:3},{id:'stone',count:10},{id:'wood',count:10},{id:'wire',count:10},{id:'cloth',count:10},{id:'bullets',count:40}],equipment:{weapon:'rifle',head:'stone',arm:'armguard',body:'passion_bikini',legs:'cloth',accessory:'telescope'},equipmentAmmo:{weapon:5}};var body=defeatPlayer(victim);var firstToken=S.corpseVisit.token`);
+run(`var victim={name:'敵プレイヤー',hp:100,place:S.place,bag:[{id:'handgun',count:1,ammo:3},{id:'stone',count:10},{id:'wood',count:10},{id:'wire',count:10},{id:'cloth',count:10},{id:'bullets',count:40}],equipment:{weapon:'rifle',head:'stone',arm:'simple_armguard',body:'passion_bikini',legs:'cloth',accessory:'telescope'},equipmentAmmo:{weapon:5}};var body=defeatPlayer(victim);var firstToken=S.corpseVisit.token`);
 eq('body.items.length',12);eq('body.expiresAt',null);eq('victim.hp',0);eq('victim.bag.length',0);eq('Object.values(victim.equipment).every(x=>x===null)',true);
 eq(`($('modalBody').innerHTML.match(/class="bp-corpse-item"/g)||[]).length`,12);
 run('takeCorpseItem(6,firstToken)');eq('S.inventory.rifle',1);eq('S.bag[0].ammo',5);eq('body.items.length',11);eq('S.corpseVisit',null);
