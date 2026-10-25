@@ -126,6 +126,9 @@ const EQUIPMENT_DEFS={
  needle_suit:{slot:'body',attack:0,defense:25},stinger_suit:{slot:'body',attack:0,defense:46},
  onyx_suit:{slot:'body',attack:0,defense:52},armguard:{slot:'arm',attack:0,defense:8}
 };
+Object.assign(names,{"goggles":"ゴーグル","night_goggles":"暗視ゴーグル","xray_goggles":"透視ゴーグル","machine_goggles":"機械ゴーグル","mechanic_goggles":"メカニックゴーグル","steampunk_goggles":"スチームパンクゴーグル","hat":"帽子","cloth_hat":"布の帽子","fur_hat":"毛皮の帽子","leather_hat":"レザーハット","feather_hat":"羽付き帽子","bluebird_hat":"青い鳥の帽子","glass_shard":"ガラス片","monitor":"モニター"});
+recipes.push(...[{"id":"night_goggles","category":"armor","name":"暗視ゴーグル","icon":"🥽","desc":"頭装備","need":{"goggles":1,"optical_sight":1}},{"id":"xray_goggles","category":"armor","name":"透視ゴーグル","icon":"🥽","desc":"頭装備","need":{"night_goggles":1,"stargazing_telescope":1}},{"id":"machine_goggles","category":"armor","name":"機械ゴーグル","icon":"🥽","desc":"頭装備","need":{"goggles":1,"scrap":1}},{"id":"mechanic_goggles","category":"armor","name":"メカニックゴーグル","icon":"🥽","desc":"頭装備","need":{"machine_goggles":1,"monitor":1}},{"id":"steampunk_goggles","category":"armor","name":"スチームパンクゴーグル","icon":"🥽","desc":"頭装備","need":{"mechanic_goggles":1,"steel":1}},{"id":"cloth_hat","category":"armor","name":"布の帽子","icon":"🎩","desc":"頭装備","need":{"hat":1,"cloth":1}},{"id":"fur_hat","category":"armor","name":"毛皮の帽子","icon":"🎩","desc":"頭装備","need":{"cloth_hat":1,"fur":1}},{"id":"leather_hat","category":"armor","name":"レザーハット","icon":"🎩","desc":"頭装備","need":{"fur_hat":1,"rubbery_hide":1}},{"id":"feather_hat","category":"armor","name":"羽付き帽子","icon":"🎩","desc":"頭装備","need":{"hat":1,"feather":1}},{"id":"bluebird_hat","category":"armor","name":"青い鳥の帽子","icon":"🎩","desc":"頭装備","need":{"feather_hat":1,"sapphire":1}},{"id":"monitor","category":"item","name":"モニター","icon":"🖥️","desc":"アンコモン・素材","need":{"glass_shard":1,"glue":1}}]);
+Object.assign(EQUIPMENT_DEFS,{"goggles":{"slot":"head","attack":0,"defense":6},"night_goggles":{"slot":"head","attack":0,"defense":26},"xray_goggles":{"slot":"head","attack":0,"defense":46},"machine_goggles":{"slot":"head","attack":0,"defense":14},"mechanic_goggles":{"slot":"head","attack":0,"defense":30},"steampunk_goggles":{"slot":"head","attack":0,"defense":48},"hat":{"slot":"head","attack":0,"defense":7},"cloth_hat":{"slot":"head","attack":0,"defense":14},"fur_hat":{"slot":"head","attack":0,"defense":26},"leather_hat":{"slot":"head","attack":0,"defense":38},"feather_hat":{"slot":"head","attack":0,"defense":12},"bluebird_hat":{"slot":"head","attack":0,"defense":44}});
 // User-confirmed equipment stats and capacities. New finite ranged instances start fully loaded.
 Object.assign(EQUIPMENT_DEFS,{"handgun":{"slot":"weapon","attack":18,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"hand_blaster":{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"magma_blaster":{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"rifle":{"slot":"weapon","attack":19,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},"sniper_rifle":{"slot":"weapon","attack":32,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},"laser_rifle":{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":0,"unlimitedAmmo":true},"cannon":{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},"blizzard_cannon":{"slot":"weapon","attack":48,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},"telescope":{"slot":"accessory","attack":0,"defense":10},"optical_sight":{"slot":"accessory","attack":0,"defense":12},"stargazing_telescope":{"slot":"accessory","attack":0,"defense":16},"mythic_telescope":{"slot":"accessory","attack":0,"defense":22},"japanese_bow":{"slot":"weapon","attack":12,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"strong_bow":{"slot":"weapon","attack":18,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"mighty_bow":{"slot":"weapon","attack":30,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"azusa_bow":{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":20},"unerring_bow":{"slot":"weapon","attack":46,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},"western_bow":{"slot":"weapon","attack":14,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"longbow":{"slot":"weapon","attack":20,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"silver_bow":{"slot":"weapon","attack":32,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},"golden_bow":{"slot":"weapon","attack":35,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},"angel_wing":{"slot":"accessory","attack":0,"defense":16},"eros_bow":{"slot":"weapon","attack":47,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},"amalgam_bow":{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"apollo_bow":{"slot":"weapon","attack":50,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16}});
 EQUIPMENT_DEFS.laser_rifle.capacity=Infinity;
@@ -150,6 +153,7 @@ Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{
  mythic_telescope:{name:'神の恵み',description:'10回探索ごとに空き枠があればレア以上の石・鉱石系素材を1個取得',searchInterval:10,mineralMinTier:'rare'}
 });
 
+Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{xray_goggles:{name:'命中補正',description:'命中率＋7ポイント',accuracyBonus:7},leather_hat:{name:'斬撃軽減',description:'斬りの被ダメージ－10%（軽減後切り捨て・最低1）',slashDamageReduction:0.10},bluebird_hat:{name:'幸福の予感',description:'4回探索するごとにスタミナを6回復',searchInterval:4,staminaRecovery:6}});
 const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
 for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
 const INITIAL_MASTERY={kaito:{fist:12},hayate:{bow:26}};
@@ -173,6 +177,7 @@ const RECIPE_RARITY={
  hotwater:'common',seaweed_soup:'common',bikini_pants:'uncommon',passion_bikini:'epic',rubber_gloves:'uncommon',rubber_suit:'uncommon',insulated_suit:'rare',charged_suit:'epic',glue:'uncommon',heated_oil:'uncommon',sea_sword:'rare',fried_swordfish:'rare',swordfish_sashimi:'uncommon',minefish_sashimi:'uncommon',needle_suit:'rare',stinger_suit:'epic',onyx_suit:'epic',paradise_sashimi:'uncommon',paradise_platter:'rare',paradise_broth:'uncommon'
 };
 Object.assign(RECIPE_RARITY,{"handgun":"common","hand_blaster":"rare","magma_blaster":"epic","rifle":"common","sniper_rifle":"rare","laser_rifle":"epic","cannon":"rare","blizzard_cannon":"epic","telescope":"uncommon","optical_sight":"uncommon","stargazing_telescope":"rare","mythic_telescope":"epic","japanese_bow":"common","strong_bow":"uncommon","reinforced_wire":"uncommon","mighty_bow":"rare","azusa_bow":"epic","unerring_bow":"epic","western_bow":"common","longbow":"uncommon","silver_bow":"rare","golden_bow":"rare","angel_wing":"rare","eros_bow":"epic","amalgam_bow":"epic","apollo_bow":"epic","rubbery_hide":"uncommon","gunpowder":"common","wire":"common","feather":"common","fur":"common","laurel":"epic","bullets":"common","arrows":"common"});
+Object.assign(RECIPE_RARITY,{"goggles":"common","night_goggles":"rare","xray_goggles":"epic","machine_goggles":"uncommon","mechanic_goggles":"rare","steampunk_goggles":"epic","hat":"common","cloth_hat":"uncommon","fur_hat":"rare","leather_hat":"epic","feather_hat":"uncommon","bluebird_hat":"epic","glass_shard":"common","monitor":"uncommon"});
 const MASTERY_ACCURACY=[85,86,87,88,89,90,91,92,93,94,95,96,97,98,99];
 function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return stat==='hp'?growth.baseHp+growth.hpGrowth*(actor.level-1):growth.baseSt+growth.stGrowth*(actor.level-1)}
 function maxHp(){return actorMax(S,'hp')}
@@ -203,6 +208,7 @@ function masteryCount(type,actor=S){return actor.masteryAttacks[type]||0}
 function masteryProgress(type){const rank=masteryRank(type),total=masteryCount(type);if(rank>=MASTERY_RANKS.length-1)return 'MAX';return (total-MASTERY_THRESHOLDS[rank])+'/'+(MASTERY_THRESHOLDS[rank+1]-MASTERY_THRESHOLDS[rank])}
 function masteryRank(type,actor=S){let n=masteryCount(type,actor);for(let i=MASTERY_THRESHOLDS.length-1;i>=0;i--)if(n>=MASTERY_THRESHOLDS[i])return i;return 0}
 function totalStat(stat,actor=S){const atk=stat==='attack',growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return growth[atk?'baseAttack':'baseDefense']+growth[atk?'attackGrowth':'defenseGrowth']*(actor.level-1)+Object.values(actor.equipment).reduce((n,id)=>n+(equipmentDef(id)?.[stat]||0),0)}
+function slashDamageMultiplier(actor,type){return type==='slash'?1-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.slashDamageReduction||0),0):1}
 function combatDamage(attack,defense,type,other=1,actor=S){return Math.max(1,Math.floor(Math.max(1,attack-Math.max(0,defense)*0.5)*MASTERY_MULTIPLIERS[masteryRank(type,actor)]*other))}
 function addMastery(type,amount,actor=S){if(!WEAPON_TYPES[type]||amount<=0)return;const before=masteryRank(type,actor);actor.masteryAttacks[type]=(actor.masteryAttacks[type]||0)+amount;const after=masteryRank(type,actor);if(after>before&&actor===S)addLog(WEAPON_TYPES[type]+'熟練度が'+MASTERY_RANKS[after]+'に上昇！')}
 function recordAttack(type){addMastery(type,1)}
@@ -426,6 +432,7 @@ const laurelAreas=Object.keys(regionStock);
 for(let i=laurelAreas.length-1;i>0;i--){const j=rand(i+1);[laurelAreas[i],laurelAreas[j]]=[laurelAreas[j],laurelAreas[i]];}
 laurelAreas.slice(0,3).forEach(area=>{regionStock[area].laurel=1});
 // Each physical object has its own ID. A lap visits every uncollected object once.
+for(const [id,areas] of Object.entries({goggles:['射撃演習区画','工業区画'],hat:['住宅区画','公園区画'],glass_shard:['住宅区画','遺跡区画','地下機構区画']}))for(const area of areas){if(!regionStock[area])throw Error('Unknown region: '+area);regionStock[area][id]=4;}
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
  return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:itemSetCount(id),taken:false})))];
@@ -620,6 +627,13 @@ function selectGeneratedMineral(minTier=null,rng=Math.random){
 }
 function recordExploration(actor,now){
  actor.ticks=(actor.ticks||0)+1;bumpMatchStat(actor,'searches');
+ for(const [slot,id] of Object.entries(actor.equipment)){
+  const effect=EQUIPMENT_SPECIAL_EFFECTS[id];if(!effect?.searchInterval||!effect.staminaRecovery)continue;
+  const state=equipmentState(actor,slot);state.searches=(state.searches||0)+1;
+  if(state.searches<effect.searchInterval)continue;state.searches=0;
+  const restored=Math.min(effect.staminaRecovery,Math.max(0,actorMax(actor,'stamina')-actor.st));actor.st+=restored;
+  const message=effect.name+'：スタミナ＋'+restored;if(actor===S)addLog(message);else comLog(actor,message,now);
+ }
  const id=actor.equipment.accessory,effect=EQUIPMENT_SPECIAL_EFFECTS[id];if(!effect?.searchInterval)return;
  const state=equipmentState(actor,'accessory');state.searches=(state.searches||0)+1;
  if(state.searches<effect.searchInterval)return;state.searches=0;
@@ -672,7 +686,7 @@ function trackActorAttack(attacker,target,result,now,kind){
  bumpMatchStat(attacker,kind==='player'?'pvpAttacks':'droneAttacks');bumpMatchStat(attacker,'hits',result.hit?1:0);bumpMatchStat(attacker,'damageDealt',result.dealt||0);bumpMatchStat(attacker,'healed',result.healing||0);
  if(kind==='player'){
   bumpMatchStat(target,'damageTaken',result.dealt||0);bumpMatchStat(attacker,'damageTaken',result.reflectedTaken||0);bumpMatchStat(target,'damageDealt',result.reflectedTaken||0);
-  if(result.hit&&result.damage>0){target.observedOpponents||={};target.observedOpponents[attacker.id]={damage:result.damage,weapon:attacker.equipment.weapon,level:attacker.level,defense:totalStat('defense',target),body:target.equipment.body,at:now}}
+  if(result.hit&&result.damage>0){target.observedOpponents||={};target.observedOpponents[attacker.id]={damage:result.damage,weapon:attacker.equipment.weapon,level:attacker.level,defense:totalStat('defense',target),body:target.equipment.body,head:target.equipment.head,at:now}}
  }
 }
 function usableCombatRecovery(actor,now){
@@ -692,6 +706,7 @@ function evaluateCombat(actor,target,now,kind='player'){
  const bonus=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.damageBonus||0;
  let perHit=targetDef?damageToDrone(targetDef,type,attack,bonus,actor):combatDamage(attack,defense,type,1,actor)+bonus;
  if(type==='fist'&&armor.fistDamageReduction)perHit=Math.max(1,Math.floor(perHit*(1-armor.fistDamageReduction)));
+ if(!targetDef&&type==='slash')perHit=Math.max(1,Math.floor(perHit*slashDamageMultiplier(target,type)));
  const accuracy=targetDef?droneAccuracy(targetDef,type,actor):Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,actor)]+actorAccuracyBonus(actor,type)-statusStacks('blackInk',actor)));
  const effect=type===weapon?.weaponType?EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.weapon]||{}:{};
  const expected=Math.max(1,perHit*accuracy/100+(effect.attackInterval?effect.fixedDamage/effect.attackInterval:0));
@@ -703,7 +718,8 @@ function evaluateCombat(actor,target,now,kind='player'){
   const visibleWeapon=equipmentDef(target.equipment.weapon),enemyType=visibleWeapon?.weaponType||'fist';
   incoming=Math.max(1,(totalStat('attack',target)-totalStat('defense',actor)*0.5)*1.15)+(EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]?.damageBonus||0);
   if(enemyType==='fist')incoming*=1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.fistDamageReduction||0);
-  const observed=actor.observedOpponents?.[target.id];if(observed&&observed.weapon===target.equipment.weapon&&observed.level===target.level&&observed.defense===totalStat('defense',actor)&&observed.body===actor.equipment.body&&now-observed.at<30000)incoming=Math.max(incoming,observed.damage);
+  incoming*=slashDamageMultiplier(actor,enemyType);
+  const observed=actor.observedOpponents?.[target.id];if(observed&&observed.weapon===target.equipment.weapon&&observed.level===target.level&&observed.defense===totalStat('defense',actor)&&observed.body===actor.equipment.body&&(observed.head||null)===(actor.equipment.head||null)&&now-observed.at<30000)incoming=Math.max(incoming,observed.damage);
  }
  const reflected=type==='fist'?(armor.fistCounterDamage||0)*accuracy/100:0;
  const life=effect.lifesteal?Math.ceil(perHit*effect.lifesteal)*accuracy/100:0;
@@ -776,6 +792,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false){
  const attack=totalStat('attack',attacker)-(ranged&&type==='fist'?(weapon.attack||0):0)+rand(7);
  let base=hit?combatDamage(attack,totalStat('defense',target),type,1,attacker)+(EQUIPMENT_SPECIAL_EFFECTS[attacker.equipment.body]?.damageBonus||0):0;
  if(hit&&type==='fist'&&armor.fistDamageReduction)base=Math.max(1,Math.floor(base*(1-armor.fistDamageReduction)));
+ if(hit&&type==='slash')base=Math.max(1,Math.floor(base*slashDamageMultiplier(target,type)));
  const effect=applyWeaponEffects(attacker,target,type,hit,now),damage=base+effect.fixedDamage,dealt=Math.min(target.hp,damage);
  target.hp=Math.max(0,target.hp-damage);
  const lifesteal=effect.lifesteal&&dealt?Math.ceil(dealt*effect.lifesteal):0,healing=Math.min(Math.max(0,actorMax(attacker,'hp')-attacker.hp),lifesteal);attacker.hp+=healing;
@@ -1180,6 +1197,7 @@ function retryFailedItemArt(){
  }
  scheduleItemSheetPump();hydrateItemArt();
 }
+Object.assign(itemFallback,{"goggles":"🥽","night_goggles":"🥽","xray_goggles":"🥽","machine_goggles":"🥽","mechanic_goggles":"🥽","steampunk_goggles":"🥽","hat":"🎩","cloth_hat":"🎩","fur_hat":"🎩","leather_hat":"🎩","feather_hat":"🎩","bluebird_hat":"🎩","glass_shard":"🔹","monitor":"🖥️"});
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
