@@ -109,7 +109,7 @@ const recipes=[{"id":"bronze","category":"item","name":"青銅","icon":"🔩","d
 const names={"scrap":"ガラクタ","stone":"石ころ","wood":"木材","mystery":"謎の鉱石","pickaxe":"ピッケル","marble":"大理石","lighter":"ライター","bronze":"青銅","iron":"鉄","blackiron":"黒鉄","silver":"銀","whitesilver":"白銀","gold":"金","wonderore":"不思議な鉱石","wonderjewel":"ワンダージュエル","ruby":"ルビー","sapphire":"サファイヤ","diamond":"ダイヤモンド","superpickaxe":"スーパーピッケル","greatpickaxe":"グレートピッケル","redstone":"赤い石","bluestone":"青い石","whitestone":"白い石","obsidian":"黒曜石","meteorite":"メテオライト","cloth":"布","cell":"エネルギーセル","ragglove":"ボロ手袋","scissors":"ハサミ","charcoal":"木炭","core":"プラズマコア","glove":"グローブ","reinforced":"強化グローブ","steel":"鋼鉄","discharger":"放電装置","plasma":"プラズマグローブ","armguard":"簡易アームガード","kit":"応急キット","ration":"レーション","drink":"ドリンク","water":"水","seaweed":"海草","swimsuit":"水着","rubber":"ゴム","oil":"オイル","swordfish":"ソードフィッシュ","minefish":"ジライギョ","porcupinefish":"ハリセンボン","paradisefish":"ラクエンウオ","wood_sword":"木剣","survival_knife":"サバイバルナイフ","hotwater":"熱湯","seaweed_soup":"海草スープ","bikini_pants":"ビキニパンツ","passion_bikini":"情熱のビキニ","rubber_gloves":"ゴム手袋","rubber_suit":"ラバースーツ","insulated_suit":"耐電スーツ","charged_suit":"帯電スーツ","glue":"接着剤","heated_oil":"熱したオイル","sea_sword":"海魚剣","fried_swordfish":"剣魚の素揚げ","swordfish_sashimi":"剣魚の刺身","minefish_sashimi":"地雷魚の刺身","needle_suit":"ニードルスーツ","stinger_suit":"スティンガースーツ","onyx_suit":"オニキススーツ","paradise_sashimi":"楽園魚の刺身","paradise_platter":"楽園魚の造り","paradise_broth":"極楽湯","handgun":"ハンドガン","hand_blaster":"ハンドブラスター","magma_blaster":"マグマブラスター","rifle":"ライフル","sniper_rifle":"スナイパーライフル","laser_rifle":"レーザーライフル","cannon":"キャノン","blizzard_cannon":"ブリザードキャノン","telescope":"望遠鏡","optical_sight":"光学照準器","stargazing_telescope":"星見望遠鏡","mythic_telescope":"神話の望遠鏡","japanese_bow":"和弓","strong_bow":"強弓","reinforced_wire":"強化ワイヤー","mighty_bow":"剛弓","azusa_bow":"梓弓","unerring_bow":"名弓・百発百中","western_bow":"洋弓","longbow":"ロングボウ","silver_bow":"白銀の弓","golden_bow":"黄金の弓","angel_wing":"天使の羽","eros_bow":"エロスの弓","amalgam_bow":"アマルガムボウ","apollo_bow":"アポロンの弓","rubbery_hide":"ゴム質の皮","gunpowder":"火薬","wire":"ワイヤー","feather":"羽","fur":"毛皮","laurel":"月桂樹","bullets":"銃弾","arrows":"矢"};
 Object.assign(names,{egg:'卵',fish_scale:'魚鱗',beast_meat:'獣肉',premium_ration:'高級レーション',energy_drink:'エナジードリンク'});
 const EQUIPMENT_SLOTS={weapon:'武器',head:'頭',arm:'腕',body:'身体',legs:'脚',accessory:'アクセサリー'};
-const WEAPON_TYPES={fist:'拳',slash:'斬り',gun:'銃',bow:'弓'};
+const WEAPON_TYPES={fist:'拳',slash:'斬り',gun:'銃',bow:'弓',hammer:'ハンマー'};
 const EQUIPMENT_DEFS={
  ragglove:{slot:'weapon',weaponType:'fist',attack:5,defense:0},glove:{slot:'weapon',weaponType:'fist',attack:12,defense:0},
  reinforced:{slot:'weapon',weaponType:'fist',attack:24,defense:0},plasma:{slot:'weapon',weaponType:'fist',attack:38,defense:0},
@@ -132,6 +132,12 @@ const EQUIPMENT_SPECIAL_EFFECTS={
  stinger_suit:{name:'鋭いトゲ',description:'拳で被ダメージ時、攻撃者に4ダメージ',fistCounterDamage:4},
  onyx_suit:{name:'黒曜のトゲ',description:'拳の被ダメージ－10%・攻撃者に2ダメージ',fistDamageReduction:0.10,fistCounterDamage:2}
 };
+
+const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
+for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
+const INITIAL_MASTERY={kaito:{fist:12},hayate:{bow:26}};
+function initialMastery(character){return {fist:0,slash:0,hammer:0,bow:0,gun:0,...INITIAL_MASTERY[character]};}
+
 const MASTERY_RANKS=['F','F+','E','E+','D','D+','C','C+','B','B+','A','A+','S','S+','SS'];
 const MASTERY_THRESHOLDS=[0,3,7,12,18,26,36,49,65,85,105,132,165,205,250];
 const MASTERY_MULTIPLIERS=[1,1.04,1.09,1.15,1.22,1.30,1.40,1.51,1.64,1.79,1.96,2.15,2.40,2.65,3];
@@ -192,7 +198,7 @@ function craftConsumption(r){
  }return {stacks,equipment,equipmentAmmo};
 }
 const BAG_SLOTS=6, FIND_SLOTS=3, FIND_QUEUE_MAX=4;
-let S={found:[],pendingFound:null,hp:180,st:120,ehp:0,enemy:false,enemyKind:null,corpseVisit:null,corpseId:null,statusEffects:{},recoveryReadyAt:{hp:0,stamina:0},recoveryMode:null,recoveryTickAt:0,stacks:0,lastHit:0,skillUntil:0,cool:0,level:1,xp:0,character:'kaito',masteryAttacks:{fist:0,slash:0,gun:0,bow:0},equipmentAmmo:{},equipment:{weapon:null,head:null,arm:null,body:null,legs:null,accessory:null},bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},place:'山岳区画',busy:false,ticks:0,remaining:1350};
+let S={found:[],pendingFound:null,hp:180,st:120,ehp:0,enemy:false,enemyKind:null,corpseVisit:null,corpseId:null,statusEffects:{},recoveryReadyAt:{hp:0,stamina:0},recoveryMode:null,recoveryTickAt:0,stacks:0,lastHit:0,skillUntil:0,cool:0,level:1,xp:0,character:'kaito',masteryAttacks:initialMastery('kaito'),starterWeapon:null,equipmentAmmo:{},equipment:{weapon:null,head:null,arm:null,body:null,legs:null,accessory:null},bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},place:'待機所',busy:false,ticks:0,remaining:1350};
 const $=id=>document.getElementById(id);const rand=n=>Math.floor(Math.random()*n);
 function addLog(s){let d=document.createElement('div');d.textContent='› '+s;$('log').prepend(d);while($('log').children.length>5)$('log').lastChild.remove()}
 let tt;function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('toast').classList.remove('show'),1400)}
@@ -223,7 +229,7 @@ function renderStageArt(){
  if(shownBackgroundPlace!==location){
   shownBackgroundPlace=location;
   const url=stageArtRegistry.backgrounds[location];
-  gameStageElement.style.backgroundImage=originalStageBackground;
+  gameStageElement.style.backgroundImage=location==='待機所'?'linear-gradient(135deg,#122b3d,#263c45 50%,#101b27)':originalStageBackground;
   if(url)loadStageImage(url,ok=>{
    if(ok&&shownBackgroundPlace===location){
     gameStageElement.style.backgroundImage='linear-gradient(90deg,#07101877,#10141c00),url("'+url+'")';
@@ -458,6 +464,7 @@ function syncMatchClock(now=Date.now()){
  if(!matchClock||matchClock.ended)return;
  // Process every crossed boundary, including when Safari resumes after background throttling.
  while(matchClock.section<10&&now>=matchClock.sectionEndsAt){
+  if(matchClock.section===0&&S.place==='待機所'&&!matchClock.result)eliminatePlayer('30秒以内に待機所から出発しなかったため脱落しました。');
   matchClock.section++;
   matchClock.blocked=[...matchClock.nextBlocked];
   if(matchClock.section===10){finishMatch();return}
@@ -473,7 +480,7 @@ function allowMatchAction(preparation=false){
  syncMatchClock();
  if(!matchClock)return true;
  if(matchClock.ended||matchClock.result||S.hp<=0)return false;
- if(matchClock.section===0&&!preparation){toast('開始前です。マップから開始区画を選べます');return false}
+ if(matchClock.section===0&&!preparation){toast('準備中です。武器を選択して待機所から出発してください');return false}
  if(isBlocked(S.place))return false;
  return true;
 }
@@ -483,7 +490,7 @@ function renderMatchStatus(){
  $('clock').textContent=formatTime(sectionSeconds());
  $('survivalStatus').textContent=matchClock.result==='draw'?'引き分け':matchClock.result?'脱落':matchClock.ended?'演習終了':'生存中';
  const next=nextClosingAreas();
- $('notice').textContent=matchClock.ended?'全区域封鎖：演習終了':matchClock.section===0?'開始まで '+formatTime(sectionSeconds())+' ｜ マップから開始区画を選択':
+ $('notice').textContent=matchClock.ended?'全区域封鎖：演習終了':matchClock.section===0?'開始まで '+formatTime(sectionSeconds())+(S.place==='待機所'?' ｜ 武器を選択して出発（時間切れで脱落）':' ｜ 出発済み'):
   '現在の封鎖 '+matchClock.blocked.length+'/18区画 ｜ '+(next.length?'⚠ 次の封鎖：'+next.join('・'):'次の封鎖なし');
  $('mainBtn').disabled=!!S.busy||matchClock.section===0||!!matchClock.result||matchClock.ended;
  if($('back').classList.contains('on')&&$('modalTitle').textContent==='📍 エリア選択'){
@@ -781,7 +788,9 @@ const itemArt={
 };
 Object.assign(itemArt,{"handgun":["guns_1",0],"hand_blaster":["guns_1",1],"magma_blaster":["guns_1",2],"rifle":["guns_1",3],"sniper_rifle":["guns_2",0],"laser_rifle":["guns_2",1],"cannon":["guns_2",2],"blizzard_cannon":["guns_2",3],"japanese_bow":["bows_1",0],"strong_bow":["bows_1",1],"mighty_bow":["bows_1",2],"azusa_bow":["bows_1",3],"unerring_bow":["bows_2",0],"western_bow":["bows_2",1],"longbow":["bows_2",2],"silver_bow":["bows_2",3],"golden_bow":["bows_3",0],"eros_bow":["bows_3",1],"amalgam_bow":["bows_3",2],"apollo_bow":["bows_3",3],"telescope":["optics",0],"optical_sight":["optics",1],"stargazing_telescope":["optics",2],"mythic_telescope":["optics",3],"angel_wing":["hides_feathers",0],"feather":["hides_feathers",1],"fur":["hides_feathers",2],"rubbery_hide":["hides_feathers",3],"gunpowder":["ranged_materials",0],"wire":["ranged_materials",1],"reinforced_wire":["ranged_materials",2],"laurel":["ranged_materials",3],"bullets":["ammo",0],"arrows":["ammo",1]});
 Object.assign(itemArt,{egg:['drone_drops_1',0],fish_scale:['drone_drops_1',1],beast_meat:['drone_drops_1',2],premium_ration:['drone_drops_1',3],energy_drink:['drone_drops_2',0]});
+Object.assign(itemArt,{practice_sword:['practice_1',0],practice_hammer:['practice_1',1],practice_gauntlet:['practice_1',2],practice_bow:['practice_1',3],practice_gun:['practice_2',0]});
 const itemArtSheets={
+ practice_1:'assets/icon_practice_1.webp',practice_2:'assets/icon_practice_2.webp',
  drone_drops_1:'assets/icon_drone_drops_1.webp',drone_drops_2:'assets/icon_drone_drops_2.webp',
  basic:'assets/icon_basic.png',tools:'assets/icon_tools.png',metal:'assets/icon_metal.png',
  advanced:'assets/icon_advanced.png',gems:'assets/icon_gems.png',stones:'assets/icon_stones.png',
@@ -802,7 +811,7 @@ Object.assign(itemFallback,{"handgun":"🔫","hand_blaster":"🔫","magma_blaste
 Object.assign(itemFallback,{egg:'🥚',fish_scale:'🔹',beast_meat:'🥩',premium_ration:'🥫',energy_drink:'🥤'});
 const readySheets={};
 Object.entries(itemArtSheets).forEach(([key,url])=>{
- const img=new Image();img.onload=()=>{readySheets[key]=true;refresh()};img.onerror=()=>{readySheets[key]=false};img.src=url;
+ const img=new Image();img.onload=()=>{readySheets[key]=true;refresh();if(key.startsWith('practice_')&&S.place==='待機所'&&document.getElementById('mapSectionClock'))showMap(false)};img.onerror=()=>{readySheets[key]=false};img.src=url;
 });
 function itemIconHTML(id){
  const cfg=itemArt[id];
@@ -967,13 +976,22 @@ function craft(id,category){
  addLog(r.name+'を製作した！ (+'+CRAFT_XP[rarity]+'XP)');toast('🔧 '+r.name+'完成！');refresh();
  if($('back').classList.contains('on')&&$('modalTitle').textContent.includes('製作'))refreshCraftCards();
 }
+
+function practiceWeaponChoices(){return '<h3>持ち込む武器を1つ選択</h3><div style="display:flex;flex-wrap:wrap;gap:8px">'+Object.entries(PRACTICE_WEAPONS).map(([id,[name]])=>`<button style="flex:1;min-width:100px;padding:10px;${S.starterWeapon===id?'border:2px solid #ffa83c;background:#59401f':''}" onclick="selectPracticeWeapon('${id}')">${itemIconHTML(id)}${name}<br>攻撃力8${S.starterWeapon===id?' ✓':''}</button>`).join('')+'</div><p>選択後、下の開始区画を選んで出発してください。</p>';}
+function selectPracticeWeapon(id){
+ if(!allowMatchAction(true)||matchClock.section!==0||S.place!=='待機所'||!PRACTICE_WEAPONS[id])return;
+ S.starterWeapon=id;S.equipment.weapon=id;
+ const def=EQUIPMENT_DEFS[id];if(def.ammoType)S.equipmentAmmo.weapon=def.capacity;else delete S.equipmentAmmo.weapon;
+ refresh();showMap(false);
+}
+
 function showMap(updateClock=true){
  if(updateClock)syncMatchClock();
  const next=nextClosingAreas();
  const cards=Object.keys(regionStock).map(area=>{
   const current=area===S.place,art=stageArtRegistry.backgrounds[area]||'',locked=isBlocked(area),warning=!locked&&next.includes(area);
   const label=locked?'⛔ 封鎖中':warning?'⚠ 次に封鎖':'';
-  const unavailable=locked||current||!!matchClock?.result||matchClock?.ended;
+  const unavailable=(S.place==='待機所'&&!S.starterWeapon)||locked||current||!!matchClock?.result||matchClock?.ended;
   return `<button type="button" class="bp-region-card ${current?'current':''} ${locked?'locked':''} ${warning?'warning':''}" onclick="move('${area}')" ${unavailable?'disabled':''} aria-label="${area} ${label}${current?' 現在地':'へ移動'}">
    <span class="bp-region-image" style="background-image:${art?`linear-gradient(0deg,#07111cf0 0%,#07111c00 72%),url(\'${art}\')`:`linear-gradient(135deg,#203e53,#0c1623)`}"></span>
    ${label?`<span class="bp-region-status">${label}</span>`:''}
@@ -982,11 +1000,12 @@ function showMap(updateClock=true){
  }).join('');
  const phase=matchClock?.section||0;
  mapRenderKey=phase+':'+matchClock?.result+':'+matchClock?.ended;
- const guide=phase===0?'開始前：開始区画を選択できます（スタミナ消費なし）':'移動コスト5（スタミナ不足分はHP消費）。⚠の区画は次セクション開始時に封鎖';
- modal('📍 エリア選択',`<div class="bp-region-picker"><div class="bp-section-status">${phase===0?'開始前':'セクション '+phase}　残り <span id="mapSectionClock">${formatTime(sectionSeconds())}</span> ｜ 封鎖 ${matchClock?.blocked.length||0}/18区画</div><p class="bp-region-guide">${guide}　現在地：<b>${S.place}</b></p><div class="bp-region-grid">${cards}</div></div>`);
+ const guide=phase===0?'準備中：武器を選んで出発。待機所には戻れません（移動無料）':'移動コスト5（スタミナ不足分はHP消費）。⚠の区画は次セクション開始時に封鎖';
+ modal('📍 エリア選択',`<div class="bp-region-picker"><div class="bp-section-status">${phase===0?'開始前':'セクション '+phase}　残り <span id="mapSectionClock">${formatTime(sectionSeconds())}</span> ｜ 封鎖 ${matchClock?.blocked.length||0}/18区画</div><p class="bp-region-guide">${guide}　現在地：<b>${S.place}</b></p>${S.place==='待機所'?practiceWeaponChoices():''}<div class="bp-region-grid">${cards}</div></div>`);
 }
 function move(p){
  if(!allowMatchAction(true))return;
+ if(S.place==='待機所'&&!S.starterWeapon)return toast('練習用武器を1つ選んでください');
  if(S.enemy)return toast('接敵中は逃走してから移動してください');
  if(!Object.hasOwn(regionStock,p))return;
  if(isBlocked(p))return toast('封鎖中の区画には移動できません');
@@ -1005,5 +1024,5 @@ setInterval(tickMatchClock,250);
 document.addEventListener?.('visibilitychange',tickMatchClock);
 globalThis.addEventListener?.('pageshow',tickMatchClock);
 
-addLog('仮想演習へログインした。');addLog('開始前30秒。マップで開始区画を選ぼう。');refresh();
+addLog('仮想演習へログインした。');addLog('準備時間30秒。武器を選び、待機所から出発しよう。時間切れで脱落。');refresh();showMap(false);
 </script></body></html>

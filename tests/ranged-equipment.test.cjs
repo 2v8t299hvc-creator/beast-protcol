@@ -9,15 +9,16 @@ function harness(){
  const document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id)},createElement:element,querySelector(){return null},querySelectorAll(){return []}};
  const context=vm.createContext({document,Image:class {},getComputedStyle:()=>({backgroundImage:''}),setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearTimeout(){},setInterval(){},console});
  vm.runInContext(source,context);
+ vm.runInContext("selectPracticeWeapon('practice_gauntlet');move('山岳区画');S.equipment.weapon=null;S.starterWeapon=null;S.masteryAttacks={fist:0,slash:0,hammer:0,gun:0,bow:0};closeModal()",context);
  return {run:code=>vm.runInContext(code,context),tick(){const i=timers.findIndex(t=>t.ms===1000);assert(i>=0,'pending game action');timers.splice(i,1)[0].fn();const feedback=timers.findIndex(t=>t.ms===900);if(feedback>=0)timers.splice(feedback,1)[0].fn()}};
 }
 const h=harness(),run=h.run;
 function reset(){run(`matchClock.section=1;matchClock.sectionEndsAt=Date.now()+180000;matchClock.blocked=[];matchClock.nextBlocked=planNextBlocked(1,[]);matchClock.ended=false;matchClock.result=null;S.bag=[];syncInventory();Object.keys(S.equipment).forEach(k=>S.equipment[k]=null);S.equipmentAmmo={};S.masteryAttacks={fist:0,slash:0,gun:0,bow:0};S.level=1;S.xp=0;S.hp=180;S.st=120;S.busy=false;S.enemy=false;S.enemyKind='bird';S.corpseVisit=null;S.corpseId=null;S.statusEffects={};Object.assign(drones.bird,{spawned:true,area:S.place,hp:10000,generation:1});S.pendingFound=null;S.found=[];`)}
 function eq(expr,expected){assert.equal(run(expr),expected,expr)}
 // All new recipe inputs exist and every new equipment item has provisional zero stats.
-eq(`Object.values(EQUIPMENT_DEFS).filter(d=>d.ammoType).length`,20);
+eq(`Object.values(EQUIPMENT_DEFS).filter(d=>d.ammoType).length`,22);
 eq(`['telescope','optical_sight','stargazing_telescope','mythic_telescope','angel_wing'].every(id=>EQUIPMENT_DEFS[id].slot==='accessory')`,true);
-eq(`Object.entries(EQUIPMENT_DEFS).filter(([id,d])=>d.ammoType||d.slot==='accessory').every(([id,d])=>d.attack===0&&d.defense===0)`,true);
+eq(`Object.entries(EQUIPMENT_DEFS).filter(([id,d])=>!PRACTICE_WEAPONS[id]&&(d.ammoType||d.slot==='accessory')).every(([id,d])=>d.attack===0&&d.defense===0)`,true);
 eq(`recipes.every(r=>Object.keys(r.need).every(id=>names[id]))`,true);
 eq(`Object.values(regionObjects).flat().filter(x=>x.id==='laurel').length`,3);
 eq(`new Set(Object.values(regionObjects).flat().filter(x=>x.id==='laurel').map(x=>x.area)).size`,3);
