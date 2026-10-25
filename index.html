@@ -132,6 +132,9 @@ Object.assign(EQUIPMENT_DEFS,{"goggles":{"slot":"head","attack":0,"defense":6},"
 Object.assign(names,{"bracelet":"ブレスレット","ruby_bracelet":"紅玉のブレスレット","gold_bracelet":"金のブレスレット","silver_bracelet":"白銀のブレスレット","hermes_bracelet":"ヘルメスのブレスレット","simple_armguard":"簡易アームガード","armguard":"アームガード","iron_armguard":"鉄のアームガード","steel_armguard":"鋼のアームガード","obsidian_armguard":"黒曜石のアームガード"});
 recipes.push(...[{"id":"ruby_bracelet","name":"紅玉のブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"bracelet":1,"ruby":1}},{"id":"gold_bracelet","name":"金のブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"bracelet":1,"gold":1}},{"id":"silver_bracelet","name":"白銀のブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"gold_bracelet":1,"whitesilver":1}},{"id":"hermes_bracelet","name":"ヘルメスのブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"gold_bracelet":1,"laurel":1}},{"id":"armguard","name":"アームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"simple_armguard":1,"bronze":1}},{"id":"iron_armguard","name":"鉄のアームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"armguard":1,"iron":1}},{"id":"steel_armguard","name":"鋼のアームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"iron_armguard":1,"steel":1}},{"id":"obsidian_armguard","name":"黒曜石のアームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"iron_armguard":1,"obsidian":1}}]);
 Object.assign(EQUIPMENT_DEFS,{"bracelet":{"slot":"arm","attack":0,"defense":8},"ruby_bracelet":{"slot":"arm","attack":0,"defense":36},"gold_bracelet":{"slot":"arm","attack":0,"defense":25},"silver_bracelet":{"slot":"arm","attack":0,"defense":35},"hermes_bracelet":{"slot":"arm","attack":0,"defense":40},"simple_armguard":{"slot":"arm","attack":0,"defense":12},"armguard":{"slot":"arm","attack":0,"defense":18},"iron_armguard":{"slot":"arm","attack":0,"defense":25},"steel_armguard":{"slot":"arm","attack":0,"defense":35},"obsidian_armguard":{"slot":"arm","attack":0,"defense":40}});
+Object.assign(names,{"boots":"ブーツ","fur_boots":"毛皮のブーツ","synthetic_boots":"合皮ブーツ","amalgam_boots":"アマルガムブーツ","primal_boots":"原生獣のブーツ","wing_boots":"ウィングブーツ","spike_boots":"スパイクブーツ","diamond_boots":"金剛石のブーツ","gear_boots":"ギアブーツ","automation_boots":"オートメーションブーツ","leg_cover":"レッグカバー","steel_leg_cover":"鋼のレッグカバー","energy_socks":"エナジーソックス","small_gear":"小さな歯車","large_gear":"大きな歯車","energy_gear":"エネルギーギア"});
+recipes.push(...[{"id":"fur_boots","name":"毛皮のブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"boots":1,"fur":1}},{"id":"synthetic_boots","name":"合皮ブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"fur_boots":2}},{"id":"amalgam_boots","name":"アマルガムブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"synthetic_boots":1,"rubbery_hide":1}},{"id":"primal_boots","name":"原生獣のブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"synthetic_boots":2}},{"id":"wing_boots","name":"ウィングブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"boots":1,"feather":1}},{"id":"spike_boots","name":"スパイクブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"wing_boots":1,"porcupinefish":1}},{"id":"diamond_boots","name":"金剛石のブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"spike_boots":1,"diamond":1}},{"id":"gear_boots","name":"ギアブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"wing_boots":1,"small_gear":1}},{"id":"automation_boots","name":"オートメーションブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"gear_boots":1,"energy_gear":1}},{"id":"leg_cover","name":"レッグカバー","category":"armor","icon":"🥾","desc":"脚装備","need":{"cloth":1,"fur":1}},{"id":"steel_leg_cover","name":"鋼のレッグカバー","category":"armor","icon":"🥾","desc":"脚装備","need":{"leg_cover":1,"steel":1}},{"id":"energy_socks","name":"エナジーソックス","category":"armor","icon":"🥾","desc":"脚装備","need":{"steel_leg_cover":1,"energy_drink":1}},{"id":"energy_gear","name":"エネルギーギア","category":"item","icon":"⚙️","desc":"レア・素材","need":{"cell":1,"large_gear":1}}]);
+Object.assign(EQUIPMENT_DEFS,{"boots":{"slot":"legs","attack":0,"defense":6},"fur_boots":{"slot":"legs","attack":0,"defense":12},"synthetic_boots":{"slot":"legs","attack":0,"defense":25},"amalgam_boots":{"slot":"legs","attack":0,"defense":44},"primal_boots":{"slot":"legs","attack":0,"defense":44},"wing_boots":{"slot":"legs","attack":0,"defense":11},"spike_boots":{"slot":"legs","attack":0,"defense":22},"diamond_boots":{"slot":"legs","attack":0,"defense":55},"gear_boots":{"slot":"legs","attack":0,"defense":24},"automation_boots":{"slot":"legs","attack":0,"defense":42},"leg_cover":{"slot":"legs","attack":0,"defense":12},"steel_leg_cover":{"slot":"legs","attack":0,"defense":25},"energy_socks":{"slot":"legs","attack":0,"defense":36}});
 // User-confirmed equipment stats and capacities. New finite ranged instances start fully loaded.
 Object.assign(EQUIPMENT_DEFS,{"handgun":{"slot":"weapon","attack":18,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"hand_blaster":{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"magma_blaster":{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"rifle":{"slot":"weapon","attack":19,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},"sniper_rifle":{"slot":"weapon","attack":32,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},"laser_rifle":{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":0,"unlimitedAmmo":true},"cannon":{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},"blizzard_cannon":{"slot":"weapon","attack":48,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},"telescope":{"slot":"accessory","attack":0,"defense":10},"optical_sight":{"slot":"accessory","attack":0,"defense":12},"stargazing_telescope":{"slot":"accessory","attack":0,"defense":16},"mythic_telescope":{"slot":"accessory","attack":0,"defense":22},"japanese_bow":{"slot":"weapon","attack":12,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"strong_bow":{"slot":"weapon","attack":18,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"mighty_bow":{"slot":"weapon","attack":30,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"azusa_bow":{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":20},"unerring_bow":{"slot":"weapon","attack":46,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},"western_bow":{"slot":"weapon","attack":14,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"longbow":{"slot":"weapon","attack":20,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"silver_bow":{"slot":"weapon","attack":32,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},"golden_bow":{"slot":"weapon","attack":35,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},"angel_wing":{"slot":"accessory","attack":0,"defense":16},"eros_bow":{"slot":"weapon","attack":47,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},"amalgam_bow":{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"apollo_bow":{"slot":"weapon","attack":50,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16}});
 EQUIPMENT_DEFS.laser_rifle.capacity=Infinity;
@@ -158,6 +161,7 @@ Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{
 
 Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{xray_goggles:{name:'命中補正',description:'命中率＋7ポイント',accuracyBonus:7},leather_hat:{name:'斬撃軽減',description:'斬りの被ダメージ－10%（軽減後切り捨て・最低1）',slashDamageReduction:0.10},bluebird_hat:{name:'幸福の予感',description:'4回探索するごとにスタミナを6回復',searchInterval:4,staminaRecovery:6}});
 Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{ruby_bracelet:{name:'ルビーの輝き',description:'HP・スタミナ回復アイテムの効果＋10%（端数切り上げ）',recoveryBonus:0.10},hermes_bracelet:{name:'伝令神の証',description:'区域移動時の消費スタミナ－1',movementDiscount:1},steel_armguard:{name:'鋼鉄の護り',description:'斬り武器の攻撃を受けたとき相手の武器耐久値－1（CT60秒・自動発動）',slashDurabilityRetaliation:1,cooldownSeconds:60}});
+Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{primal_boots:{name:'野生の本能',description:'敵撃破時、その死体にレア以下のランダム報酬を1個追加',corpseBonus:true},diamond_boots:{name:'5カラット',description:'探索時の消費スタミナ＋1',searchCostBonus:1},automation_boots:{name:'自動操縦',description:'敵発見率＋5ポイント',enemyDiscoveryBonus:0.05},energy_socks:{name:'ハイエナジー',description:'スタミナ上限値＋30',maxStaminaBonus:30}});
 const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
 for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
 const INITIAL_MASTERY={kaito:{fist:12},hayate:{bow:26}};
@@ -183,8 +187,9 @@ const RECIPE_RARITY={
 Object.assign(RECIPE_RARITY,{"handgun":"common","hand_blaster":"rare","magma_blaster":"epic","rifle":"common","sniper_rifle":"rare","laser_rifle":"epic","cannon":"rare","blizzard_cannon":"epic","telescope":"uncommon","optical_sight":"uncommon","stargazing_telescope":"rare","mythic_telescope":"epic","japanese_bow":"common","strong_bow":"uncommon","reinforced_wire":"uncommon","mighty_bow":"rare","azusa_bow":"epic","unerring_bow":"epic","western_bow":"common","longbow":"uncommon","silver_bow":"rare","golden_bow":"rare","angel_wing":"rare","eros_bow":"epic","amalgam_bow":"epic","apollo_bow":"epic","rubbery_hide":"uncommon","gunpowder":"common","wire":"common","feather":"common","fur":"common","laurel":"epic","bullets":"common","arrows":"common"});
 Object.assign(RECIPE_RARITY,{"goggles":"common","night_goggles":"rare","xray_goggles":"epic","machine_goggles":"uncommon","mechanic_goggles":"rare","steampunk_goggles":"epic","hat":"common","cloth_hat":"uncommon","fur_hat":"rare","leather_hat":"epic","feather_hat":"uncommon","bluebird_hat":"epic","glass_shard":"common","monitor":"uncommon"});
 Object.assign(RECIPE_RARITY,{"bracelet":"common","ruby_bracelet":"epic","gold_bracelet":"rare","silver_bracelet":"epic","hermes_bracelet":"epic","simple_armguard":"common","armguard":"uncommon","iron_armguard":"rare","steel_armguard":"epic","obsidian_armguard":"epic"});
+Object.assign(RECIPE_RARITY,{"boots":"common","fur_boots":"uncommon","synthetic_boots":"rare","amalgam_boots":"epic","primal_boots":"epic","wing_boots":"common","spike_boots":"rare","diamond_boots":"epic","gear_boots":"rare","automation_boots":"epic","leg_cover":"uncommon","steel_leg_cover":"rare","energy_socks":"epic","small_gear":"common","large_gear":"uncommon","energy_gear":"rare"});
 const MASTERY_ACCURACY=[85,86,87,88,89,90,91,92,93,94,95,96,97,98,99];
-function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return stat==='hp'?growth.baseHp+growth.hpGrowth*(actor.level-1):growth.baseSt+growth.stGrowth*(actor.level-1)}
+function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return stat==='hp'?growth.baseHp+growth.hpGrowth*(actor.level-1):growth.baseSt+growth.stGrowth*(actor.level-1)+Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.maxStaminaBonus||0),0)}
 function maxHp(){return actorMax(S,'hp')}
 function maxSt(){return actorMax(S,'stamina')}
 function levelProgress(){return S.level>=MAX_LEVEL?'MAX':S.xp+'/'+LEVEL_XP_STEPS[S.level-1]}
@@ -367,8 +372,8 @@ function takeFound(i){
  if(i<0||i>=Math.min(S.found.length,FIND_SLOTS))return;
  const entry=S.found[i],obj=typeof entry==='string'?(S.found[i]={id:entry,count:1}):entry,id=stockItemId(obj);
  if(obj.dropped&&obj.area!==S.place)return toast('落とし物は'+obj.area+'で回収してね');
- if(S.st<3)return toast('スタミナ不足！休息してね');
- const actionToken=S.actionToken;S.busy=true;S.st-=3;refresh();toast('ストックを探索中…');
+ if(S.st<searchStaminaCost(S))return toast('スタミナ不足！休息してね');
+ const actionToken=S.actionToken;S.busy=true;S.st-=searchStaminaCost(S);refresh();toast('ストックを探索中…');
  setTimeout(()=>{
   if(actionToken!==S.actionToken)return;
   if(actionToken!==S.actionToken||!allowMatchAction()||actionToken!==S.actionToken)return;
@@ -398,7 +403,7 @@ function showStock(){
  }).join('');
  const pending=S.found.length>FIND_SLOTS?'<p class="bp-stock-queue">📦 4件目が待機中。取得や新たな発見で表示順が変わります。</p>':'';
  modal('📦 ストック '+items.length+'/3',
-  '<div class="bp-stock-panel"><p class="bp-stock-help">探索し直すと最新の先頭へ移動し、取得するか保留できます。探索には1秒・スタミナ3が必要です。</p><div class="bp-stock-grid">'+slots+'</div>'+pending+'</div>');
+  '<div class="bp-stock-panel"><p class="bp-stock-help">探索し直すと最新の先頭へ移動し、取得するか保留できます。探索には1秒・スタミナ'+searchStaminaCost(S)+'が必要です。</p><div class="bp-stock-grid">'+slots+'</div>'+pending+'</div>');
 }
 function equip(id,index=null){
  if(!allowMatchAction())return;
@@ -414,7 +419,7 @@ function unequip(slot){
  if(S.busy||S.pendingFound)return toast('ほかの行動中です');
  const id=equipped(slot);if(!id)return;
  if(!receive(id,1,equipmentMetadata(S,slot)))return toast('所持品が満杯');
- S.equipment[slot]=null;delete S.equipmentAmmo[slot];if(S.equipmentEffects)delete S.equipmentEffects[slot];
+ S.equipment[slot]=null;S.st=Math.min(S.st,maxSt());delete S.equipmentAmmo[slot];if(S.equipmentEffects)delete S.equipmentEffects[slot];
  addLog(names[id]+'を外した');refresh();showEquipment();
 }
 let droppedSerial=0;
@@ -439,6 +444,8 @@ laurelAreas.slice(0,3).forEach(area=>{regionStock[area].laurel=1});
 // Each physical object has its own ID. A lap visits every uncollected object once.
 for(const [id,areas] of Object.entries({goggles:['射撃演習区画','工業区画'],hat:['住宅区画','公園区画'],glass_shard:['住宅区画','遺跡区画','地下機構区画']}))for(const area of areas){if(!regionStock[area])throw Error('Unknown region: '+area);regionStock[area][id]=4;}
 for(const area of ['住宅区画','神殿区画'])regionStock[area].bracelet=4;
+for(const [id,areas] of Object.entries({boots:['住宅区画','戦闘演習区画','山岳区画'],small_gear:['工業区画','地下機構区画'],large_gear:['工業区画','遺跡区画']}))for(const area of areas)regionStock[area][id]=4;
+regionStock['海岸区画'].goggles=4;regionStock['地下機構区画'].core=1;regionStock['海底研究区画'].core=1;
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
  return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:itemSetCount(id),taken:false})))];
@@ -769,7 +776,10 @@ function pvpEnabled(){return !!matchClock&&matchClock.competitive!==false&&match
 function actorName(actor){return actor?.name||(actor?.character==='kaito'?'カイト':'参加者')}
 function findActor(id){return S.id===id?S:comActors.find(a=>a.id===id)}
 function localOpponents(actor){return [S,...comActors].filter(a=>a!==actor&&a.hp>0&&a.place===actor.place&&a.place!=='待機所')}
-function actorDiscoveryRate(target){return Math.min(1,PLAYER_DISCOVERY_RATE+Object.values(target.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.discoveryRateBonus||0),0))}
+function searchStaminaCost(actor=S){return 3+Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.searchCostBonus||0),0)}
+function enemyDiscoveryBonus(actor){return Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.enemyDiscoveryBonus||0),0)}
+function droneDiscoveryRate(actor=S){return Math.min(1,DRONE_DISCOVERY_RATE+enemyDiscoveryBonus(actor))}
+function actorDiscoveryRate(target,searcher=S){return Math.min(1,PLAYER_DISCOVERY_RATE+enemyDiscoveryBonus(searcher)+Object.values(target.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.discoveryRateBonus||0),0))}
 function clearPlayerEncounter(){S.enemy=false;S.enemyPlayerId=null;S.pvpPending=null;S.pvpFeedback=null;S.busy=false;S.actionToken=(S.actionToken||0)+1}
 function interruptForPlayerEncounter(){
  stopRecoveryMode();S.actionToken=(S.actionToken||0)+1;S.busy=false;S.corpseVisit=null;
@@ -930,10 +940,13 @@ function corpseDiscoveryRate(corpse,actor=S){const id=actorIdentity(actor);retur
 const corpses=[];
 function corpseAvailable(c,now=Date.now()){return !!c&&(c.expiresAt===null||now<c.expiresAt)}
 function findCorpse(id){return corpses.find(c=>c.id===id&&corpseAvailable(c))}
+function corpseBonusPool(){const obtainable=new Set([...Object.values(regionStock).flatMap(x=>Object.keys(x)),...recipes.map(r=>r.id),...Object.values(DRONE_DEFS).flatMap(d=>d.drops)]);return [...obtainable].filter(id=>names[id]&&['common','uncommon','rare'].includes(RECIPE_RARITY[id]||'common')&&!Object.hasOwn(PRACTICE_WEAPONS,id))}
 function createCorpse(kind,name,area,entries,now=Date.now(),details={}){
  const items=entries.filter(x=>x&&x.id&&x.count>0).map(x=>({...x}));
  if(items.length>12)throw new Error('死体の所持品は最大12枠です');
  const corpse={id:'corpse-'+(++corpseSerial),kind,name,area,createdAt:now,killerId:details.killerId||null,ownerId:details.ownerId||null,expiresAt:kind==='drone'?now+(details.lifetimeMs??DRONE_CORPSE_LIFETIME):null,items};
+ const killer=details.killerId&&findActor(details.killerId),gear=killer&&(killer.hp<=0?killer.finalState?.equipment||killer.equipment:killer.equipment);
+ if(gear&&Object.values(gear).some(id=>EQUIPMENT_SPECIAL_EFFECTS[id]?.corpseBonus)){const pool=corpseBonusPool();if(pool.length)corpse.items.push({id:pool[rand(pool.length)],count:1,source:'野生の本能'})}
  corpses.push(corpse);return corpse;
 }
 function createPlayerCorpse(player,area=player.place,now=Date.now(),killerId=null){
@@ -1017,8 +1030,8 @@ function primary(){
  if(S.enemy)return S.enemyPlayerId?attackOpponent():attackDiscoveredDrone();
  if(S.busy||S.pendingFound||S.corpseVisit||S.enemy)return;
  if(S.hp<=0)return toast('戦闘不能！再読み込みで最初から');
- if(S.st<3)return toast('スタミナ不足！休息してね');
- const actionToken=S.actionToken;S.busy=true;S.st-=3;refresh();
+ if(S.st<searchStaminaCost(S))return toast('スタミナ不足！休息してね');
+ const actionToken=S.actionToken;S.busy=true;S.st-=searchStaminaCost(S);refresh();
  setTimeout(()=>{
   if(actionToken!==S.actionToken)return;
   if(actionToken!==S.actionToken||!allowMatchAction()||actionToken!==S.actionToken)return;
@@ -1030,7 +1043,7 @@ function primary(){
   if(body&&Math.random()<corpseDiscoveryRate(body)){openCorpse(body.id);refresh();return}
   const present=Object.values(drones).some(d=>d.spawned&&d.hp>0&&d.area===S.place);
   const r=Math.random();
-  if(present&&r<DRONE_DISCOVERY_RATE){
+  if(present&&r<droneDiscoveryRate(S)){
    discoverDrone();
   }else if(Math.random()<0.84){
    const obj=drawRegionItem(S.place);
@@ -1208,6 +1221,7 @@ function retryFailedItemArt(){
 Object.assign(itemFallback,{"goggles":"🥽","night_goggles":"🥽","xray_goggles":"🥽","machine_goggles":"🥽","mechanic_goggles":"🥽","steampunk_goggles":"🥽","hat":"🎩","cloth_hat":"🎩","fur_hat":"🎩","leather_hat":"🎩","feather_hat":"🎩","bluebird_hat":"🎩","glass_shard":"🔹","monitor":"🖥️"});
 itemArt.simple_armguard=itemArt.armguard;
 Object.assign(itemFallback,{"bracelet":"💍","ruby_bracelet":"💍","gold_bracelet":"💍","silver_bracelet":"💍","hermes_bracelet":"💍","simple_armguard":"🛡️","armguard":"🛡️","iron_armguard":"🛡️","steel_armguard":"🛡️","obsidian_armguard":"🛡️"});
+Object.assign(itemFallback,{"boots":"🥾","fur_boots":"🥾","synthetic_boots":"🥾","amalgam_boots":"🥾","primal_boots":"🥾","wing_boots":"🥾","spike_boots":"🥾","diamond_boots":"🥾","gear_boots":"🥾","automation_boots":"🥾","leg_cover":"🥾","steel_leg_cover":"🥾","energy_socks":"🥾","small_gear":"⚙️","large_gear":"⚙️","energy_gear":"⚙️"});
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
@@ -1363,7 +1377,7 @@ function showCraft(category='weapon',subcategory=null){
 function craftActor(actor,r,now=Date.now()){
  const after=craftConsumption(r,actor);if(!after)return false;
  const packed=addToStacks(after.stacks,r.id,r.count||1);if(!packed)return false;
- actor.bag=packed;actor.equipment=after.equipment;actor.equipmentAmmo=after.equipmentAmmo;actor.equipmentEffects=after.equipmentEffects;syncInventory(actor);
+ actor.bag=packed;actor.equipment=after.equipment;actor.equipmentAmmo=after.equipmentAmmo;actor.equipmentEffects=after.equipmentEffects;actor.st=Math.min(actor.st,actorMax(actor,'stamina'));syncInventory(actor);
  const rarity=RECIPE_RARITY[r.id]||'common';gainXp(CRAFT_XP[rarity],actor);
  const weapon=equipmentDef(r.id);if(weapon?.slot==='weapon')addMastery(weapon.weaponType,CRAFT_MASTERY[rarity],actor);bumpMatchStat(actor,'crafts');const stats=matchStats(actor);stats.crafted||={};stats.crafted[r.id]=(stats.crafted[r.id]||0)+(r.count||1);recordMatchEvent(actor,'craft',names[r.id]+'を制作',now);return true;
 }
@@ -1489,7 +1503,7 @@ function equipActor(actor,index,now=Date.now()){
  if(old){next=addToStacks(next,old,1,equipmentMetadata(actor,def.slot));if(!next)return false}
  actor.bag=next;actor.equipment[def.slot]=entry.id;
  if(def.ammoType&&!def.unlimitedAmmo)actor.equipmentAmmo[def.slot]=weaponAmmo(entry.id,entry.ammo||0);else delete actor.equipmentAmmo[def.slot];
- actor.equipmentEffects||={};actor.equipmentEffects[def.slot]={...(entry.effects||{}),id:entry.id};syncInventory(actor);recordMatchEvent(actor,'equip',names[entry.id]+'を装備',now);return true;
+ actor.equipmentEffects||={};actor.equipmentEffects[def.slot]={...(entry.effects||{}),id:entry.id};actor.st=Math.min(actor.st,actorMax(actor,'stamina'));syncInventory(actor);recordMatchEvent(actor,'equip',names[entry.id]+'を装備',now);return true;
 }
 function comEquipBetter(actor,now){
  const candidates=actor.bag.map((x,index)=>{
@@ -1585,14 +1599,14 @@ function stepCom(actor,now){
   actor.searches=0;actor.noProgress=0;
  }
  // Discover only local corpses and drones during a paid search, matching player search probabilities.
- actor.st-=3;actor.searches++;actor.noProgress++;recordExploration(actor,now);
+ if(actor.st<searchStaminaCost(actor)){actor.restMode='stamina';comLog(actor,'探索に必要なSTが不足',now);return}actor.st-=searchStaminaCost(actor);actor.searches++;actor.noProgress++;recordExploration(actor,now);
  const opponent=pvpEnabled()?localOpponents(actor)[0]:null;
- if(opponent&&Math.random()<actorDiscoveryRate(opponent)){actor.opponent={id:opponent.id,area:actor.place,seenAt:now};actor.restMode=null;comLog(actor,'探索：'+actorName(opponent)+'を発見',now);return}
+ if(opponent&&Math.random()<actorDiscoveryRate(opponent,actor)){actor.opponent={id:opponent.id,area:actor.place,seenAt:now};actor.restMode=null;comLog(actor,'探索：'+actorName(opponent)+'を発見',now);return}
  const bodies=corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&c.items.length>0&&S.corpseVisit?.id!==c.id);
  const body=bodies.length?bodies[rand(bodies.length)]:null;
  if(body&&Math.random()<corpseDiscoveryRate(body,actor)){actor.loot=body.id;comLog(actor,'探索：死体を発見',now);return}
  const present=Object.values(drones).filter(d=>d.spawned&&d.hp>0&&d.area===actor.place);
- if(present.length&&Math.random()<DRONE_DISCOVERY_RATE){
+ if(present.length&&Math.random()<droneDiscoveryRate(actor)){
   const d=present[rand(present.length)];actor.enemy={kind:d.kind,generation:d.generation};actor.restMode=null;
   comLog(actor,'探索：'+DRONE_DEFS[d.kind].name+'を発見',now);return;
  }
