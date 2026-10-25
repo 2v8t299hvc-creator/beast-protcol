@@ -762,11 +762,11 @@ function escapeOpponent(){
  const target=findActor(S.enemyPlayerId);if(target){target.opponent=null;target.nextActionAt=Math.max(target.nextActionAt,Date.now()+1000)}
  clearPlayerEncounter();bumpMatchStat(S,'retreats');recordMatchEvent(S,'retreat',(target?actorName(target):'相手')+'から逃走',Date.now());addLog((target?actorName(target):'相手')+'から逃走した');refresh();
 }
-function actorAttack(attacker,target,now){
+function actorAttack(attacker,target,now,preserveTargetActivity=false){
  if(attacker.hp<=0||target.hp<=0||attacker.place!==target.place)return null;
  const type=actorWeaponType(attacker),weapon=equipmentDef(attacker.equipment.weapon),ranged=weapon?.ammoType;
  if(ranged&&!weapon.unlimitedAmmo&&type!=='fist')attacker.equipmentAmmo.weapon=weaponAmmo(attacker.equipment.weapon,attacker.equipmentAmmo.weapon)-1;
- attacker.recoveryMode=null;attacker.recoveryTickAt=0;attacker.restMode=null;target.recoveryMode=null;target.recoveryTickAt=0;target.restMode=null;
+ attacker.recoveryMode=null;attacker.recoveryTickAt=0;attacker.restMode=null;if(!preserveTargetActivity){target.recoveryMode=null;target.recoveryTickAt=0;target.restMode=null;}
  updateStatusEffects(now,attacker);addMastery(type,1,attacker);
  const accuracy=Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,attacker)]+actorAccuracyBonus(attacker,type)-statusStacks('blackInk',attacker)));
  const hit=Math.random()*100<accuracy,armor=EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]||{};
@@ -786,11 +786,11 @@ function logPlayerAttack(attacker,target,result,now){
  const message=actorName(attacker)+' → '+actorName(target)+'：'+(result.hit?result.damage+'ダメージ':result.damage?'外れ・噴火'+result.damage+'ダメージ':'MISS')+(result.healing?'／愛の矢HP＋'+result.healing:'')+(result.effect.frozen?'／凍結付与':'')+(result.reflected?'／トゲ反射'+result.reflected:'');
  addLog(message);recordMatchEvent(attacker,'combat',message,now);if(attacker!==S)comLog(attacker,message,now);
 }
-function playerCombatRound(attacker,target,now){
+function playerCombatRound(attacker,target,now,incomingOnly=false){
  if(!pvpEnabled()||attacker.hp<=0||target.hp<=0||attacker.place!==target.place||(attacker.combatReadyAt||0)>now)return null;
- const first=actorAttack(attacker,target,now);if(!first)return null;attacker.combatReadyAt=now+1000;logPlayerAttack(attacker,target,first,now);
+ const first=actorAttack(attacker,target,now,incomingOnly);if(!first)return null;attacker.combatReadyAt=now+1000;logPlayerAttack(attacker,target,first,now);
  let counter=null;
- if(target.hp>0&&attacker.hp>0&&(target.combatReadyAt||0)<=now){counter=actorAttack(target,attacker,now);target.combatReadyAt=now+1000;logPlayerAttack(target,attacker,counter,now)}
+ if(!incomingOnly&&target.hp>0&&attacker.hp>0&&(target.combatReadyAt||0)<=now){counter=actorAttack(target,attacker,now);target.combatReadyAt=now+1000;logPlayerAttack(target,attacker,counter,now)}
  matchClock.resolvingCombat=true;
  for(const [actor,killer] of [[attacker,target],[target,attacker]])if(actor.hp<=0){
   if(actor===S)eliminatePlayer(actorName(killer)+'との戦闘で脱落しました。',killer.id,now);
@@ -837,9 +837,9 @@ function comFightOpponent(actor,now){
  if(S.pvpPending?.targetId===actor.id||S.pvpFeedback){return}
  if(handleComCombatDecision(actor,target,now,'player'))return;
  if((actor.combatReadyAt||0)>now)return;
- if(target===S&&!discoverOpponent(actor,true))return;
- const result=playerCombatRound(actor,target,now);if(!result||matchClock.ended)return;
- if(target===S){S.ehp=actor.hp;S.busy=true;S.pvpFeedback={until:now+COMBAT_FEEDBACK_MS,corpseId:result.corpse?.id||null};setTimeout(tickMatchClock,COMBAT_FEEDBACK_MS)}
+ // Incoming COM attacks apply damage without replacing the player's current action or screen.
+ const result=playerCombatRound(actor,target,now,target===S);if(!result||matchClock.ended)return;
+ if(target===S){if(S.enemyPlayerId===actor.id)S.ehp=actor.hp;refresh()}
 }
 
 function damageToDrone(def,type,attack,bonus=0,actor=S){
