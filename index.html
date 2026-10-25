@@ -446,6 +446,7 @@ for(const [id,areas] of Object.entries({goggles:['射撃演習区画','工業区
 for(const area of ['住宅区画','神殿区画'])regionStock[area].bracelet=4;
 for(const [id,areas] of Object.entries({boots:['住宅区画','戦闘演習区画','山岳区画'],small_gear:['工業区画','地下機構区画'],large_gear:['工業区画','遺跡区画']}))for(const area of areas)regionStock[area][id]=4;
 regionStock['海岸区画'].goggles=4;regionStock['地下機構区画'].core=1;regionStock['海底研究区画'].core=1;
+Object.assign(regionStock['住宅区画'],{scissors:6});Object.assign(regionStock['商業区画'],{scissors:6});Object.assign(regionStock['医療区画'],{scissors:4});
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
  return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:itemSetCount(id),taken:false})))];
@@ -1474,15 +1475,36 @@ function comPlan(actor,id){
  }
  if(id)need(id,1);return {id,missing,needed,crafts};
 }
+function comPlanFeasible(actor,plan){
+ return Object.keys(plan.missing).every(item=>Object.keys(regionStock).some(area=>!isBlocked(area)&&regionStock[area][item]&&!actor.exhausted[area]));
+}
+function comUpgradeValue(actor,id){
+ const def=equipmentDef(id);if(!def||def.slot==='weapon')return 0;
+ const old=equipmentDef(actor.equipment[def.slot]);return Math.max(0,(def.defense||0)-(old?.defense||0));
+}
+function comUpgradePlan(actor){
+ // Finish a chosen route before re-ranking. Only public item distributions and personally observed depletion are used.
+ if(actor.goal&&!COM_GOALS.includes(actor.goal)&&comUpgradeValue(actor,actor.goal)>0){const plan=comPlan(actor,actor.goal);if(comPlanFeasible(actor,plan))return plan}
+ const choices=Object.keys(EQUIPMENT_DEFS).filter(id=>comUpgradeValue(actor,id)>0&&!actorOwned(actor,id)).map(id=>{
+  const plan=comPlan(actor,id);if(!comPlanFeasible(actor,plan))return null;
+  const searches=Object.entries(plan.missing).reduce((sum,[item,count])=>{
+   const rates=Object.entries(regionStock).filter(([area,stock])=>!isBlocked(area)&&!actor.exhausted[area]&&stock[item]).map(([,stock])=>Object.values(stock).reduce((n,c)=>n+c,0)/stock[item]);
+   return sum+count*Math.min(...rates);
+  },0);
+  return {plan,score:comUpgradeValue(actor,id)/(1+plan.crafts.length*2+searches)};
+ }).filter(Boolean).sort((a,b)=>b.score-a.score);
+ return choices[0]?.plan||null;
+}
 function comCurrentPlan(actor){
  for(const id of COM_GOALS){
   if(actor.completedGoals.includes(id))continue;
   if(actorOwned(actor,id)){actor.completedGoals.push(id);continue}
   const plan=comPlan(actor,id);
   // Only public closure/distribution data and personally observed empty regions affect feasibility.
-  const feasible=Object.keys(plan.missing).every(item=>Object.keys(regionStock).some(area=>!isBlocked(area)&&regionStock[area][item]&&!actor.exhausted[area]));
+  const feasible=comPlanFeasible(actor,plan);
   if(feasible){actor.goal=id;return plan}
  }
+ const upgrade=comUpgradePlan(actor);if(upgrade){actor.goal=upgrade.id;return upgrade}
  actor.goal=null;return {id:null,missing:{},needed:{},crafts:[]};
 }
 function comDrop(actor,index,now){
@@ -1529,7 +1551,7 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor)){
  const needs=Object.keys(plan.missing);
  if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory.arrows||0)<20)needs.push('arrows');
  if(actor.st<60)needs.push('water','drink','energy_drink');
- const score=area=>needs.reduce((n,id)=>n+(regionStock[area][id]?10:0),0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.1;
+ const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100,0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5;
  const best=Math.max(...safe.map(score)),choices=safe.filter(a=>score(a)===best);
  actor.visited[actor.place]=(actor.visited[actor.place]||0)+1;actor.place=choices[rand(choices.length)];
  actor.searches=0;actor.noProgress=0;actor.seen={};actor.enemy=null;actor.opponent=null;actor.loot=null;actor.restMode=null;actor.leaveDanger=false;payMovementCost(actor,now);
