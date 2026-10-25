@@ -32,7 +32,7 @@ active();run(`receive('ration',2);var body=createDroneCorpse('bird',S.place);ope
 // Buttons report and clear cooldowns automatically without reopening the menu.
 active();run(`receive('ration',2);useItem('ration');var button={dataset:{recoveryGroup:'hp',useLabel:'使用する'}};document.querySelectorAll=()=>[button];renderRecoveryCooldowns()`);eq('button.disabled',true);eq('button.textContent','あと 3.0秒');h.advance(3000);eq('button.disabled',false);eq('button.textContent','使用する');
 // Reloading ammunition remains independent of recovery cooldowns.
-active();run(`receive('handgun',1,{ammo:0});equip('handgun');receive('bullets',20);useItem('bullets')`);eq('weaponAmmo()',20);eq(`recoveryWait('hp')`,0);eq(`recoveryWait('stamina')`,0);
+active();run(`receive('handgun',1,{ammo:0});equip('handgun');receive('bullets',20);useItem('bullets')`);eq('weaponAmmo()',8);eq(`recoveryWait('hp')`,0);eq(`recoveryWait('stamina')`,0);
 console.log('PASS: recovery amounts, independent shared-category cooldowns, exact three-second boundary, failed-use atomicity, successful menu closure and button countdown');
 
 // Explicit design values and dedicated art assignments.

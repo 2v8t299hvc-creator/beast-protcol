@@ -36,7 +36,7 @@ fixture('dog');run('drones.dog.hp=71;S.ehp=71;skill();discoverDrone("dog")');eq(
 fixture('scorpion');run(`S.bag=[];syncInventory();receive('reinforced',1);equip('reinforced');`);
 eq(`damageToDrone(DRONE_DEFS.scorpion,'fist',100)`,Math.floor(run(`combatDamage(100,28,'fist')`)*0.85));
 run(`receive('plasma',1);equip('plasma')`);eq(`damageToDrone(DRONE_DEFS.scorpion,'fist',100)`,run(`combatDamage(100,28,'fist')`));
-run(`receive('laser_rifle',1,{ammo:0});equip('laser_rifle')`);eq(`damageToDrone(DRONE_DEFS.scorpion,weaponType(),100)`,Math.floor(run(`combatDamage(100,28,'fist')`)*0.85));
+run(`receive('magma_blaster',1,{ammo:0});equip('magma_blaster')`);eq(`damageToDrone(DRONE_DEFS.scorpion,weaponType(),100)`,Math.floor(run(`combatDamage(100,28,'fist')`)*0.85));
 // Reapplication resets a status clock, including at the maximum; long pauses decay multiple stacks.
 fixture('scorpion');run(`applyStatus('purplePoison');applyStatus('purplePoison')`);eq(`statusStacks('purplePoison')`,2);h.advance(4000);run(`applyStatus('purplePoison')`);h.advance(1000);eq(`statusStacks('purplePoison')`,3);h.advance(4000);eq(`statusStacks('purplePoison')`,2);
 run(`for(let i=0;i<15;i++)applyStatus('purplePoison')`);eq(`statusStacks('purplePoison')`,10);h.advance(4000);run(`applyStatus('purplePoison')`);h.advance(1000);eq(`statusStacks('purplePoison')`,10);h.advance(49000);eq(`statusStacks('purplePoison')`,0);

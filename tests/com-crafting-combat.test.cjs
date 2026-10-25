@@ -20,7 +20,7 @@ function fixture(){h=harness();run=s=>h.run(s);run(`globalThis.a=comActors[0];ma
 fixture();run('receive("japanese_bow",1,null,a);receive("wood",1,null,a)');
 eq('comPlan(a,"azusa_bow").missing.japanese_bow',1);eq('comPlan(a,"azusa_bow").missing.wood',1);eq('comPlan(a,"azusa_bow").missing.wire',1);eq('comPlan(a,"azusa_bow").missing.scrap',1);
 const playerBefore=run('JSON.stringify({bag:S.bag,xp:S.xp,mastery:S.masteryAttacks})');
-run('stepCom(a,Date.now())');eq('a.inventory.strong_bow',1);eq('a.inventory.wood||0',0);eq('a.masteryAttacks.bow',28);eq('a.equipment.weapon','practice_bow');
+run('stepCom(a,Date.now());stepCom(a,Date.now()+1000);stepCom(a,Date.now()+2000)');eq('actorOwned(a,"strong_bow")',1);eq('a.inventory.wood||0',0);eq('a.masteryAttacks.bow',28);eq('a.equipment.weapon','strong_bow');
 assert.equal(run('JSON.stringify({bag:S.bag,xp:S.xp,mastery:S.masteryAttacks})'),playerBefore);
 // Actual inputs and post-consumption capacity are atomic, including equipped recipe ingredients.
 fixture();run('a.bag=[{id:"scrap",count:10},{id:"cloth",count:10},{id:"wood",count:10},{id:"feather",count:10},{id:"arrows",count:99},{id:"ration",count:10}];syncInventory(a)');
@@ -28,7 +28,7 @@ const before=run('JSON.stringify(a)');eq('craftActor(a,recipes.find(r=>r.id==="a
 run('comMakeRoom(a,"armguard",1,comPlan(a,"armguard"),Date.now())');eq('a.bag.length',5);eq('regionObjects[a.place].at(-1).dropped',true);
 eq('craftActor(a,recipes.find(r=>r.id==="armguard"))',true);run('comEquipBetter(a,Date.now())');eq('a.equipment.arm','armguard');eq('totalStat("defense",a)',8);
 run('a.equipment.weapon="strong_bow";a.equipmentAmmo.weapon=7;a.bag=[];syncInventory(a);receive("reinforced_wire",1,null,a)');
-eq('craftActor(a,recipes.find(r=>r.id==="mighty_bow"))',true);eq('a.equipment.weapon',null);eq('a.inventory.mighty_bow',1);eq('a.bag.find(x=>x.id==="mighty_bow").ammo',20);
+eq('craftActor(a,recipes.find(r=>r.id==="mighty_bow"))',true);eq('a.equipment.weapon',null);eq('a.inventory.mighty_bow',1);eq('a.bag.find(x=>x.id==="mighty_bow").ammo',8);
 // Goal route uses missing materials and public distributions; configured exhaustion replaces fixed eight-search travel.
 fixture();run('a.bag=[{id:"japanese_bow",count:1}];syncInventory(a);comMove(a,Date.now(),"test",comPlan(a,"strong_bow"))');eq('!!regionStock[a.place].wood',true);
 run('a.searches=8;a.noProgress=0;a.place="山岳区画";a.bag=[{id:"japanese_bow",count:1}];syncInventory(a);globalThis.area=a.place;stepCom(a,Date.now())');eq('a.place===area',true);
@@ -52,7 +52,7 @@ fixture();drone('bird',1);run('S.place=a.place;discoverDrone("bird");attackDisco
 // Real seeded simulation proves a complete multi-recipe route and genuine drone kills, no free materials.
 for(let n=1;n<=5;n++){
  h=harness();run=s=>h.run(s);run(`globalThis.seed=${n};globalThis.events=[];globalThis.oldLog=comLog;comLog=(a,t,n)=>{events.push(t);oldLog(a,t,n)};selectPracticeWeapon('practice_bow');move('山岳区画')`);h.advance(900000);
- eq('comActors[0].completedGoals.includes("azusa_bow")',true);assert(run('events.some(x=>x.includes("撃破"))'));assert(run('events.some(x=>x.includes("制作"))'));assert(run('comActors[0].bag.length<=6'));eq('comActors[0].equipment.weapon','practice_bow');
+ eq('comActors[0].completedGoals.includes("azusa_bow")',true);assert(run('events.some(x=>x.includes("撃破"))'));assert(run('events.some(x=>x.includes("制作"))'));assert(run('comActors[0].bag.length<=6'));eq('comActors[0].equipment.weapon','azusa_bow');
 }
 // Full world chronology is independent of Safari timer throttling.
 function chronology(chunk){const z=harness();z.run(`selectPracticeWeapon('practice_bow');move('山岳区画')`);for(let t=chunk;t<=900000;t+=chunk)z.advance(chunk);return z.run('JSON.stringify({actor:comActors[0],drones,corpses,objects:Object.values(regionObjects).flat().filter(x=>x.taken).map(x=>x.uid)})')}
