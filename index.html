@@ -1096,18 +1096,17 @@ function showItemStack(index){
  modal('📦 '+names[id],`<p>${equipmentDef(id)?equipmentDetails(id)+'<br>':''}${ammoLabel(id,entry.ammo)} 選択スタック：${entry.count}/${stackLimit(id)}個（同種合計：${S.inventory[id]||0}個）</p><div class="rowItemActions">${controls}</div>`);
 }
 function showItem(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)showItemStack(i);else {closeModal();refresh()}}
-function showRecipesFor(id){
- const list=recipes.filter(r=>Object.hasOwn(r.need,id)).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
- modal('🔧 '+names[id]+'から製作',list.map(r=>{
- const ok=canCraft(r);
- return craftRecipeHTML(r);
- }).join('')||'<p>製作先はありません</p>');
+function showRecipesFor(id,equipmentOnly=false){
+ const list=recipes.filter(r=>Object.hasOwn(r.need,id)&&(!equipmentOnly||equipmentDef(r.id))).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
+ const back=equipmentOnly?'<button onclick="showEquipment()">← 装備欄へ戻る</button><p class="small">装備中のアイテムをそのまま素材にできます。</p>':'';
+ modal('🔧 '+names[id]+'から製作',back+(list.map(craftRecipeHTML).join('')||'<p>製作先はありません</p>'));
 }
 function showEquipment(){
  const cards=Object.entries(EQUIPMENT_SLOTS).map(([slot,label])=>{
   const id=equipped(slot),def=equipmentDef(id);
+  const derived=id?recipes.filter(r=>Object.hasOwn(r.need,id)&&equipmentDef(r.id)):[];
   return `<div class="bp-equip-card"><b>${label}</b><div class="bp-equip-item">${id?itemIconHTML(id)+' '+names[id]+ammoLabel(id,S.equipmentAmmo[slot]):'未装備'}</div>
-  ${id?`<small>攻撃 +${def.attack||0} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=def.capacity||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
+  ${id?`<small>攻撃 +${def.attack||0} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=def.capacity||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}${derived.length?`<button onclick="showRecipesFor('${id}',true)">🔧 派生装備（${derived.length}件）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
  const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
  modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${totalStat('attack')}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showComStatus()">開発用：COM行動確認</button>`);
