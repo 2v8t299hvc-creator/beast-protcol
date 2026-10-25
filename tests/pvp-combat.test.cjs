@@ -1,0 +1,57 @@
+// Boundary and race-condition integration checks against the actual HTML game script.
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+const source=[...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');
+function harness(){
+ let now=1000000;const timers=[],elements=new Map();
+ function element(){const classes=new Set();return {style:{},textContent:'',innerHTML:'',children:[],classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),contains:x=>classes.has(x),toggle(x,on){if(on)classes.add(x);else classes.delete(x)}},prepend(x){this.children.unshift(x)},get lastChild(){return {remove:()=>this.children.pop()}},getAttribute(){return ''}}}
+ const document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id)},createElement:element,querySelector(){return null},querySelectorAll(){return []}};
+ const context=vm.createContext({document,Image:class {},Date:class extends Date{static now(){return now}},getComputedStyle:()=>({backgroundImage:''}),setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearTimeout(){},setInterval(){},console});
+ vm.runInContext("globalThis.seed=1;Math.random=()=>{seed=(seed*16807)%2147483647;return seed/2147483647}",context);
+ vm.runInContext(source,context);
+
+ return {run:code=>vm.runInContext(code,context),setNow:x=>{now=x},advance(ms){now+=ms;vm.runInContext('tickMatchClock()',context)},tickAction(){const i=timers.findIndex(t=>t.ms===1000);assert(i>=0);timers.splice(i,1)[0].fn()}};
+}
+
+
+
+let h,run;const eq=(s,v)=>assert.equal(run(s),v,s);
+function fixture(){h=harness();run=s=>h.run(s);run(`selectPracticeWeapon('practice_gauntlet');move('山岳区画');matchClock.section=1;matchClock.sectionEndsAt=2000000;matchClock.nextBlocked=[];matchClock.blocked=[];globalThis.a=comActors[0];a.place=S.place;a.starterWeapon='practice_bow';a.equipment.weapon='practice_bow';a.equipmentAmmo.weapon=20;a.nextActionAt=Date.now()+1000;Math.random=()=>0;`)}
+// Search-gated local encounters and portrait routing. Unrelated map positions remain hidden.
+fixture();run('a.place="森林区画"');eq('localOpponents(S).length',0);eq('discoverOpponent(a)',false);run('a.place=S.place;primary()');h.tickAction();eq('S.enemyPlayerId','hayate');eq('$("enemyName").textContent','ハヤテ');eq('$("enemyArt").src','assets/characters/hayate_encounter.webp');eq('$("mainBtn").textContent','⚔ 攻撃');eq('S.st',117);run('skill()');eq('S.enemy',false);eq('S.enemyPlayerId',null);run('move("森林区画")');eq('S.place','森林区画');eq('a.place','山岳区画');
+fixture();run('S.equipment.body="passion_bikini"');eq('actorDiscoveryRate(S)',0.9);
+// Scheduled player attack: one own attack + one counter; no duplicate autonomous COM round.
+fixture();run('discoverOpponent(a);attackOpponent();attackOpponent()');eq('S.pvpPending.dueAt',1001000);h.advance(1000);eq('S.hp',144);eq('a.hp',148);eq('S.masteryAttacks.fist',13);eq('a.masteryAttacks.bow',27);eq('a.equipmentAmmo.weapon',19);eq('S.busy',true);h.advance(899);eq('S.busy',true);h.advance(1);eq('S.busy',false);eq('S.enemy',false);
+// A COM counter cannot also attack its previously discovered drone in the same second.
+fixture();run('a.enemy={kind:"bird",generation:7};Object.assign(drones.bird,{spawned:true,generation:7,hp:10000,area:a.place});discoverOpponent(a);attackOpponent()');h.advance(1000);eq('a.masteryAttacks.bow',27);eq('drones.bird.hp',10000);
+// Target movement / flee before the scheduled hit cancels without damage, ammo or dead action timers.
+fixture();run('discoverOpponent(a);attackOpponent();a.place="森林区画";a.nextActionAt=3000000');h.advance(1000);eq('S.hp',180);eq('a.hp',180);eq('a.equipmentAmmo.weapon',20);eq('S.busy',false);eq('S.enemy',false);
+fixture();run('primary();globalThis.token=S.actionToken;discoverOpponent(a,true)');h.tickAction();eq('S.pendingFound',null);eq('S.ticks',0);eq('S.enemyPlayerId','hayate');assert(run('S.actionToken>token'));
+// Incoming attacks interrupt recovery/menus, but preserve a pending physical item in stock.
+fixture();run('S.pendingFound=regionObjects[S.place][0];S.recoveryMode="hp";S.corpseVisit={id:"x"};a.opponent={id:S.id};comFightOpponent(a,Date.now())');eq('S.pendingFound',null);eq('S.found.length',1);eq('S.recoveryMode',null);eq('S.corpseVisit',null);eq('S.hp',144);eq('a.hp',148);
+// Offensive equipment and defensive retaliation run through the same player/COM mutation path.
+fixture();run('S.equipment.weapon="blizzard_cannon";S.equipmentAmmo.weapon=4;actorAttack(S,a,Date.now())');eq('a.frozenUntil',1004000);eq('recoverActor(a,"ration",1003999)',false);eq('a.inventory.ration',2);eq('recoverActor(a,"ration",1004000)',true);
+fixture();run('S.equipment.weapon="eros_bow";S.equipmentAmmo.weapon=16;S.hp=100;globalThis.r=actorAttack(S,a,Date.now())');eq('r.healing',4);eq('S.hp',104);
+fixture();run('a.equipment.body="stinger_suit";S.hp=100;globalThis.r=actorAttack(S,a,Date.now())');eq('r.reflected',4);eq('S.hp',96);
+fixture();run('a.equipment.body="charged_suit";S.equipment.weapon="handgun";S.equipmentAmmo.weapon=8;equipmentState(S,"weapon").durability=10;actorAttack(S,a,Date.now());actorAttack(S,a,Date.now()+1000)');eq('equipmentState(S,"weapon").durability',9);eq('equipmentState(a,"body").readyAt',1090000);
+// Three missed magma shots still produce a lethal fixed eruption; no projectile or counter duplication.
+fixture();run('S.equipment.weapon="magma_blaster";S.equipmentAmmo.weapon=8;a.hp=15;Math.random=()=>0.999;actorAttack(S,a,Date.now());actorAttack(S,a,Date.now()+1000);globalThis.r=playerCombatRound(S,a,Date.now()+2000)');eq('r.first.hit',false);eq('r.first.damage',15);eq('r.counter',null);eq('S.equipmentAmmo.weapon',5);eq('matchClock.result','win');
+// A COM without a safe escape area keeps acting instead of locking up at its exploration limit.
+fixture();run('matchClock.blocked=Object.keys(regionStock).filter(x=>x!==a.place);a.searches=36;a.noProgress=12;a.goal=null;a.completedGoals=[...COM_GOALS];a.opponent=null;S.place="森林区画";stepCom(a,Date.now())');eq('a.searches',1);
+// Lethal first hit receives no counter and ends the match; real corpse contents remain claimable.
+fixture();run('a.hp=1;discoverOpponent(a);attackOpponent()');h.advance(1000);eq('matchClock.result','win');eq('matchClock.winnerId','kaito');eq('matchClock.ended',true);eq('S.hp',180);eq('a.bag.length',0);eq('corpses.filter(c=>c.ownerId==="hayate").length',1);eq('$("survivalStatus").textContent','勝利');eq('$("notice").textContent.includes("全区域封鎖")',false);
+run('globalThis.body=corpses.find(c=>c.ownerId==="hayate");openCorpse(body.id);globalThis.token=S.corpseVisit.token;takeCorpseItem(0,token)');eq('S.inventory.ration',4);eq('body.items.length',2);run('takeCorpseItem(0,token)');eq('body.items.length',2);
+// Both actors can die in a single reflected hit; the result is a draw with exactly two corpses.
+fixture();run('S.hp=1;a.hp=1;a.equipment.body="stinger_suit";playerCombatRound(S,a,Date.now())');eq('S.hp',0);eq('a.hp',0);eq('matchClock.result','draw');eq('corpses.filter(c=>c.kind==="player").length',2);
+// COM can win by combat; the survivor also wins if the other participant dies to a drone/movement/closure.
+fixture();run('S.hp=1;a.opponent={id:S.id};comFightOpponent(a,Date.now())');eq('matchClock.result','eliminated');eq('matchClock.winnerId','hayate');eq('matchClock.ended',true);eq('S.corpseId!==null',true);
+fixture();run('a.hp=0;eliminateCom(a,"ドローン",Date.now());checkVictory()');eq('matchClock.result','win');
+fixture();run('matchClock.sectionEndsAt=1001000;matchClock.nextBlocked=[S.place];a.place="森林区画"');h.advance(1000);eq('matchClock.winnerId','hayate');eq('matchClock.ended',true);
+// Final all-area closure eliminates the living actors simultaneously, without a premature winner.
+fixture();run('matchClock.section=9;matchClock.sectionEndsAt=1001000;matchClock.nextBlocked=Object.keys(regionStock);a.nextActionAt=3000000');h.advance(1000);eq('matchClock.result','draw');eq('S.hp',0);eq('a.hp',0);
+// Bounded simulation with actual competitive behavior: no infinite rounds, double corpses or illegal bags.
+for(let n=1;n<=5;n++){h=harness();run=s=>h.run(s);run(`globalThis.seed=${n};selectPracticeWeapon('practice_gauntlet');move('森林区画')`);h.advance(1350000);eq('matchClock.ended',true);assert(run('comActors.every(a=>a.bag.length<=6)'));eq('new Set(corpses.filter(c=>c.kind==="player").map(c=>c.ownerId)).size',run('corpses.filter(c=>c.kind==="player").length'));}
+// Competitive timeline must also match after a throttled Safari resume.
+function chronology(chunk){const z=harness();z.run(`selectPracticeWeapon('practice_gauntlet');move('森林区画')`);for(let t=chunk;t<=900000;t+=chunk)z.advance(chunk);return z.run('JSON.stringify({clock:matchClock,S,comActors,corpses,drones})')}
+assert.equal(chronology(1000),chronology(900000));
+console.log('PASS: local PvP discovery/portrait, player and COM rounds, shared one-second timing, stale-action cancellation, retreat, pending-item preservation, freeze/lifesteal/armor, victory/loot, simultaneous death, final closure and five competitive simulations');
