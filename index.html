@@ -853,7 +853,7 @@ function receiveAttackDamage(amount,reason,killerId=null){
  stopRecoveryMode();S.hp=Math.max(0,S.hp-Math.max(0,amount));
  if(S.hp===0)eliminatePlayer(reason||'攻撃を受けて脱落しました。',killerId);
 }
-function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modalCloseBtn').textContent=S.pendingFound?'📦 保留':'✕ 閉じる';$('back').classList.add('on')};function closeModal(){S.corpseVisit=null;if(S.pendingFound){decideFound(false);return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
+function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;hydrateItemArt();$('modalCloseBtn').textContent=S.pendingFound?'📦 保留':'✕ 閉じる';$('back').classList.add('on')};function closeModal(){S.corpseVisit=null;if(S.pendingFound){decideFound(false);return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
 const itemArt={
  stone:['basic',0],wood:['basic',1],mystery:['basic',2],marble:['basic',3],
  lighter:['tools',0],pickaxe:['tools',1],superpickaxe:['tools',2],greatpickaxe:['tools',3],
@@ -897,17 +897,57 @@ Object.assign(itemArtSheets,{"guns_1":"assets/icon_guns_1.webp","guns_2":"assets
 const itemFallback={water:'💧',hotwater:'♨️',seaweed:'🌿',seaweed_soup:'🍲',swimsuit:'🩳',bikini_pants:'🩳',passion_bikini:'🩳',rubber:'⚫',rubber_gloves:'🧤',rubber_suit:'🦺',insulated_suit:'🦺',charged_suit:'⚡',glue:'🧴',oil:'🛢️',heated_oil:'🫕',swordfish:'🐟',minefish:'🐡',porcupinefish:'🐡',paradisefish:'🐠',wood_sword:'🗡️',survival_knife:'🔪',sea_sword:'⚔️',fried_swordfish:'🍤',swordfish_sashimi:'🍣',minefish_sashimi:'🍣',needle_suit:'🦔',stinger_suit:'🦔',onyx_suit:'🛡️',paradise_sashimi:'🍣',paradise_platter:'🍱',paradise_broth:'🍵',ragglove:'🧤',glove:'🥊',reinforced:'🥊',plasma:'⚡',scrap:'🔩',cloth:'🧵',scissors:'✂️',charcoal:'⚫',core:'🔮',cell:'🔋',steel:'🔧',discharger:'⚡',armguard:'🛡️',ration:'🥪',drink:'🧃',kit:'🩹'};
 Object.assign(itemFallback,{"handgun":"🔫","hand_blaster":"🔫","magma_blaster":"🔫","rifle":"🔫","sniper_rifle":"🔫","laser_rifle":"🔫","cannon":"🔫","blizzard_cannon":"🔫","telescope":"🔭","optical_sight":"🔭","stargazing_telescope":"🔭","mythic_telescope":"🔭","japanese_bow":"🏹","strong_bow":"🏹","reinforced_wire":"➰","mighty_bow":"🏹","azusa_bow":"🏹","unerring_bow":"🏹","western_bow":"🏹","longbow":"🏹","silver_bow":"🏹","golden_bow":"🏹","angel_wing":"🪽","eros_bow":"🏹","amalgam_bow":"🏹","apollo_bow":"🏹","rubbery_hide":"🟤","gunpowder":"💥","wire":"➰","feather":"🪶","fur":"🐾","laurel":"🌿","bullets":"▥","arrows":"➶"});
 Object.assign(itemFallback,{egg:'🥚',fish_scale:'🔹',beast_meat:'🥩',premium_ration:'🥫',energy_drink:'🥤'});
-const readySheets={};
-Object.entries(itemArtSheets).forEach(([key,url])=>{
- const img=new Image();img.onload=()=>{readySheets[key]=true;refresh();if(key.startsWith('practice_')&&S.place==='待機所'&&document.getElementById('mapSectionClock'))showMap(false)};img.onerror=()=>{readySheets[key]=false};img.src=url;
-});
+const readySheets={},loadedSheetUrls={},itemSheetStates={},itemSheetQueue=[];
+let activeItemSheetLoads=0,itemSheetPumpScheduled=false;
+const ITEM_SHEET_CONCURRENCY=4,ITEM_SHEET_MAX_ATTEMPTS=3;
+function scheduleItemSheetPump(){
+ if(itemSheetPumpScheduled)return;itemSheetPumpScheduled=true;
+ setTimeout(()=>{itemSheetPumpScheduled=false;pumpItemSheets()},0);
+}
+function ensureItemSheet(key){
+ if(readySheets[key]||!itemArtSheets[key]||itemSheetStates[key])return;
+ itemSheetStates[key]={status:'queued',attempts:0};itemSheetQueue.push(key);scheduleItemSheetPump();
+}
+function pumpItemSheets(){
+ while(activeItemSheetLoads<ITEM_SHEET_CONCURRENCY&&itemSheetQueue.length){
+  const key=itemSheetQueue.shift(),state=itemSheetStates[key];if(!state||state.status!=='queued')continue;
+  state.status='loading';state.attempts++;activeItemSheetLoads++;
+  const img=new Image(),url=itemArtSheets[key]+(state.attempts>1?'?artRetry='+state.attempts:'');state.image=img;let finished=false;
+  img.decoding='async';
+  function finish(ok){
+   if(finished)return;finished=true;activeItemSheetLoads--;state.image=null;img.onload=null;img.onerror=null;
+   if(ok){readySheets[key]=true;loadedSheetUrls[key]=url;state.status='ready';hydrateItemArt(key);refresh()}
+   else{
+    readySheets[key]=false;
+    if(state.attempts<ITEM_SHEET_MAX_ATTEMPTS){
+     state.status='retry';setTimeout(()=>{state.status='queued';itemSheetQueue.push(key);scheduleItemSheetPump()},state.attempts*1000);
+    }else state.status='failed';
+   }
+   scheduleItemSheetPump();
+  }
+  img.onload=()=>finish(true);img.onerror=()=>finish(false);img.src=url;
+ }
+}
+function hydrateItemArt(key=null){
+ document.querySelectorAll('[data-item-sheet]').forEach(node=>{
+  const sheet=node.dataset.itemSheet;
+  if((!key||key===sheet)&&readySheets[sheet])node.outerHTML=itemIconHTML(node.dataset.itemId);
+ });
+}
+function retryFailedItemArt(){
+ for(const [key,state] of Object.entries(itemSheetStates))if(state.status==='failed'){
+  state.attempts=0;state.status='queued';itemSheetQueue.push(key);
+ }
+ scheduleItemSheetPump();hydrateItemArt();
+}
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
   const [sheet,quadrant]=cfg;
   const x=quadrant%2===0?0:100,y=quadrant<2?0:100;
-  return '<span class="bp-item-art" role="img" aria-label="'+(names[id]||id)+'" style="background-image:url('+itemArtSheets[sheet]+');background-position:'+x+'% '+y+'%"></span>';
+  return '<span class="bp-item-art" role="img" aria-label="'+(names[id]||id)+'" style="background-image:url('+(loadedSheetUrls[sheet]||itemArtSheets[sheet])+');background-position:'+x+'% '+y+'%"></span>';
  }
+ if(cfg){ensureItemSheet(cfg[0]);return '<span class="itemIcon" data-item-id="'+id+'" data-item-sheet="'+cfg[0]+'">'+(itemFallback[id]||'📦')+'</span>'}
  return '<span class="itemIcon">'+(itemFallback[id]||'📦')+'</span>';
 }
 const inventoryOrder=Object.keys(S.inventory).filter(id=>S.inventory[id]>0);
@@ -1319,7 +1359,9 @@ initializeDrones();
 initializeComActors();
 setInterval(tickMatchClock,250);
 document.addEventListener?.('visibilitychange',tickMatchClock);
+document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible')retryFailedItemArt()});
 globalThis.addEventListener?.('pageshow',tickMatchClock);
+globalThis.addEventListener?.('pageshow',retryFailedItemArt);
 
 addLog('仮想演習へログインした。');addLog('準備時間30秒。武器を選び、待機所から出発しよう。時間切れで脱落。');refresh();showMap(false);
 </script></body></html>
