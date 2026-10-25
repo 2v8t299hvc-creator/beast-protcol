@@ -336,7 +336,7 @@ function decideFound(take){
  S.pendingFound=null;
  if(take){
   receive(id,obj.count||1,obj);
-  markObjectTaken(obj);
+  forgetStockObject(obj);markObjectTaken(obj);
   addLog(names[id]+' ×'+(obj.count||1)+'を取得した');
   toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
  }else{
@@ -351,21 +351,19 @@ function takeFound(i){
  stopRecoveryMode();
  if(S.busy||S.pendingFound)return toast('ほかの行動中です');
  if(i<0||i>=Math.min(S.found.length,FIND_SLOTS))return;
- const obj=S.found[i],id=stockItemId(obj);
+ const entry=S.found[i],obj=typeof entry==='string'?(S.found[i]={id:entry,count:1}):entry,id=stockItemId(obj);
  if(obj.dropped&&obj.area!==S.place)return toast('落とし物は'+obj.area+'で回収してね');
- if(!canReceive(id,S.bag,obj.count||1))return toast('所持品に全量入らない！');
  if(S.st<3)return toast('スタミナ不足！休息してね');
  const actionToken=S.actionToken;S.busy=true;S.st-=3;refresh();toast('ストックを探索中…');
  setTimeout(()=>{
   if(actionToken!==S.actionToken)return;
   if(actionToken!==S.actionToken||!allowMatchAction()||actionToken!==S.actionToken)return;
   const pos=S.found.indexOf(obj);
-  if(pos>=0&&canReceive(id,S.bag,obj.count||1)&&(!obj.dropped||obj.area===S.place)){
-   receive(id,obj.count||1,obj);S.found.splice(pos,1);markObjectTaken(obj);
-   addLog(names[id]+' ×'+(obj.count||1)+'を探索して回収した');
-   toast('✅ '+names[id]+' ×'+(obj.count||1)+'を取得');
+  recordExploration(S,Date.now());S.busy=false;
+  if(pos>=0&&!obj.taken&&(!obj.dropped||obj.area===S.place)){
+   pushStock(obj);addFound(obj);refresh();return;
   }
-  recordExploration(S,Date.now());S.busy=false;refresh();showStock();
+  addLog('ストックのアイテムは見つからなかった');refresh();showStock();
  },1000);
 }
 function showStock(){
@@ -373,20 +371,20 @@ function showStock(){
  const slots=Array.from({length:FIND_SLOTS},(_,i)=>{
   const obj=items[i];
   if(!obj)return '<div class="bp-stock-card bp-stock-empty"><span class="bp-stock-empty-symbol">＋</span><span>空きストック</span></div>';
-  const id=stockItemId(obj),room=canReceive(id,S.bag,obj.count||1),energy=S.st>=3,canTake=room&&energy&&!S.busy&&(!obj.dropped||obj.area===S.place);
+  const id=stockItemId(obj),room=canReceive(id,S.bag,obj.count||1),energy=S.st>=3,canTake=energy&&!S.busy&&(!obj.dropped||obj.area===S.place);
   const rightArea=!obj.dropped||obj.area===S.place;
-  const reason=!rightArea?obj.area+'に移動して回収':!room?(AMMO_LIMITS[id]&&totalIn(S.bag,id)+(obj.count||1)>AMMO_LIMITS[id]?'所持上限'+AMMO_LIMITS[id]:'所持品が満杯'):!energy?'スタミナ不足':'';
+  const reason=!rightArea?obj.area+'に移動して回収':!room?(AMMO_LIMITS[id]&&totalIn(S.bag,id)+(obj.count||1)>AMMO_LIMITS[id]?'所持上限'+AMMO_LIMITS[id]+'（探索・保留は可能）':'所持品が満杯（探索・保留は可能）'):!energy?'スタミナ不足':'';
   return `<div class="bp-stock-card">
    <div class="bp-stock-picture">${itemIconHTML(id)}</div>
    <strong class="bp-stock-name">${names[id]}${obj.count>1?' ×'+obj.count:''}</strong>
    <span class="bp-stock-detail">所持 ${S.inventory[id]||0}個</span>
-   <button onclick="takeFound(${i})" ${canTake?'':'disabled'}>✓ 回収する</button>
+   <button onclick="takeFound(${i})" ${canTake?'':'disabled'}>🔎 探索する</button>
    ${reason?`<span class="bp-stock-reason">${reason}</span>`:''}
   </div>`;
  }).join('');
- const pending=S.found.length>FIND_SLOTS?'<p class="bp-stock-queue">📦 4件目が待機中。1件回収すると表示枠へ繰り上がります。</p>':'';
+ const pending=S.found.length>FIND_SLOTS?'<p class="bp-stock-queue">📦 4件目が待機中。取得や新たな発見で表示順が変わります。</p>':'';
  modal('📦 ストック '+items.length+'/3',
-  '<div class="bp-stock-panel"><p class="bp-stock-help">保留したアイテムを回収できます。回収には1秒・スタミナ3が必要です。</p><div class="bp-stock-grid">'+slots+'</div>'+pending+'</div>');
+  '<div class="bp-stock-panel"><p class="bp-stock-help">探索し直すと最新の先頭へ移動し、取得するか保留できます。探索には1秒・スタミナ3が必要です。</p><div class="bp-stock-grid">'+slots+'</div>'+pending+'</div>');
 }
 function equip(id,index=null){
  if(!allowMatchAction())return;
@@ -536,8 +534,12 @@ function drawRegionItem(area,actor=S){
 function markObjectTaken(obj){if(obj&&obj.uid){const found=(regionObjects[obj.area]||[]).find(x=>x.uid===obj.uid);if(found){found.taken=true;regionSeen[obj.area].clear();for(const actor of comActors)actor.seen[obj.area]?.clear();}}}
 function stockItemId(obj){return typeof obj==='string'?obj:obj.id}
 // Newest first. Every new stock entry moves older entries one slot toward the fourth waiting slot.
+function forgetStockObject(obj){
+ if(!obj||typeof obj!=='object')return;
+ S.found=S.found.filter(x=>x!==obj&&!(obj.uid&&x?.uid===obj.uid));
+}
 function pushStock(obj){
- S.found.unshift(obj);
+ forgetStockObject(obj);S.found.unshift(obj);
  if(S.found.length>FIND_QUEUE_MAX){const old=S.found.pop();addLog(names[stockItemId(old)]+'の古いストックが押し出された')}
 }
 const DRONE_DISCOVERY_RATE=0.85;

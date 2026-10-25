@@ -35,7 +35,7 @@ for(const id of run(`Object.keys(EQUIPMENT_DEFS).filter(id=>EQUIPMENT_DEFS[id].a
 reset();run(`receive('japanese_bow',1,{ammo:0});receive('wood',1);craft('strong_bow')`);eq('S.bag[0].ammo',8);
 // A dropped empty weapon remains empty when collected directly or via stock.
 reset();run(`receive('handgun',1,{ammo:0});discardStack(0);addFound(S.found.pop());decideFound(true)`);eq('S.bag[0].ammo',0);
-run(`discardStack(0);takeFound(0)`);h.tick();eq('S.bag[0].ammo',0);
+run(`discardStack(0);takeFound(0)`);h.tick();run('decideFound(true)');eq('S.bag[0].ammo',0);
 // Magazine refill consumes only the missing rounds and caps apply to carried ammo across stacks.
 reset();run(`receive('handgun',1,{ammo:0});receive('bullets',10);equip('handgun');reloadWeapon('bullets');`);
 eq('weaponAmmo()',8);eq('S.inventory.bullets',2);run(`S.equipmentAmmo.weapon=3;reloadWeapon('bullets')`);eq('weaponAmmo()',5);eq('S.inventory.bullets||0',0);
@@ -45,7 +45,7 @@ reset();run(`receive('handgun',1,{ammo:7});receive('handgun',1,{ammo:2});equip('
 run(`unequip('weapon')`);eq('S.bag[1].ammo',7);run(`equip('handgun',1);receive('rifle',1);equip('rifle',1)`);eq('weaponAmmo()',6);eq('S.bag[1].ammo',7);
 // Drop -> world object -> direct discovery pickup and stock recovery preserve loaded ammunition.
 reset();run(`receive('japanese_bow',1,{ammo:5});discardStack(0);addFound(S.found.pop());decideFound(true);equip('japanese_bow',0)`);eq('weaponAmmo()',5);
-run(`unequip('weapon');discardStack(0);takeFound(0)`);h.tick();eq('S.bag[0].ammo',5);
+run(`unequip('weapon');discardStack(0);takeFound(0)`);h.tick();run('decideFound(true)');eq('S.bag[0].ammo',5);
 // Consuming an equipped loaded weapon creates a fully loaded upgraded gun, without inheriting stale ammo.
 reset();run(`receive('handgun',1,{ammo:6});equip('handgun');receive('gunpowder',1);craft('hand_blaster')`);eq('S.equipment.weapon',null);eq('S.equipmentAmmo.weapon',undefined);eq('S.bag[0].ammo',8);
 // Atomic crafting capacity checks: a full bag can craft only when the output fits after consumption.

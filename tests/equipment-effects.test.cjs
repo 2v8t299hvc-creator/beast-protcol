@@ -55,7 +55,7 @@ fresh();run(`receive('mythic_telescope',1);equip('mythic_telescope');for(let i=0
 // Real player exploration completions trigger rewards; rejected clicks do not.
 fresh();run(`receive('stargazing_telescope',1);equip('stargazing_telescope');equipmentState(a,'accessory').searches=14;d.spawned=false;primary();primary()`);eq('equipmentState(a,"accessory").searches',14);h.tickAction();eq('equipmentState(a,"accessory").searches',0);eq('a.inventory.stone',1);eq('a.ticks',1);
 // Paid stock exploration also counts once after collection, while room is evaluated at completion.
-fresh();run(`receive('mythic_telescope',1);equip('mythic_telescope');equipmentState(a,'accessory').searches=9;a.found=[{id:'wood',count:1}];takeFound(0)`);h.tickAction();eq('equipmentState(a,"accessory").searches',0);eq('a.inventory.wood',1);eq('a.bag.length',2);
+fresh();run(`receive('mythic_telescope',1);equip('mythic_telescope');equipmentState(a,'accessory').searches=9;a.found=[{id:'wood',count:1}];takeFound(0)`);h.tickAction();run('decideFound(true)');eq('equipmentState(a,"accessory").searches',0);eq('a.inventory.wood',1);eq('a.bag.length',2);
 // Tier weights are per tier, independent of the number of materials in that tier.
 fresh();for(const [roll,tier]of [[0,'common'],[0.5999,'common'],[0.60,'uncommon'],[0.8499,'uncommon'],[0.85,'rare'],[0.9699,'rare'],[0.97,'epic'],[0.999,'epic']])eq(`RECIPE_RARITY[selectGeneratedMineral(null,()=>${roll})]||'common'`,tier);
 for(const [roll,tier]of [[0,'rare'],[0.7999,'rare'],[0.8,'epic'],[0.999,'epic']])eq(`RECIPE_RARITY[selectGeneratedMineral('rare',()=>${roll})]`,tier);
