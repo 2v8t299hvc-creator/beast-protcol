@@ -1,0 +1,178 @@
+{
+  "date": "2026-10-26",
+  "generator": "Built-in image_gen",
+  "reference": "assets/icon_optics.webp",
+  "layout": "2x2: top-left, top-right, bottom-left, bottom-right; transparent background",
+  "sheets": [
+    {
+      "key": "equipment_01",
+      "ids": [
+        "goggles",
+        "machine_goggles",
+        "night_goggles",
+        "xray_goggles"
+      ],
+      "subjects": [
+        "plain common goggles, worn brown leather strap, simple clear twin lenses",
+        "uncommon mechanical goggles, steel rims, rivets and exposed small mechanisms",
+        "rare night-vision goggles, black tactical housing with bright green optics",
+        "epic see-through goggles, refined silver-violet housing, radiant cyan concentric scanning lenses"
+      ],
+      "path": "assets/icon_equipment_01.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. plain common goggles, worn brown leather strap, simple clear twin lenses; 2. uncommon mechanical goggles, steel rims, rivets and exposed small mechanisms; 3. rare night-vision goggles, black tactical housing with bright green optics; 4. epic see-through goggles, refined silver-violet housing, radiant cyan concentric scanning lenses"
+    },
+    {
+      "key": "equipment_02",
+      "ids": [
+        "mechanic_goggles",
+        "steampunk_goggles",
+        "hat",
+        "cloth_hat"
+      ],
+      "subjects": [
+        "rare mechanic goggles with a compact monitor module, chunky technical steel housing and cyan tiny screen, distinctly more advanced than basic mechanical goggles",
+        "epic steampunk goggles, ornate brass and steel, visible cogs, twin amber lenses and a little steam valve",
+        "common simple charcoal travel hat, short brim and unadorned rugged masculine shape",
+        "uncommon cloth hat, sturdy navy fabric, patched panels, wider soft brim"
+      ],
+      "path": "assets/icon_equipment_02.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. rare mechanic goggles with a compact monitor module, chunky technical steel housing and cyan tiny screen, distinctly more advanced than basic mechanical goggles; 2. epic steampunk goggles, ornate brass and steel, visible cogs, twin amber lenses and a little steam valve; 3. common simple charcoal travel hat, short brim and unadorned rugged masculine shape; 4. uncommon cloth hat, sturdy navy fabric, patched panels, wider soft brim"
+    },
+    {
+      "key": "equipment_03",
+      "ids": [
+        "fur_hat",
+        "leather_hat",
+        "feather_hat",
+        "bluebird_hat"
+      ],
+      "subjects": [
+        "rare rugged fur hat, thick grey-brown fur with ear flaps",
+        "epic dark brown leather adventurer hat, robust stitched leather and reinforced brim",
+        "uncommon feathered hat, simple brown field hat with a single long white feather",
+        "epic bluebird hat, elegant masculine midnight-blue adventurer hat, brilliant blue feathers and a sapphire jewel, restrained gold trim"
+      ],
+      "path": "assets/icon_equipment_03.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. rare rugged fur hat, thick grey-brown fur with ear flaps; 2. epic dark brown leather adventurer hat, robust stitched leather and reinforced brim; 3. uncommon feathered hat, simple brown field hat with a single long white feather; 4. epic bluebird hat, elegant masculine midnight-blue adventurer hat, brilliant blue feathers and a sapphire jewel, restrained gold trim",
+      "spacingRevision": "Preserve four hat designs and equal 2x2 layout; scale down each hat and center within its own quadrant with 60px transparent padding; keep white feather wholly inside bottom-left cell, no fragments in bottom-right. True transparent background, no text or new objects."
+    },
+    {
+      "key": "equipment_04",
+      "ids": [
+        "glass_shard",
+        "monitor",
+        "small_gear",
+        "large_gear"
+      ],
+      "subjects": [
+        "common glass shard, one irregular jagged translucent pale blue piece of broken glass",
+        "uncommon monitor, salvaged compact rugged square flat display, dark steel housing, short attached cable, blue screen with abstract glow but no text",
+        "common small gear, small worn steel cog with a round center hole, simple compact shape",
+        "uncommon large gear, heavy thick bronze industrial cogwheel with bolts and broad spokes, visibly larger and bulkier than the small gear"
+      ],
+      "path": "assets/icon_equipment_04.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. common glass shard, one irregular jagged translucent pale blue piece of broken glass; 2. uncommon monitor, salvaged compact rugged square flat display, dark steel housing, short attached cable, blue screen with abstract glow but no text; 3. common small gear, small worn steel cog with a round center hole, simple compact shape; 4. uncommon large gear, heavy thick bronze industrial cogwheel with bolts and broad spokes, visibly larger and bulkier than the small gear"
+    },
+    {
+      "key": "equipment_05",
+      "ids": [
+        "bracelet",
+        "ruby_bracelet",
+        "gold_bracelet",
+        "silver_bracelet"
+      ],
+      "subjects": [
+        "common plain bracelet, simple worn bronze cuff, open center, wrist wearable",
+        "epic ruby bracelet, robust gold cuff with a large brilliant red ruby and subtle ruby glow",
+        "rare gold bracelet, thick polished gold band with restrained engraved geometric detail",
+        "epic platinum-silver bracelet, refined heavy silver cuff, layered white-silver metal, icy blue inlays"
+      ],
+      "path": "assets/icon_equipment_05.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. common plain bracelet, simple worn bronze cuff, open center, wrist wearable; 2. epic ruby bracelet, robust gold cuff with a large brilliant red ruby and subtle ruby glow; 3. rare gold bracelet, thick polished gold band with restrained engraved geometric detail; 4. epic platinum-silver bracelet, refined heavy silver cuff, layered white-silver metal, icy blue inlays"
+    },
+    {
+      "key": "equipment_06",
+      "ids": [
+        "hermes_bracelet",
+        "armguard",
+        "iron_armguard",
+        "steel_armguard"
+      ],
+      "subjects": [
+        "epic Hermes bracelet, heavy golden wrist cuff, wing motif and laurel engraving, glowing turquoise tiny accents",
+        "uncommon armguard, short bronze forearm bracer over leather straps, robust layered basic armor",
+        "rare iron armguard, darker iron plate forearm bracer, rivets and leather fastenings",
+        "epic steel armguard, polished hardened steel forearm bracer, overlapping angular plates, protective high-tech detailing"
+      ],
+      "path": "assets/icon_equipment_06.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. epic Hermes bracelet, heavy golden wrist cuff, wing motif and laurel engraving, glowing turquoise tiny accents; 2. uncommon armguard, short bronze forearm bracer over leather straps, robust layered basic armor; 3. rare iron armguard, darker iron plate forearm bracer, rivets and leather fastenings; 4. epic steel armguard, polished hardened steel forearm bracer, overlapping angular plates, protective high-tech detailing"
+    },
+    {
+      "key": "equipment_07",
+      "ids": [
+        "obsidian_armguard",
+        "boots",
+        "fur_boots",
+        "synthetic_boots"
+      ],
+      "subjects": [
+        "epic obsidian armguard, black volcanic glass plates on a dark steel forearm bracer, sharp faceted reflective edges, faint violet glints",
+        "common boots, one pair of plain brown rugged leather ankle boots, flat thick soles",
+        "uncommon fur boots, pair of rugged brown winter boots with thick pale fur cuffs",
+        "rare synthetic leather boots, pair of reinforced dark charcoal leather boots, layered stitched panels and chunky soles"
+      ],
+      "path": "assets/icon_equipment_07.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. epic obsidian armguard, black volcanic glass plates on a dark steel forearm bracer, sharp faceted reflective edges, faint violet glints; 2. common boots, one pair of plain brown rugged leather ankle boots, flat thick soles; 3. uncommon fur boots, pair of rugged brown winter boots with thick pale fur cuffs; 4. rare synthetic leather boots, pair of reinforced dark charcoal leather boots, layered stitched panels and chunky soles"
+    },
+    {
+      "key": "equipment_08",
+      "ids": [
+        "amalgam_boots",
+        "primal_boots",
+        "wing_boots",
+        "spike_boots"
+      ],
+      "subjects": [
+        "epic amalgam boots, pair of glossy black synthetic hide boots with biomechanical silver reinforcement and teal seams",
+        "epic primal beast boots, pair of rugged feral fur and hide boots with bone-claw decorations and reinforced toes, not feet, no limbs",
+        "common wing boots, pair of light brown travel boots with small white feather wings fixed to the ankles",
+        "rare spike boots, pair of tough dark leather boots reinforced with recognizable pufferfish-like short stout spines, spiked steel soles"
+      ],
+      "path": "assets/icon_equipment_08.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. epic amalgam boots, pair of glossy black synthetic hide boots with biomechanical silver reinforcement and teal seams; 2. epic primal beast boots, pair of rugged feral fur and hide boots with bone-claw decorations and reinforced toes, not feet, no limbs; 3. common wing boots, pair of light brown travel boots with small white feather wings fixed to the ankles; 4. rare spike boots, pair of tough dark leather boots reinforced with recognizable pufferfish-like short stout spines, spiked steel soles"
+    },
+    {
+      "key": "equipment_09",
+      "ids": [
+        "diamond_boots",
+        "gear_boots",
+        "automation_boots",
+        "energy_socks"
+      ],
+      "subjects": [
+        "epic diamond boots, pair of magnificent armored boots with large clear faceted diamond plates, silver frames and icy prismatic reflections",
+        "rare gear boots, pair of rugged brass and steel boots with visible small mechanical gears at the ankles",
+        "epic automation boots, pair of futuristic articulated mechanical boots, motors and energy gear mechanisms, glowing cyan seams",
+        "epic energy socks, pair of substantial futuristic charcoal-blue high socks or leg sleeves, reinforced technical textile, blue energy cell accents and luminous cyan circuit seams, clearly socks without boot soles"
+      ],
+      "path": "assets/icon_equipment_09.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. epic diamond boots, pair of magnificent armored boots with large clear faceted diamond plates, silver frames and icy prismatic reflections; 2. rare gear boots, pair of rugged brass and steel boots with visible small mechanical gears at the ankles; 3. epic automation boots, pair of futuristic articulated mechanical boots, motors and energy gear mechanisms, glowing cyan seams; 4. epic energy socks, pair of substantial futuristic charcoal-blue high socks or leg sleeves, reinforced technical textile, blue energy cell accents and luminous cyan circuit seams, clearly socks without boot soles"
+    },
+    {
+      "key": "equipment_10",
+      "ids": [
+        "leg_cover",
+        "steel_leg_cover",
+        "energy_gear"
+      ],
+      "subjects": [
+        "uncommon leg covers, a matching pair of thick fur-lined brown fabric gaiters with straps, standalone gear not worn by anyone",
+        "rare steel leg covers, matching pair of protective steel shin guards over sturdy leather backing, clearly lower-leg armor, no boots or feet attached",
+        "rare energy gear, single industrial cogwheel integrated with a bright cyan energy cell core, steel and bronze housing, blue light in its center",
+        "leave this fourth bottom-right quadrant completely transparent and empty"
+      ],
+      "path": "assets/icon_equipment_10.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for the Japanese SF survival crafting game BEAST PROTOCOL. Use the supplied image ONLY as visual-style and layout reference; do not reproduce telescopes. Match its polished hand-painted anime RPG equipment rendering, crisp strong silhouette, sharp dark contour, detailed materials, three-quarter product view and controlled luminous highlights. Output a square 1024x1024 atlas, EXACT equal quadrants separated at x=512,y=512. In EACH 512-square cell put only the specified standalone item centered, fully contained with at least 45px transparent padding; no object or shadow crosses a cell boundary. True transparent alpha background everywhere around objects, including gutters, not a checkerboard or black backdrop. No text, labels, grid lines, icon frames, badges, people, body parts, mannequins or scenery. Masculine rugged wearable gear suitable for adult male beastmen, no high heels. All four items rendered with consistent scale and art quality. Quadrants in order TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT: 1. uncommon leg covers, a matching pair of thick fur-lined brown fabric gaiters with straps, standalone gear not worn by anyone; 2. rare steel leg covers, matching pair of protective steel shin guards over sturdy leather backing, clearly lower-leg armor, no boots or feet attached; 3. rare energy gear, single industrial cogwheel integrated with a bright cyan energy cell core, steel and bronze housing, blue light in its center; 4. leave this fourth bottom-right quadrant completely transparent and empty"
+    }
+  ]
+}
