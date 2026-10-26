@@ -22,8 +22,8 @@ run('takeFound(0)');h.tickAction();run('decideFound(true)');eq('S.inventory.wood
 fixture();run('S.bag=Array.from({length:6},()=>({id:"cloth",count:10}));syncInventory();takeFound(1)');h.tickAction();eq('S.pendingFound.uid','b');eq('S.found.map(x=>x.uid).join(\",\")','b,a,c,d');run('decideFound(true)');eq('S.pendingFound.uid','b');run('decideFound(false)');eq('S.found.map(x=>x.uid).join(\",\")','b,a,c,d');eq('S.inventory.cloth',60);
 // Same item types are different physical objects. Only the searched object is moved/deduplicated.
 fixture();run('takeFound(1)');h.tickAction();run('decideFound(false);pushStock(S.found[0])');eq('S.found.filter(x=>x.id==="stone").length',3);eq('S.found.map(x=>x.uid).join(\",\")','b,a,c,d');
-// Insufficient stamina, remote dropped objects and interruption must not refresh an uncompleted search.
-fixture();run('S.st=2;takeFound(2)');eq('S.found.map(x=>x.uid).join(\",\")','a,b,c,d');eq('S.busy',false);
+// ST shortfalls consume HP; remote objects and interruptions do not refresh an uncompleted search.
+fixture();run('S.st=2;var beforeHp=S.hp;takeFound(2)');eq('S.found.map(x=>x.uid).join(\",\")','a,b,c,d');eq('S.busy',true);eq('S.st',0);eq('S.hp',run('beforeHp')-1);
 fixture();run('S.found[2].dropped=true;S.found[2].area="森林区画";takeFound(2)');eq('S.st',120);
 fixture();run('takeFound(2);S.actionToken++');h.tickAction();eq('S.found.map(x=>x.uid).join(\",\")','a,b,c,d');eq('S.pendingFound',null);
 console.log('PASS: stock re-discovery promotes the exact object, prompts take/keep, never duplicates, works with a full bag and preserves recency on rejected/interrupted searches');

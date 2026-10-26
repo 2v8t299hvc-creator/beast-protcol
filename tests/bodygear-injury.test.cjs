@@ -34,10 +34,10 @@ fresh();run('a.equipment.body="archangel_robe";receive("herb",1);receive("hotwat
 fresh();run('globalThis.b={...a,id:"enemy",equipment:{...a.equipment,body:"navy_suit"},equipmentEffects:{},hp:10000,statusEffects:{}};a.equipment.weapon="handgun";a.equipmentAmmo.weapon=8;globalThis.reduced=actorAttack(a,b,Date.now());EQUIPMENT_DEFS.same_armor={slot:"body",attack:0,defense:49};b.equipment.body="same_armor";globalThis.plain=actorAttack(a,b,Date.now())');eq('reduced.damage',Math.max(1,Math.floor(run('plain.damage')*.9)));
 // Attack-triggered injury can proc on a miss. Other hits refresh active duration without ignoring the skill cooldown.
 fresh();run('a.equipment.body="mad_doctor_gown";globalThis.b={...a,id:"enemy",equipment:{...a.equipment,body:null},hp:10000,statusEffects:{},equipmentEffects:{}};Math.random=()=>.999;actorAttack(a,b,1000000)');eq('b.injuryUntil',1005000);eq('equipmentState(a,"body").readyAt',1030000);run('Math.random=()=>0;a.equipment.body=null;actorAttack(a,b,1004000)');eq('b.injuryUntil',1009000);run('actorAttack(a,b,1009000)');eq('b.injuryUntil',1009000);run('a.equipment.body="mad_doctor_gown";actorAttack(a,b,1030000)');eq('b.injuryUntil',1035000);
-// Ordinary and stock searches pay HP once, on starting; expired injury and failed searches cost none.
+// Ordinary and stock searches pay HP once, on starting; expired injury costs none; ST shortfalls also consume HP.
 fresh();run('a.injuryUntil=Date.now()+5000;primary()');eq('a.hp',96);eq('a.st',47);h.tickAction();eq('a.hp',96);
 fresh();run('pushStock(regionObjects[a.place][0]);a.injuryUntil=Date.now()+5000;takeFound(0)');eq('a.hp',96);h.tickAction();eq('a.hp',96);
-fresh();run('a.injuryUntil=Date.now();paySearchCost(a,Date.now())');eq('a.hp',100);run('a.injuryUntil=Date.now()+5000;a.st=0;primary()');eq('a.hp',100);
+fresh();run('a.injuryUntil=Date.now();paySearchCost(a,Date.now())');eq('a.hp',100);run('a.injuryUntil=Date.now()+5000;a.st=0;primary()');eq('a.hp',93);eq('a.st',0);
 fresh();run('a.injuryUntil=Date.now()+5000;a.hp=4;primary()');eq('a.hp',0);eq('matchClock.result','eliminated');eq('a.busy',false);eq('a.pendingFound',null);
 // Drone retaliation extends an existing injury; respawn clears any injury carried by a previous generation.
 fresh();run('a.injuryUntil=1001000;droneCounterDamage(DRONE_DEFS.bird,a,1000999)');eq('a.injuryUntil',1005999);eq('Object.values(regionObjects).flat().filter(x=>x.id==="herb").length',12);

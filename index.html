@@ -420,7 +420,6 @@ function takeFound(i){
  if(i<0||i>=Math.min(S.found.length,FIND_SLOTS))return;
  const entry=S.found[i],obj=typeof entry==='string'?(S.found[i]={id:entry,count:1}):entry,id=stockItemId(obj);
  if(obj.dropped&&obj.area!==S.place)return toast('落とし物は'+obj.area+'で回収してね');
- if(S.st<searchStaminaCost(S))return toast('スタミナ不足！休息してね');
  const actionToken=S.actionToken;if(!paySearchCost(S,Date.now()))return;S.busy=true;refresh();toast('ストックを探索中…');
  setTimeout(()=>{
   if(actionToken!==S.actionToken)return;
@@ -438,9 +437,9 @@ function showStock(){
  const slots=Array.from({length:FIND_SLOTS},(_,i)=>{
   const obj=items[i];
   if(!obj)return '<div class="bp-stock-card bp-stock-empty"><span class="bp-stock-empty-symbol">＋</span><span>空きストック</span></div>';
-  const id=stockItemId(obj),room=canReceive(id,S.bag,obj.count||1),energy=S.st>=3,canTake=energy&&!S.busy&&(!obj.dropped||obj.area===S.place);
+  const id=stockItemId(obj),room=canReceive(id,S.bag,obj.count||1),energy=S.hp>0,canTake=energy&&!S.busy&&(!obj.dropped||obj.area===S.place);
   const rightArea=!obj.dropped||obj.area===S.place;
-  const reason=!rightArea?obj.area+'に移動して回収':!room?(AMMO_LIMITS[id]&&totalIn(S.bag,id)+(obj.count||1)>AMMO_LIMITS[id]?'所持上限'+AMMO_LIMITS[id]+'（探索・保留は可能）':'所持品が満杯（探索・保留は可能）'):!energy?'スタミナ不足':'';
+  const reason=!rightArea?obj.area+'に移動して回収':!room?(AMMO_LIMITS[id]&&totalIn(S.bag,id)+(obj.count||1)>AMMO_LIMITS[id]?'所持上限'+AMMO_LIMITS[id]+'（探索・保留は可能）':'所持品が満杯（探索・保留は可能）'):!energy?'体力不足':'';
   return `<div class="bp-stock-card">
    <div class="bp-stock-picture">${itemIconHTML(id)}</div>
    <strong class="bp-stock-name">${names[id]}${obj.count>1?' ×'+obj.count:''}</strong>
@@ -451,7 +450,7 @@ function showStock(){
  }).join('');
  const pending=S.found.length>FIND_SLOTS?'<p class="bp-stock-queue">📦 4件目が待機中。取得や新たな発見で表示順が変わります。</p>':'';
  modal('📦 ストック '+items.length+'/3',
-  '<div class="bp-stock-panel"><p class="bp-stock-help">探索し直すと最新の先頭へ移動し、取得するか保留できます。探索には1秒・スタミナ'+searchStaminaCost(S)+'が必要です。</p><div class="bp-stock-grid">'+slots+'</div>'+pending+'</div>');
+  '<div class="bp-stock-panel"><p class="bp-stock-help">探索し直すと最新の先頭へ移動し、取得するか保留できます。探索には1秒・スタミナ'+searchStaminaCost(S)+'を消費し、不足分はHPで支払います。</p><div class="bp-stock-grid">'+slots+'</div>'+pending+'</div>');
 }
 function equip(id,index=null){
  if(!allowMatchAction())return;
@@ -650,7 +649,10 @@ function applyAttackInjury(attacker,target,hit,now){
  target.injuryUntil=now+effect.injuryMs;target.injurySourceId=actorIdentity(attacker);state.readyAt=now+effect.cooldownMs;
 }
 function paySearchCost(actor,now){
- actor.st-=searchStaminaCost(actor);
+ const cost=searchStaminaCost(actor),staminaCost=Math.min(actor.st,cost),hpCost=cost-staminaCost;
+ actor.st-=staminaCost;actor.hp=Math.max(0,actor.hp-hpCost);
+ if(hpCost){const message='探索：ST不足分のHP－'+hpCost;recordMatchEvent(actor,'searchCost',message,now);if(actor===S)addLog(message);else comLog(actor,message,now);}
+ if(actor.hp<=0){if(actor===S){eliminatePlayer('探索時のHP消費により脱落しました。',null,now);refresh()}else{eliminateCom(actor,'探索時のHP消費',now);checkVictory(now)}return false;}
  if((actor.injuryUntil||0)>now){const damage=Math.min(4,actor.hp);actor.hp-=damage;bumpMatchStat(actor,'damageTaken',damage);recordMatchEvent(actor,'injury','負傷：探索でHP－'+damage,now);
   if(actor===S)addLog('負傷：探索でHP－'+damage);else comLog(actor,'負傷：探索でHP－'+damage,now);
   if(actor.hp<=0){if(actor===S){eliminatePlayer('負傷中の探索で脱落しました。',actor.injurySourceId,now);refresh()}else{eliminateCom(actor,'負傷中の探索',now,actor.injurySourceId);checkVictory(now)}return false}
@@ -1138,7 +1140,6 @@ function primary(){
  if(S.enemy)return S.enemyPlayerId?attackOpponent():attackDiscoveredDrone();
  if(S.busy||S.pendingFound||S.corpseVisit||S.enemy)return;
  if(S.hp<=0)return toast('戦闘不能！再読み込みで最初から');
- if(S.st<searchStaminaCost(S))return toast('スタミナ不足！休息してね');
  const actionToken=S.actionToken;if(!paySearchCost(S,Date.now()))return;S.busy=true;refresh();
  setTimeout(()=>{
   if(actionToken!==S.actionToken)return;
@@ -1668,8 +1669,8 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor)){
  const safe=Object.keys(regionStock).filter(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a));
  if(!safe.length)return false;
  const needs=Object.keys(plan.missing);
- if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory.arrows||0)<20)needs.push('arrows');
- if(actor.st<60)needs.push('water','drink','energy_drink');
+ if(!plan.recovery&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory.arrows||0)<20)needs.push('arrows');
+ if(!plan.recovery&&actor.st<60)needs.push('water','drink','energy_drink');
  const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100,0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5;
  const best=Math.max(...safe.map(score)),choices=safe.filter(a=>score(a)===best);
  const start=actor.place==='待機所'&&safe.includes(actor.startArea)?actor.startArea:null;
@@ -1708,6 +1709,13 @@ function comFight(actor,now){
  if(actor.hp<=0){eliminateCom(actor,def.name+'の反撃',now,'drone-'+d.kind+'-'+d.generation);return}
  if(result.body)actor.loot=result.body.id;
 }
+function comRecoveryPlan(actor){
+ const areas=Object.keys(regionStock).filter(area=>!isBlocked(area)&&!nextClosingAreas().includes(area)&&!actor.exhausted[area]);
+ const missing={};
+ for(const area of areas)for(const id of Object.keys(regionStock[area]))if(RECOVERY_ITEMS[id]?.group==='hp')missing[id]=1;
+ if(!Object.keys(missing).length)return null;
+ return {id:null,missing,needed:{},crafts:[],recovery:true};
+}
 function stepCom(actor,now){
  updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
@@ -1715,20 +1723,36 @@ function stepCom(actor,now){
   comMove(actor,now,'待機所から出発');return;
  }
  if(matchClock.section===0)return;
- const plan=comCurrentPlan(actor);
+ let plan=comCurrentPlan(actor);
  if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=COM_POLICY.warningMs){comMove(actor,now,'封鎖予告を見て退避',plan);return}
  if(pvpEnabled()&&actor.opponent){comFightOpponent(actor,now);return}
  if(actor.enemy){comFight(actor,now);return}
  if(actor.leaveDanger){comMove(actor,now,'敵から離れる',plan);return}
- for(const group of ['hp','stamina']){
-  const key=group==='hp'?'hp':'st',max=actorMax(actor,group),threshold=group==='hp'?0.65:0.3;
-  if(actor[key]<=max*threshold||actor.restMode===group){
-   const id=actor.bag.find(x=>RECOVERY_ITEMS[x.id]?.group===group)?.id;
-   if(id&&recoverActor(actor,id,now)){actor.restMode=null;comLog(actor,names[id]+'を使用',now);return}
-   actor.restMode=group;actor[key]=Math.min(max,actor[key]+RECOVERY_MODE_RATES[group]);
-   if(actor[key]>=max*0.8)actor.restMode=null;
-   comLog(actor,group==='hp'?'HP不足のため治療':'ST不足のため休憩',now);return;
+ // Use carried healing first; seek supplies instead of treating all the way to 80%.
+ if(actor.hp<=actorMax(actor,'hp')*0.65||actor.recoverySeeking||actor.restMode==='hp'){
+  const id=actor.bag.find(x=>RECOVERY_ITEMS[x.id]?.group==='hp')?.id;
+  if(id&&recoverActor(actor,id,now)){actor.restMode=null;if(actor.hp>=actorMax(actor,'hp')*0.8)actor.recoverySeeking=false;comLog(actor,names[id]+'を使用',now);return}
+  if(actor.hp>=actorMax(actor,'hp')*0.8){actor.recoverySeeking=false;actor.restMode=null;}
+  else{
+   actor.recoverySeeking=true;
+   const healingRecipe=recipes.find(r=>RECOVERY_ITEMS[r.id]?.group==='hp'&&craftConsumption(r,actor));
+   if(!id&&healingRecipe&&craftActor(actor,healingRecipe,now)){comLog(actor,'回復を優先して制作：'+names[healingRecipe.id],now);return}
+   const recoveryPlan=comRecoveryPlan(actor);
+   const injury=(actor.injuryUntil||0)>now?4:0,minHp=Math.max(actorMax(actor,'hp')*0.2,Math.max(0,searchStaminaCost(actor)-actor.st)+injury+Math.max(0,5-actor.st)+1);
+   if(id||actor.hp<=minHp||!recoveryPlan){
+    actor.restMode='hp';actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+RECOVERY_MODE_RATES.hp);
+    comLog(actor,id?'回復アイテムの使用待ち・治療':!recoveryPlan?'回復物資の入手先がないため治療':'物資を探せる体力まで応急治療',now);return;
+   }
+   actor.restMode=null;plan=recoveryPlan;
   }
+ }
+ if(actor.st<=actorMax(actor,'stamina')*0.3||actor.restMode==='stamina'){
+  const id=actor.bag.find(x=>RECOVERY_ITEMS[x.id]?.group==='stamina')?.id;
+  if(id&&recoverActor(actor,id,now)){actor.restMode=null;comLog(actor,names[id]+'を使用',now);return}
+  // Preserve scarce HP while searching for healing supplies.
+  actor.restMode='stamina';actor.st=Math.min(actorMax(actor,'stamina'),actor.st+RECOVERY_MODE_RATES.stamina);
+  if(actor.st>=actorMax(actor,'stamina')*(actor.recoverySeeking?0.35:0.8))actor.restMode=null;
+  comLog(actor,'ST不足のため休憩',now);return;
  }
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
@@ -1738,12 +1762,12 @@ function stepCom(actor,now){
   if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return;
  }
  const localNeed=Object.keys(plan.missing).some(id=>regionStock[actor.place][id]);
- if((plan.id&&!localNeed)||actor.noProgress>=COM_POLICY.searchesWithoutProgress||actor.searches>=COM_POLICY.maxSearchesPerVisit){
-  if(comMove(actor,now,plan.id&&!localNeed?'不足素材を求めて移動':'探索を続けたため別区画へ',plan))return;
+ if(((plan.id||plan.recovery)&&!localNeed)||actor.noProgress>=COM_POLICY.searchesWithoutProgress||actor.searches>=COM_POLICY.maxSearchesPerVisit){
+  if(comMove(actor,now,plan.recovery?'回復アイテムを求めて移動':plan.id&&!localNeed?'不足素材を求めて移動':'探索を続けたため別区画へ',plan))return;
   actor.searches=0;actor.noProgress=0;
  }
  // Discover only local corpses and drones during a paid search, matching player search probabilities.
- if(actor.st<searchStaminaCost(actor)){actor.restMode='stamina';comLog(actor,'探索に必要なSTが不足',now);return}if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;recordExploration(actor,now);
+ if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;recordExploration(actor,now);
  const opponent=pvpEnabled()?chooseLocalOpponent(actor):null;
  if(opponent&&Math.random()<actorDiscoveryRate(opponent,actor)){actor.opponent={id:opponent.id,area:actor.place,seenAt:now};actor.restMode=null;comLog(actor,'探索：'+actorName(opponent)+'を発見',now);return}
  const bodies=corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&c.items.length>0&&S.corpseVisit?.id!==c.id);
