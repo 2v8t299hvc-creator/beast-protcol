@@ -173,7 +173,7 @@ Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{primal_boots:{name:'野生の本能',de
 Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{royal_suit:{name:'貴族の威光',description:'エピック以上の制作経験値＋10%',epicCraftXpBonus:0.10},navy_suit:{name:'対銃防護',description:'銃武器の被ダメージ－10%（軽減後切り捨て・最低1）',gunDamageReduction:0.10},archangel_robe:{name:'大天使の加護',description:'回復薬系統の制作個数＋1',potionCraftBonus:1},mad_doctor_gown:{name:'狂ったメス',description:'攻撃時に負傷付与（CT30秒）：5秒間、探索ごとにHP－4。命中を受けると残り時間が5秒に戻る',injuryMs:5000,cooldownMs:30000}});
 const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
 for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
-const INITIAL_MASTERY={kaito:{fist:12},hayate:{bow:26}};
+const INITIAL_MASTERY={kaito:{fist:12},hayate:{bow:26},snow_leopard:{gun:26}};
 function initialMastery(character){return {fist:0,slash:0,hammer:0,bow:0,gun:0,...INITIAL_MASTERY[character]};}
 
 const MASTERY_RANKS=['F','F+','E','E+','D','D+','C','C+','B','B+','A','A+','S','S+','SS'];
@@ -324,19 +324,19 @@ function announceComDeath(actor,reason,now,killerId){
  addLog(message);
  // Keep the full log, but do not flood the screen with old background events.
  if(Date.now()-now>2000)return;
- const id=++deathNoticeSerial;deathNotices.push({id,message});if(deathNotices.length>3)deathNotices.shift();renderDeathNotices();
+ const id=++deathNoticeSerial;deathNotices.push({id,message,art:actorArt(actor)});if(deathNotices.length>3)deathNotices.shift();renderDeathNotices();
  setTimeout(()=>{const index=deathNotices.findIndex(x=>x.id===id);if(index>=0)deathNotices.splice(index,1);renderDeathNotices()},4000);
 }
 function renderDeathNotices(){
- $('deathFeed').innerHTML=deathNotices.map(x=>'<div class="bp-death-entry"><img src="assets/characters/hayate_encounter_transparent.webp" alt=""><span>'+escapeCorpseText(x.message)+'</span></div>').join('');
+ $('deathFeed').innerHTML=deathNotices.map(x=>'<div class="bp-death-entry"><img src="'+x.art+'" alt=""><span>'+escapeCorpseText(x.message)+'</span></div>').join('');
 }
 
 function renderCombat(){
  const fighting=!!S.enemy;
  $('game').classList.toggle('in-combat',fighting);$('enemy').classList.toggle('on',fighting);
  const opponent=S.enemyPlayerId&&findActor(S.enemyPlayerId);
- const def=opponent?{name:actorName(opponent),hp:actorMax(opponent,'hp'),art:'assets/characters/hayate_encounter_transparent.webp'}:DRONE_DEFS[S.enemyKind];
- $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?'🦅':'🛰️';
+ const def=opponent?{name:actorName(opponent),hp:actorMax(opponent,'hp'),art:actorArt(opponent)}:DRONE_DEFS[S.enemyKind];
+ $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?(opponent.character==='snow_leopard'?'🐆':'🦅'):'🛰️';
  if(def&&$('enemyArt').getAttribute('src')!==def.art){$('enemyArt').hidden=false;$('enemyFallback').hidden=true;$('enemyArt').src=def.art;$('enemyArt').alt=def.name;}
  $('droneTraits').innerHTML=def?.shell?'<span>頑丈な殻</span><span>毒針</span>':def?.ink?'<span>ぬめぬめ</span><span>タコ墨ブレス</span>':'';
  if((drones[S.enemyKind]?.frozenUntil||0)>Date.now())$('droneTraits').innerHTML+='<span>❄ 凍結（'+Math.ceil((drones[S.enemyKind].frozenUntil-Date.now())/1000)+'秒）</span>';
@@ -842,6 +842,8 @@ function handleComCombatDecision(actor,target,now,kind){
 // Shared player combat. Encounters reveal only local actors; the AI never tracks a moved opponent.
 const PLAYER_DISCOVERY_RATE=0.85;
 function pvpEnabled(){return !!matchClock&&matchClock.competitive!==false&&matchClock.section>0&&!matchClock.ended}
+function actorArt(actor){return actor?.character==='snow_leopard'?'assets/characters/snow_leopard_encounter_transparent.webp':actor?.character==='kaito'?'assets/characters/kaito_stand.png':'assets/characters/hayate_encounter_transparent.webp'}
+function comAmmoType(actor){return actor.preferredWeaponType==='gun'?'bullets':'arrows'}
 function actorName(actor){return actor?.name||(actor?.character==='kaito'?'カイト':'参加者')}
 function findActor(id){return S.id===id?S:comActors.find(a=>a.id===id)}
 function localOpponents(actor){return [S,...comActors].filter(a=>a!==actor&&a.hp>0&&a.place===actor.place&&a.place!=='待機所')}
@@ -895,7 +897,7 @@ let incomingNoticeTimer,incomingNoticeVersion=0;
 function showIncomingDamage(attacker,result,now=Date.now()){
  if(matchClock.ended||Date.now()-now>2000)return;
  const version=++incomingNoticeVersion;clearTimeout(incomingNoticeTimer);
- $('incomingFace').src='assets/characters/hayate_encounter_transparent.webp';
+ $('incomingFace').src=actorArt(attacker);
  $('incomingText').textContent=actorName(attacker)+(result.dealt>0?'から'+result.dealt+'ダメージ！':'の攻撃を回避！');
  $('incomingNotice').classList.add('show');
  incomingNoticeTimer=setTimeout(()=>{if(version===incomingNoticeVersion)$('incomingNotice').classList.remove('show')},2200);
@@ -1557,6 +1559,7 @@ const COM_ACTION_MS=1000;
 const COM_POLICY={searchesWithoutProgress:12,maxSearchesPerVisit:36,retreatHp:0.4,warningMs:10000};
 const COM_GOALS=['strong_bow','simple_armguard','rubber_suit','mighty_bow','azusa_bow'];
 const COM_WESTERN_GOALS=['longbow','simple_armguard','rubber_suit','silver_bow','golden_bow','eros_bow'];
+const COM_GUN_GOALS=['sniper_rifle','simple_armguard','rubber_suit','laser_rifle'];
 const COM_COUNT=9;
 function payMovementCost(actor,now=Date.now()){
  const cost=matchClock.section>0?Math.max(0,5-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.movementDiscount||0),0)):0;
@@ -1566,8 +1569,8 @@ function payMovementCost(actor,now=Date.now()){
 function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>60)actor.history.shift()}
 function initializeComActors(count=COM_COUNT){
  comActors.length=0;
- for(let i=0;i<count;i++)comActors.push({id:i===0?'hayate':'com-'+String(i+1).padStart(2,'0'),name:i===0?'ハヤテ':'訓練COM '+String(i+1).padStart(2,'0'),character:'hayate',startArea:[null,'射撃演習区画','住宅区画','港湾区画','山岳区画','戦闘演習区画','地下機構区画','公園区画','遺跡区画'][i]||null,goals:[...(i%2?COM_WESTERN_GOALS:COM_GOALS)],level:1,xp:0,hp:180,st:120,
-  masteryAttacks:initialMastery('hayate'),place:'待機所',starterWeapon:null,
+ for(let i=0;i<count;i++)comActors.push({id:i===0?'hayate':'com-'+String(i+1).padStart(2,'0'),name:i===0?'ハヤテ':i===1?'ユキヒョウ':'訓練COM '+String(i+1).padStart(2,'0'),character:i===1?'snow_leopard':'hayate',preferredWeaponType:i===1?'gun':'bow',startArea:[null,'射撃演習区画','住宅区画','港湾区画','山岳区画','戦闘演習区画','地下機構区画','公園区画','遺跡区画'][i]||null,goals:[...(i===1?COM_GUN_GOALS:i%2?COM_WESTERN_GOALS:COM_GOALS)],level:1,xp:0,hp:180,st:120,
+  masteryAttacks:initialMastery(i===1?'snow_leopard':'hayate'),place:'待機所',starterWeapon:null,
   equipment:Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null])),equipmentAmmo:{},
   bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},
   recoveryReadyAt:{hp:0,stamina:0},statusEffects:{},seen:{},history:[],action:'出発準備',searches:0,noProgress:0,
@@ -1636,7 +1639,7 @@ function comDrop(actor,index,now){
 function comMakeRoom(actor,id,count,plan,now){
  if(addToStacks(actor.bag,id,count))return false;
  // Preserve planned ingredients and a recovery stack per category. Drop only one stack per action.
- const candidates=actor.bag.map((x,i)=>({x,i,score:plan.needed[x.id]?100:RECOVERY_ITEMS[x.id]?50:x.id==='arrows'?40:0}));
+ const candidates=actor.bag.map((x,i)=>({x,i,score:plan.needed[x.id]?100:RECOVERY_ITEMS[x.id]?50:x.id===comAmmoType(actor)?40:0}));
  candidates.sort((a,b)=>a.score-b.score);
  const c=candidates.find(({x,score})=>score<100&&x.id!==id);
  return !!c&&comDrop(actor,c.i,now);
@@ -1651,7 +1654,7 @@ function equipActor(actor,index,now=Date.now()){
 }
 function comEquipBetter(actor,now){
  const candidates=actor.bag.map((x,index)=>{
-  const d=equipmentDef(x.id);if(!d||(d.slot==='weapon'&&d.weaponType!=='bow'))return {index,score:0};
+  const d=equipmentDef(x.id);if(!d||(d.slot==='weapon'&&d.weaponType!==(actor.preferredWeaponType||'bow')))return {index,score:0};
   const old=equipmentDef(actor.equipment[d.slot]);
   return {index,score:(d.attack||0)+(d.defense||0)-(old?.attack||0)-(old?.defense||0)};
  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
@@ -1669,7 +1672,7 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor)){
  const safe=Object.keys(regionStock).filter(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a));
  if(!safe.length)return false;
  const needs=Object.keys(plan.missing);
- if(!plan.recovery&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory.arrows||0)<20)needs.push('arrows');
+ if(!plan.recovery&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory[comAmmoType(actor)]||0)<20)needs.push(comAmmoType(actor));
  if(!plan.recovery&&actor.st<60)needs.push('water','drink','energy_drink');
  const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100,0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5;
  const best=Math.max(...safe.map(score)),choices=safe.filter(a=>score(a)===best);
@@ -1681,7 +1684,7 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor)){
 }
 function comWants(actor,id,plan){
  if(plan.missing[id]>0)return true;
- if(id==='arrows')return (actor.inventory.arrows||0)<40;
+ if(id==='arrows'||id==='bullets')return id===comAmmoType(actor)&&(actor.inventory[id]||0)<40;
  const recovery=RECOVERY_ITEMS[id];if(recovery){return actor.bag.filter(x=>RECOVERY_ITEMS[x.id]?.group===recovery.group).reduce((n,x)=>n+x.count,0)<4}
  const def=equipmentDef(id);if(def&&def.slot!=='weapon'){
   const old=equipmentDef(actor.equipment[def.slot]);return !old||(def.attack||0)+(def.defense||0)>(old.attack||0)+(old.defense||0);
@@ -1719,7 +1722,7 @@ function comRecoveryPlan(actor){
 function stepCom(actor,now){
  updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
-  if(!actor.starterWeapon){actor.starterWeapon='practice_bow';actor.equipment.weapon='practice_bow';actor.equipmentAmmo.weapon=20;comLog(actor,'練習用の弓を選択',now);return}
+  if(!actor.starterWeapon){actor.starterWeapon=actor.preferredWeaponType==='gun'?'practice_gun':'practice_bow';actor.equipment.weapon=actor.starterWeapon;actor.equipmentAmmo.weapon=20;comLog(actor,names[actor.starterWeapon]+'を選択',now);return}
   comMove(actor,now,'待機所から出発');return;
  }
  if(matchClock.section===0)return;
@@ -1756,7 +1759,7 @@ function stepCom(actor,now){
  }
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
- if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=Math.floor((equipmentDef(actor.equipment.weapon)?.capacity||0)/4)&&reloadActor(actor,now)){comLog(actor,'矢を補充・装填',now);return}
+ if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=Math.floor((equipmentDef(actor.equipment.weapon)?.capacity||0)/4)&&reloadActor(actor,now)){comLog(actor,(comAmmoType(actor)==='bullets'?'銃弾':'矢')+'を補充・装填',now);return}
  for(const id of plan.crafts){const r=recipes.find(x=>x.id===id);if(!craftConsumption(r,actor))continue;
   if(craftActor(actor,r,now)){actor.noProgress=0;comLog(actor,'目標のため制作：'+names[id],now);return}
   if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return;
