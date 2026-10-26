@@ -1,0 +1,192 @@
+{
+  "items": [
+    {
+      "id": "wood_mallet",
+      "name": "木槌",
+      "rarity": "common",
+      "attack": 15,
+      "defense": 0,
+      "need": null
+    },
+    {
+      "id": "wood_hammer",
+      "name": "ウッドハンマー",
+      "rarity": "uncommon",
+      "attack": 25,
+      "defense": 0,
+      "need": {
+        "wood_mallet": 1,
+        "wood": 1
+      }
+    },
+    {
+      "id": "steel_hammer",
+      "name": "スチールハンマー",
+      "rarity": "rare",
+      "attack": 36,
+      "defense": 0,
+      "need": {
+        "wood_hammer": 1,
+        "steel": 1
+      }
+    },
+    {
+      "id": "keraunos_hammer",
+      "name": "ケラウノスハンマー",
+      "rarity": "epic",
+      "attack": 46,
+      "defense": 0,
+      "need": {
+        "steel_hammer": 1,
+        "discharger": 1
+      }
+    },
+    {
+      "id": "bone_crusher",
+      "name": "ボーンクラッシャー",
+      "rarity": "epic",
+      "attack": 48,
+      "defense": 0,
+      "need": {
+        "steel_hammer": 1,
+        "blackiron": 1
+      }
+    },
+    {
+      "id": "wild_hammer",
+      "name": "ワイルドハンマー",
+      "rarity": "rare",
+      "attack": 35,
+      "defense": 0,
+      "need": {
+        "wood_hammer": 1,
+        "fur": 1
+      }
+    },
+    {
+      "id": "super_wild_hammer",
+      "name": "超野生ハンマー",
+      "rarity": "epic",
+      "attack": 35,
+      "defense": 0,
+      "need": {
+        "wild_hammer": 2
+      }
+    },
+    {
+      "id": "squeaky_hammer",
+      "name": "ピコピコハンマー",
+      "rarity": "rare",
+      "attack": 30,
+      "defense": 0,
+      "need": {
+        "wood_mallet": 1,
+        "rubber": 1
+      }
+    },
+    {
+      "id": "bamboo_pole",
+      "name": "竹竿",
+      "rarity": "common",
+      "attack": 12,
+      "defense": 0,
+      "need": null
+    },
+    {
+      "id": "drying_pole",
+      "name": "物干し竿",
+      "rarity": "uncommon",
+      "attack": 20,
+      "defense": 0,
+      "need": {
+        "bamboo_pole": 1,
+        "cloth": 1
+      }
+    },
+    {
+      "id": "super_drying_pole",
+      "name": "超・物干し竿",
+      "rarity": "rare",
+      "attack": 34,
+      "defense": 0,
+      "need": {
+        "drying_pole": 1,
+        "fine_cloth": 1
+      }
+    },
+    {
+      "id": "true_drying_pole",
+      "name": "真・物干し竿",
+      "rarity": "epic",
+      "attack": 48,
+      "defense": 10,
+      "need": {
+        "super_drying_pole": 1,
+        "sailor_suit": 1
+      }
+    },
+    {
+      "id": "jade_club",
+      "name": "玉砕棍",
+      "rarity": "rare",
+      "attack": 33,
+      "defense": 0,
+      "need": {
+        "bamboo_pole": 1,
+        "wonderjewel": 1
+      }
+    },
+    {
+      "id": "diamond_jade_club",
+      "name": "金剛玉砕棍",
+      "rarity": "epic",
+      "attack": 50,
+      "defense": 0,
+      "need": {
+        "jade_club": 1,
+        "diamond": 1
+      }
+    }
+  ],
+  "effects": {
+    "keraunos_hammer": {
+      "name": "裁きの雷",
+      "description": "命中時、相手の6装備枠のうちエピック以上でない枠×2の追加ダメージ（CT30秒）",
+      "judgment": true,
+      "cooldownMs": 30000
+    },
+    "bone_crusher": {
+      "name": "骨砕き",
+      "description": "命中時の敵負傷率＋1％（負傷5秒）",
+      "injuryChance": 0.01,
+      "weaponInjuryMs": 5000
+    },
+    "super_wild_hammer": {
+      "name": "ワイルドパワー",
+      "description": "外れを含む3回攻撃ごとに、この武器個体の攻撃力＋1。破壊されない",
+      "growthInterval": 3,
+      "durabilityLossImmune": true
+    }
+  },
+  "placements": {
+    "山岳区画": {
+      "wood_mallet": 3,
+      "bamboo_pole": 3
+    },
+    "戦闘演習区画": {
+      "wood_mallet": 3
+    },
+    "森林区画": {
+      "bamboo_pole": 4
+    },
+    "住宅区画": {
+      "bamboo_pole": 2
+    }
+  },
+  "notes": [
+    "裁きの雷は命中でCT開始、空き枠も数える。ドローンは6空き枠として12。",
+    "負傷は既存の5秒間・探索開始時HP4の状態。通常の負傷率は0に1ポイント加算。",
+    "超野生ハンマーは外れを含む3回攻撃ごとに次の攻撃から攻撃力+1。個体状態として持ち替え・落下・死体移動でも保持。合成素材では継承しない。",
+    "武器耐久の基礎消耗・破損は既存同様未導入だが、この武器の耐久減少防止は機能する。"
+  ]
+}

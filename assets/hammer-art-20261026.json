@@ -1,0 +1,34 @@
+{
+  "prompts": [
+    "Create a square 2x2 weapon inventory icon atlas for BEAST PROTOCOL. Reference for detailed painted anime SF survival RPG weapon icon style only. Exactly four equal square quadrants with one separate weapon centered per quadrant. All long handles and pole tips must stay WITHIN their own quadrant: diagonal composition, generous padding, no crossing midlines. top left: simple small wooden mallet; top right: large reinforced wooden war hammer; bottom left: heavy steel war hammer with wooden handle and silver head; bottom right: epic Keraunos thunder hammer, silver and gold mechanical head with contained cyan lightning coils. Clean readable silhouettes at small size, richly shaded material textures, subtle orange/cyan rim lights. True transparent alpha background outside objects. No text, no labels, no border, no grid, no people, no scene. Weapons must be visually distinct with increasing rarity and clear coherent construction.",
+    "Create a square 2x2 weapon inventory icon atlas for BEAST PROTOCOL. Reference for detailed painted anime SF survival RPG weapon icon style only. Exactly four equal square quadrants with one separate weapon centered per quadrant. All long handles and pole tips must stay WITHIN their own quadrant: diagonal composition, generous padding, no crossing midlines. top left: dark iron bone-crusher hammer with jagged bone-like ridges; top right: rugged wild hammer with leather-wrapped handle and fur around head; bottom left: epic super-wild hammer, powerful primal double-headed design combining two wild hammers, fur, dark steel and tribal details; bottom right: playful bright red-and-yellow rubber squeaky toy hammer with bellows-shaped rubber head, still fitting game art. Clean readable silhouettes at small size, richly shaded material textures, subtle orange/cyan rim lights. True transparent alpha background outside objects. No text, no labels, no border, no grid, no people, no scene. Weapons must be visually distinct with increasing rarity and clear coherent construction.",
+    "Create a square 2x2 weapon inventory icon atlas for BEAST PROTOCOL. Reference for detailed painted anime SF survival RPG weapon icon style only. Exactly four equal square quadrants with one separate weapon centered per quadrant. All long handles and pole tips must stay WITHIN their own quadrant: diagonal composition, generous padding, no crossing midlines. top left: simple bamboo pole with visible nodes; top right: bamboo clothes-drying pole with white cloth tied near one end; bottom left: reinforced premium clothes-drying pole, silver bracing and elegant white cloth wraps; bottom right: epic true clothes-drying pole, polished silver reinforced pole with navy sailor collar ribbon cloth tied near upper end, subtle gold/cyan details. Clean readable silhouettes at small size, richly shaded material textures, subtle orange/cyan rim lights. True transparent alpha background outside objects. No text, no labels, no border, no grid, no people, no scene. Weapons must be visually distinct with increasing rarity and clear coherent construction.",
+    "Create a square 2x2 weapon inventory icon atlas for BEAST PROTOCOL. Reference for detailed painted anime SF survival RPG weapon icon style only. Exactly four equal square quadrants with one separate weapon centered per quadrant. All long handles and pole tips must stay WITHIN their own quadrant: diagonal composition, generous padding, no crossing midlines. top left: rare jade/crystal smashing staff, sturdy bamboo-based cudgel with large teal wonder jewel mounted in reinforced head; top right: epic diamond smashing staff, heavy silver cudgel with a large faceted diamond armored head and cyan highlights; bottom left: plain spare short wooden grip; bottom right: plain spare iron fastener. Clean readable silhouettes at small size, richly shaded material textures, subtle orange/cyan rim lights. True transparent alpha background outside objects. No text, no labels, no border, no grid, no people, no scene. Weapons must be visually distinct with increasing rarity and clear coherent construction."
+  ],
+  "sheets": {
+    "icon_hammer_01.webp": [
+      "wood_mallet",
+      "wood_hammer",
+      "steel_hammer",
+      "keraunos_hammer"
+    ],
+    "icon_hammer_02.webp": [
+      "bone_crusher",
+      "wild_hammer",
+      "super_wild_hammer",
+      "squeaky_hammer"
+    ],
+    "icon_hammer_03.webp": [
+      "bamboo_pole",
+      "drying_pole",
+      "super_drying_pole",
+      "true_drying_pole"
+    ],
+    "icon_hammer_04.webp": [
+      "jade_club",
+      "diamond_jade_club",
+      null,
+      null
+    ]
+  }
+}

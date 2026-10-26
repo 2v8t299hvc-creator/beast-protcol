@@ -227,7 +227,9 @@ function reloadWeapon(ammoId){
 function masteryCount(type,actor=S){return actor.masteryAttacks[type]||0}
 function masteryProgress(type){const rank=masteryRank(type),total=masteryCount(type);if(rank>=MASTERY_RANKS.length-1)return 'MAX';return (total-MASTERY_THRESHOLDS[rank])+'/'+(MASTERY_THRESHOLDS[rank+1]-MASTERY_THRESHOLDS[rank])}
 function masteryRank(type,actor=S){let n=masteryCount(type,actor);for(let i=MASTERY_THRESHOLDS.length-1;i>=0;i--)if(n>=MASTERY_THRESHOLDS[i])return i;return 0}
-function totalStat(stat,actor=S){const atk=stat==='attack',growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return growth[atk?'baseAttack':'baseDefense']+growth[atk?'attackGrowth':'defenseGrowth']*(actor.level-1)+Object.values(actor.equipment).reduce((n,id)=>n+(equipmentDef(id)?.[stat]||0),0)}
+function equipmentAttackBonus(actor,slot='weapon'){const id=actor.equipment?.[slot],state=actor.equipmentEffects?.[slot];return EQUIPMENT_SPECIAL_EFFECTS[id]?.growthInterval&&state?.id===id?state.bonusAttack||0:0}
+function judgmentDamage(target){return Object.keys(EQUIPMENT_SLOTS).filter(slot=>!['epic','legendary'].includes(RECIPE_RARITY[target.equipment?.[slot]]||'common')).length*2}
+function totalStat(stat,actor=S){const atk=stat==='attack',growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return growth[atk?'baseAttack':'baseDefense']+growth[atk?'attackGrowth':'defenseGrowth']*(actor.level-1)+Object.entries(actor.equipment).reduce((n,[slot,id])=>n+(equipmentDef(id)?.[stat]||0)+(atk?equipmentAttackBonus(actor,slot):0),0)}
 function slashDamageMultiplier(actor,type){return type==='slash'?1-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.slashDamageReduction||0),0):1}
 // Tuned against Lv1 practice/naked, Lv8 rare/full and Lv15 epic/SS/full PvP builds.
 function damageAfterDefense(attack,defense){return Math.max(1,attack)*100/(100+Math.max(0,defense)*1.5)}
@@ -248,6 +250,13 @@ Object.assign(names,{"energy_fruit":"エナジーフルーツ","milk":"牛乳","
 Object.assign(RECIPE_RARITY,{"energy_fruit":"common","milk":"uncommon","hot_milk":"uncommon","fruit_milk":"rare","stamina_potion":"uncommon","advanced_stamina_potion":"epic","soda":"rare","fruit_punch":"epic","craft_cola":"epic"});
 for(let i=recipes.length-1;i>=0;i--)if(['drink','energy_drink'].includes(recipes[i].id))recipes.splice(i,1);
 recipes.push(...[{"id":"hot_milk","name":"ホットミルク","category":"item","desc":"アンコモン・スタミナ20回復","need":{"milk":1,"lighter":1},"count":3},{"id":"fruit_milk","name":"フルーツ牛乳","category":"item","desc":"コモン・スタミナ50回復","need":{"energy_fruit":1,"milk":1},"count":3},{"id":"stamina_potion","name":"S回復薬","category":"item","desc":"アンコモン・スタミナ30回復","need":{"hotwater":1,"small_flower":1},"count":3},{"id":"advanced_stamina_potion","name":"上級S回復薬","category":"item","desc":"エピック・スタミナ80回復","need":{"hotwater":1,"herb_oil":1},"count":3},{"id":"fruit_punch","name":"フルーツポンチ","category":"item","desc":"エピック・スタミナ60回復","need":{"soda":1,"energy_fruit":1},"count":5},{"id":"craft_cola","name":"クラフトコーラ","category":"item","desc":"エピック・スタミナ150回復","need":{"soda":1,"herb_oil":1},"count":1},{"id":"drink","name":"ドリンク","category":"item","desc":"コモン・スタミナ20回復","need":{"energy_fruit":1,"water":1},"count":2},{"id":"energy_drink","name":"エナジードリンク","category":"item","desc":"コモン・スタミナ50回復","need":{"drink":1,"fish_scale":1},"count":3}]);
+
+// Hammer weapon expansion 2026-10-26.
+Object.assign(names,{"wood_mallet":"木槌","wood_hammer":"ウッドハンマー","steel_hammer":"スチールハンマー","keraunos_hammer":"ケラウノスハンマー","bone_crusher":"ボーンクラッシャー","wild_hammer":"ワイルドハンマー","super_wild_hammer":"超野生ハンマー","squeaky_hammer":"ピコピコハンマー","bamboo_pole":"竹竿","drying_pole":"物干し竿","super_drying_pole":"超・物干し竿","true_drying_pole":"真・物干し竿","jade_club":"玉砕棍","diamond_jade_club":"金剛玉砕棍"});
+Object.assign(RECIPE_RARITY,{"wood_mallet":"common","wood_hammer":"uncommon","steel_hammer":"rare","keraunos_hammer":"epic","bone_crusher":"epic","wild_hammer":"rare","super_wild_hammer":"epic","squeaky_hammer":"rare","bamboo_pole":"common","drying_pole":"uncommon","super_drying_pole":"rare","true_drying_pole":"epic","jade_club":"rare","diamond_jade_club":"epic"});
+Object.assign(EQUIPMENT_DEFS,{"wood_mallet":{"slot":"weapon","weaponType":"hammer","attack":15,"defense":0},"wood_hammer":{"slot":"weapon","weaponType":"hammer","attack":25,"defense":0},"steel_hammer":{"slot":"weapon","weaponType":"hammer","attack":36,"defense":0},"keraunos_hammer":{"slot":"weapon","weaponType":"hammer","attack":46,"defense":0},"bone_crusher":{"slot":"weapon","weaponType":"hammer","attack":48,"defense":0},"wild_hammer":{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},"super_wild_hammer":{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},"squeaky_hammer":{"slot":"weapon","weaponType":"hammer","attack":30,"defense":0},"bamboo_pole":{"slot":"weapon","weaponType":"hammer","attack":12,"defense":0},"drying_pole":{"slot":"weapon","weaponType":"hammer","attack":20,"defense":0},"super_drying_pole":{"slot":"weapon","weaponType":"hammer","attack":34,"defense":0},"true_drying_pole":{"slot":"weapon","weaponType":"hammer","attack":48,"defense":10},"jade_club":{"slot":"weapon","weaponType":"hammer","attack":33,"defense":0},"diamond_jade_club":{"slot":"weapon","weaponType":"hammer","attack":50,"defense":0}});
+Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{"keraunos_hammer":{"name":"裁きの雷","description":"命中時、相手の6装備枠のうちエピック以上でない枠×2の追加ダメージ（CT30秒）","judgment":true,"cooldownMs":30000},"bone_crusher":{"name":"骨砕き","description":"命中時の敵負傷率＋1％（負傷5秒）","injuryChance":0.01,"weaponInjuryMs":5000},"super_wild_hammer":{"name":"ワイルドパワー","description":"外れを含む3回攻撃ごとに、この武器個体の攻撃力＋1。破壊されない","growthInterval":3,"durabilityLossImmune":true}});
+recipes.push(...[{"id":"wood_hammer","name":"ウッドハンマー","category":"weapon","desc":"鈍器","need":{"wood_mallet":1,"wood":1}},{"id":"steel_hammer","name":"スチールハンマー","category":"weapon","desc":"鈍器","need":{"wood_hammer":1,"steel":1}},{"id":"keraunos_hammer","name":"ケラウノスハンマー","category":"weapon","desc":"鈍器","need":{"steel_hammer":1,"discharger":1}},{"id":"bone_crusher","name":"ボーンクラッシャー","category":"weapon","desc":"鈍器","need":{"steel_hammer":1,"blackiron":1}},{"id":"wild_hammer","name":"ワイルドハンマー","category":"weapon","desc":"鈍器","need":{"wood_hammer":1,"fur":1}},{"id":"super_wild_hammer","name":"超野生ハンマー","category":"weapon","desc":"鈍器","need":{"wild_hammer":2}},{"id":"squeaky_hammer","name":"ピコピコハンマー","category":"weapon","desc":"鈍器","need":{"wood_mallet":1,"rubber":1}},{"id":"drying_pole","name":"物干し竿","category":"weapon","desc":"鈍器","need":{"bamboo_pole":1,"cloth":1}},{"id":"super_drying_pole","name":"超・物干し竿","category":"weapon","desc":"鈍器","need":{"drying_pole":1,"fine_cloth":1}},{"id":"true_drying_pole","name":"真・物干し竿","category":"weapon","desc":"鈍器","need":{"super_drying_pole":1,"sailor_suit":1}},{"id":"jade_club","name":"玉砕棍","category":"weapon","desc":"鈍器","need":{"bamboo_pole":1,"wonderjewel":1}},{"id":"diamond_jade_club","name":"金剛玉砕棍","category":"weapon","desc":"鈍器","need":{"jade_club":1,"diamond":1}}]);
 function craftConsumption(r,actor=S){
  let stacks=actor.bag.map(x=>({...x})),equipment={...actor.equipment},equipmentAmmo={...actor.equipmentAmmo},equipmentEffects={...actor.equipmentEffects};
  for(const [id,count] of Object.entries(r.need)){
@@ -321,7 +330,7 @@ function renderOpponentEquipment(opponent){
 function showOpponentEquipment(slot){
  const opponent=S.enemy&&S.enemyPlayerId&&findActor(S.enemyPlayerId),id=opponent?.equipment?.[slot];if(!id)return;
  const def=equipmentDef(id),effect=EQUIPMENT_SPECIAL_EFFECTS[id];
- modal('相手の装備：'+EQUIPMENT_SLOTS[slot],'<div class="bp-opponent-detail">'+itemIconHTML(id)+'<h3>'+escapeCorpseText(names[id])+'</h3><p>攻撃 '+(def.attack||0)+' ／ 防御 '+(def.defense||0)+'</p>'+(effect?'<p>'+escapeCorpseText(effect.name+'：'+effect.description)+'</p>':'')+'</div>');
+ modal('相手の装備：'+EQUIPMENT_SLOTS[slot],'<div class="bp-opponent-detail">'+itemIconHTML(id)+'<h3>'+escapeCorpseText(names[id])+'</h3><p>攻撃 '+((def.attack||0)+equipmentAttackBonus(opponent,slot))+' ／ 防御 '+(def.defense||0)+'</p>'+(effect?'<p>'+escapeCorpseText(effect.name+'：'+effect.description)+'</p>':'')+'</div>');
 }
 function renderClosureWarning(now=Date.now()){
  const seconds=sectionSeconds(now),active=!!matchClock&&!matchClock.ended&&!matchClock.result&&S.hp>0&&seconds>0&&seconds<=30&&nextClosingAreas().includes(S.place);
@@ -514,6 +523,7 @@ Object.assign(regionStock['公園区画'],{small_flower:6});Object.assign(region
 Object.assign(regionStock['住宅区画'],{frying_pan:3});Object.assign(regionStock['商業区画'],{frying_pan:3});
 Object.assign(regionStock['公園区画'],{energy_fruit:5});Object.assign(regionStock['森林区画'],{energy_fruit:5});
 Object.assign(regionStock['住宅区画'],{milk:4});Object.assign(regionStock['商業区画'],{milk:4});
+Object.assign(regionStock['山岳区画'],{wood_mallet:3,bamboo_pole:3});Object.assign(regionStock['戦闘演習区画'],{wood_mallet:3});Object.assign(regionStock['森林区画'],{bamboo_pole:4});Object.assign(regionStock['住宅区画'],{bamboo_pole:2});
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
  return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:itemSetCount(id),taken:false})))];
@@ -704,6 +714,9 @@ function applyWeaponEffects(actor,target,type,hit,now=Date.now()){
  if(!effect||type!==def?.weaponType)return result; // Empty magazines use fists and cannot trigger weapon skills.
  const state=equipmentState(actor,'weapon');
  if(effect.attackInterval){state.attacks=(state.attacks||0)+1;if(state.attacks>=effect.attackInterval){state.attacks=0;result.fixedDamage=effect.fixedDamage}}
+ if(effect.growthInterval){state.growthAttacks=(state.growthAttacks||0)+1;if(state.growthAttacks>=effect.growthInterval){state.growthAttacks=0;state.bonusAttack=(state.bonusAttack||0)+1;}}
+ if(effect.judgment&&hit&&now>=(state.readyAt||0)){result.fixedDamage+=judgmentDamage(target);state.readyAt=now+effect.cooldownMs;}
+ if(effect.injuryChance&&hit&&Math.random()<effect.injuryChance){target.injuryUntil=now+effect.weaponInjuryMs;target.injurySourceId=actorIdentity(actor);result.injury=true;}
  if(effect.freezeMs&&hit&&now>=(state.readyAt||0)){target.frozenUntil=now+effect.freezeMs;state.readyAt=now+effect.cooldownMs;result.frozen=true}
  if(hit&&effect.lifesteal)result.lifesteal=effect.lifesteal;
  return result;
@@ -809,7 +822,7 @@ function evaluateCombat(actor,target,now,kind='player'){
  if(!targetDef&&type==='slash')perHit=Math.max(1,Math.floor(perHit*slashDamageMultiplier(target,type)));
  const accuracy=targetDef?droneAccuracy(targetDef,type,actor):Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,actor)]+actorAccuracyBonus(actor,type)-statusStacks('blackInk',actor)));
  const effect=type===weapon?.weaponType?EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.weapon]||{}:{};
- const expected=Math.max(1,perHit*accuracy/100+(effect.attackInterval?effect.fixedDamage/effect.attackInterval:0));
+ const expected=Math.max(1,perHit*accuracy/100+(effect.attackInterval?effect.fixedDamage/effect.attackInterval:0)+(effect.judgment?judgmentDamage(target)/30:0));
  const turns=Math.max(1,Math.ceil(target.hp/expected)),finite=weapon?.ammoType&&!weapon.unlimitedAmmo&&type!=='fist';
  const ammoShort=!!finite&&loaded+reserve<turns,reloadTurns=finite?Math.ceil(Math.max(0,Math.min(turns,loaded+reserve)-loaded)/weapon.capacity):0;
  let incoming;
@@ -921,7 +934,7 @@ function showIncomingDamage(attacker,result,now=Date.now()){
  incomingNoticeTimer=setTimeout(()=>{if(version===incomingNoticeVersion)$('incomingNotice').classList.remove('show')},2200);
 }
 function logPlayerAttack(attacker,target,result,now){
- const message=actorName(attacker)+' → '+actorName(target)+'：'+(result.hit?result.damage+'ダメージ':result.damage?'外れ・噴火'+result.damage+'ダメージ':'MISS')+(result.healing?'／愛の矢HP＋'+result.healing:'')+(result.effect.frozen?'／凍結付与':'')+(result.reflected?'／トゲ反射'+result.reflected:'');
+ const message=actorName(attacker)+' → '+actorName(target)+'：'+(result.hit?result.damage+'ダメージ':result.damage?'外れ・噴火'+result.damage+'ダメージ':'MISS')+(result.healing?'／愛の矢HP＋'+result.healing:'')+(result.effect.frozen?'／凍結付与':'')+(result.effect.injury?'／負傷付与':'')+(result.reflected?'／トゲ反射'+result.reflected:'');
  if(attacker===S||target===S)addLog(message);recordMatchEvent(attacker,'combat',message,now);if(attacker!==S)comLog(attacker,message,now);
 }
 function playerCombatRound(attacker,target,now,incomingOnly=false){
@@ -1365,6 +1378,9 @@ Object.assign(itemFallback,{"roast_meat":"🍖","smoked_meat":"🍖","medium_rat
 Object.assign(itemArtSheets,{"stamina_01":"assets/icon_stamina_01.webp","stamina_02":"assets/icon_stamina_02.webp","stamina_03":"assets/icon_stamina_03.webp"});
 Object.assign(itemArt,{"energy_fruit":["stamina_01",0],"milk":["stamina_01",1],"hot_milk":["stamina_01",2],"fruit_milk":["stamina_01",3],"stamina_potion":["stamina_02",0],"advanced_stamina_potion":["stamina_02",1],"soda":["stamina_02",2],"fruit_punch":["stamina_02",3],"craft_cola":["stamina_03",0]});
 Object.assign(itemFallback,{"energy_fruit":"🍊","milk":"🥛","hot_milk":"🥛","fruit_milk":"🥛","stamina_potion":"🧪","advanced_stamina_potion":"🧪","soda":"🥤","fruit_punch":"🥤","craft_cola":"🥤"});
+Object.assign(itemArtSheets,{"hammer_01":"assets/icon_hammer_01.webp","hammer_02":"assets/icon_hammer_02.webp","hammer_03":"assets/icon_hammer_03.webp","hammer_04":"assets/icon_hammer_04.webp"});
+Object.assign(itemArt,{"wood_mallet":["hammer_01",0],"wood_hammer":["hammer_01",1],"steel_hammer":["hammer_01",2],"keraunos_hammer":["hammer_01",3],"bone_crusher":["hammer_02",0],"wild_hammer":["hammer_02",1],"super_wild_hammer":["hammer_02",2],"squeaky_hammer":["hammer_02",3],"bamboo_pole":["hammer_03",0],"drying_pole":["hammer_03",1],"super_drying_pole":["hammer_03",2],"true_drying_pole":["hammer_03",3],"jade_club":["hammer_04",0],"diamond_jade_club":["hammer_04",1]});
+Object.assign(itemFallback,{"wood_mallet":"🔨","wood_hammer":"🔨","steel_hammer":"🔨","keraunos_hammer":"🔨","bone_crusher":"🔨","wild_hammer":"🔨","super_wild_hammer":"🔨","squeaky_hammer":"🔨","bamboo_pole":"🔨","drying_pole":"🔨","super_drying_pole":"🔨","true_drying_pole":"🔨","jade_club":"🔨","diamond_jade_club":"🔨"});
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
@@ -1410,7 +1426,7 @@ function showEquipment(){
   const id=equipped(slot),def=equipmentDef(id);
   const derived=id?recipes.filter(r=>Object.hasOwn(r.need,id)&&equipmentDef(r.id)):[];
   return `<div class="bp-equip-card"><b>${label}</b><div class="bp-equip-item">${id?itemIconHTML(id)+' '+names[id]+ammoLabel(id,S.equipmentAmmo[slot]):'未装備'}</div>
-  ${id?`<small>攻撃 +${def.attack||0} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=def.capacity||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}${derived.length?`<button onclick="showRecipesFor('${id}',true)">🔧 派生装備（${derived.length}件）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
+  ${id?`<small>攻撃 +${(def.attack||0)+equipmentAttackBonus(S,slot)} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=def.capacity||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}${derived.length?`<button onclick="showRecipesFor('${id}',true)">🔧 派生装備（${derived.length}件）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
  const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
  modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${totalStat('attack')}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showComStatus()">開発用：COM行動確認</button>${matchClock.ended?'<button onclick="showMatchReport()">📊 試合の記録</button>':''}`);
