@@ -17,7 +17,7 @@ function harness(){
 
 
 let h,run;const eq=(s,v)=>assert.equal(run(s),v,s);
-function fixture(){h=harness();run=s=>h.run(s);run(`selectPracticeWeapon('practice_gauntlet');move('山岳区画');matchClock.section=1;matchClock.sectionEndsAt=3000000;matchClock.nextBlocked=[];matchClock.blocked=[];globalThis.a=comActors[0];a.place=S.place;a.starterWeapon='practice_bow';a.equipment.weapon='practice_bow';a.equipmentAmmo.weapon=20;a.nextActionAt=3000000;a.matchStats={};a.matchEvents=[];S.matchStats={};S.matchEvents=[];Math.random=()=>0;`)}
+function fixture(){h=harness();run=s=>h.run(s);run(`selectPracticeWeapon('practice_gauntlet');move('山岳区画');matchClock.section=1;matchClock.sectionEndsAt=3000000;matchClock.nextBlocked=[];matchClock.blocked=[];globalThis.a=comActors[0];a.place=S.place;a.starterWeapon='practice_bow';a.equipment.weapon='practice_bow';a.equipmentAmmo.weapon=20;a.nextActionAt=3000000;a.matchStats={};a.matchEvents=[];observeOpponent(a,S,Date.now());S.matchStats={};S.matchEvents=[];Math.random=()=>0;`)}
 fixture();eq('evaluateCombat(a,S,Date.now()).action','attack');run('S.equipment.body="passion_bikini"');eq('evaluateCombat(a,S,Date.now()).action','retreat');
 fixture();run('a.masteryAttacks.bow=0');eq('evaluateCombat(a,S,Date.now()).action','retreat');run('a.masteryAttacks.bow=26');eq('evaluateCombat(a,S,Date.now()).action','attack');
 // Finite ammunition and reload timing matter; a low-HP finishing blow does not require a full magazine.
@@ -30,8 +30,8 @@ run('a.frozenUntil=0;handleComCombatDecision(a,S,Date.now(),"player")');eq('a.hp
 fixture();const before=run('JSON.stringify({a,S})'),decision=run('JSON.stringify(evaluateCombat(a,S,Date.now()))');eq('JSON.stringify({a,S})',before);run('S.bag=[{id:"kit",count:999}];S.inventory={kit:999};S.masteryAttacks={fist:250};S.equipmentAmmo.weapon=999;S.equipmentEffects={weapon:{readyAt:9999999}}');eq('JSON.stringify(evaluateCombat(a,S,Date.now()))',decision);
 run('a.observedOpponents={kaito:{damage:100,weapon:S.equipment.weapon,level:S.level,defense:totalStat("defense",a),body:a.equipment.body,at:Date.now()}}');eq('evaluateCombat(a,S,Date.now()).action','retreat');
 // Retreat is real movement and records the reason, but having no safe area must not cause a retreat loop.
-fixture();run('S.equipment.weapon="apollo_bow";S.equipmentAmmo.weapon=16;a.opponent={id:S.id};globalThis.oldPlace=a.place;comFightOpponent(a,Date.now())');assert(run('a.place!==oldPlace'));eq('a.matchStats.retreats',1);assert(run('a.matchEvents.some(e=>e.type==="retreat")'));
-fixture();run('a.hp=10;matchClock.blocked=Object.keys(regionStock).filter(x=>x!==a.place);a.bag=[];syncInventory(a);a.opponent={id:S.id};comFightOpponent(a,Date.now())');eq('a.matchStats.retreats||0',0);assert(run('a.matchStats.pvpAttacks>0||a.hp===0'));
+fixture();run('S.equipment.weapon="apollo_bow";S.equipmentAmmo.weapon=16;observeOpponent(a,S,Date.now());globalThis.oldPlace=a.place;comFightOpponent(a,Date.now())');assert(run('a.place!==oldPlace'));eq('a.matchStats.retreats',1);assert(run('a.matchEvents.some(e=>e.type==="retreat")'));
+fixture();run('a.hp=10;matchClock.blocked=Object.keys(regionStock).filter(x=>x!==a.place);a.bag=[];syncInventory(a);observeOpponent(a,S,Date.now());comFightOpponent(a,Date.now())');eq('a.matchStats.retreats||0',0);assert(run('a.matchStats.pvpAttacks>0||a.hp===0'));
 // Drone decisions use the same supply model; no ghost attack when the target has respawned.
 fixture();run('globalThis.d=drones.bird;Object.assign(d,{spawned:true,hp:50,area:a.place,generation:7});a.enemy={kind:"bird",generation:7};comFight(a,Date.now())');eq('a.matchStats.droneAttacks',1);eq('a.matchStats.damageTaken',17);eq('a.equipmentAmmo.weapon',19);
 // Full, sealed report: crafting, actual HP loss, corpse stripping and post-victory looting.
@@ -41,7 +41,7 @@ eq('a.equipment.weapon',null);eq('a.bag.length',0);eq('matchClock.record.actors[
 assert(run('$("modalBody").innerHTML.includes("showMatchReport()")'));run('globalThis.savedRecord=JSON.stringify(matchClock.record);showMatchReport()');eq('$("modalTitle").textContent','📊 試合の記録');assert(run('$("modalBody").innerHTML.includes("梓弓")'));assert(run('$("modalBody").innerHTML.includes("強弓 ×1")'));
 run('showMatchResult();openCorpse(a.corpseId);takeCorpseItem(0,S.corpseVisit.token);showMatchReport()');eq('S.inventory.kit',2);eq('JSON.stringify(matchClock.record)',''+run('savedRecord'));
 // A loss offers the same report and preserves Kaito's pre-corpse loadout.
-fixture();run('S.hp=1;a.opponent={id:S.id};comFightOpponent(a,Date.now())');eq('matchClock.result','eliminated');eq('matchClock.record.winnerId','hayate');eq('matchClock.record.actors[0].final.equipment.weapon','practice_gauntlet');eq('S.equipment.weapon',null);assert(run('$("modalBody").innerHTML.includes("showMatchReport()")'));run('showMatchReport()');eq('$("modalTitle").textContent','📊 試合の記録');
+fixture();run('S.hp=1;observeOpponent(a,S,Date.now());comFightOpponent(a,Date.now())');eq('matchClock.result','eliminated');eq('matchClock.record.winnerId','hayate');eq('matchClock.record.actors[0].final.equipment.weapon','practice_gauntlet');eq('S.equipment.weapon',null);assert(run('$("modalBody").innerHTML.includes("showMatchReport()")'));run('showMatchReport()');eq('$("modalTitle").textContent','📊 試合の記録');
 // Reports cannot expose opponents before the match ends. Bounded events retain total counters.
 fixture();run('modal("test","before");showMatchReport()');eq('$("modalTitle").textContent','test');run('for(let i=0;i<250;i++){bumpMatchStat(a,"searches");recordMatchEvent(a,"decision","event"+i,Date.now())}');eq('a.matchEvents.length',200);eq('a.matchEvents[0].text','event50');eq('a.matchStats.searches',250);
 // The global closure also seals both final loadouts and offers the report.
