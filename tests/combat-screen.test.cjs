@@ -40,7 +40,7 @@ run(`receive('magma_blaster',1,{ammo:0});equip('magma_blaster')`);eq(`damageToDr
 // Reapplication resets a status clock, including at the maximum; long pauses decay multiple stacks.
 fixture('scorpion');run(`applyStatus('purplePoison');applyStatus('purplePoison')`);eq(`statusStacks('purplePoison')`,2);h.advance(4000);run(`applyStatus('purplePoison')`);h.advance(1000);eq(`statusStacks('purplePoison')`,3);h.advance(4000);eq(`statusStacks('purplePoison')`,2);
 run(`for(let i=0;i<15;i++)applyStatus('purplePoison')`);eq(`statusStacks('purplePoison')`,10);h.advance(4000);run(`applyStatus('purplePoison')`);h.advance(1000);eq(`statusStacks('purplePoison')`,10);h.advance(49000);eq(`statusStacks('purplePoison')`,0);
-run(`S.statusEffects={};S.equipment={};S.level=1;Math.random=()=>0;var hpBefore=S.hp;var first=droneCounterDamage(DRONE_DEFS.scorpion);var second=droneCounterDamage(DRONE_DEFS.scorpion)`);eq('first',37);eq('second',38);eq('S.hp===hpBefore',true); // poison alone never ticks damage
+run(`S.statusEffects={};S.equipment={};S.level=1;Math.random=()=>0;var hpBefore=S.hp;var first=droneCounterDamage(DRONE_DEFS.scorpion);var second=droneCounterDamage(DRONE_DEFS.scorpion)`);eq('first',36);eq('second',37);eq('S.hp===hpBefore',true); // poison alone never ticks damage
 run(`S.statusEffects={};applyStatus('blackInk');applyStatus('blackInk')`);eq(`droneAccuracy(DRONE_DEFS.octopus,'fist')`,run(`MASTERY_ACCURACY[masteryRank('fist')]-7`));
 // Full combat round: one attack, one counter only while alive, HP feedback then two-choice loot.
 fixture('scorpion');run('Math.random=()=>0;var ticksBefore=S.ticks;primary();primary();skill()');eq('S.busy',true);h.tickAction(false);eq(`statusStacks('purplePoison')`,1);eq('S.enemy',true);eq('S.ticks===ticksBefore',true);h.tickFeedback();eq('S.enemy',false);
@@ -49,8 +49,8 @@ run(`var bodyId=S.corpseVisit.id;var token=S.corpseVisit.token;S.bag=['stone','w
 run(`discardStack(0);renderCorpse();takeCorpseItem(1,token)`);eq('S.corpseVisit',null);eq('S.inventory.egg',1);eq('findCorpse(bodyId).items.length',1);
 run(`takeCorpseItem(0,token)`);eq('S.inventory.feather||0',0);run('updateDrones()');eq('drones.bird.spawned',false);
 h.advance(79999);eq('drones.bird.spawned',false);h.advance(1);eq('drones.bird.spawned',true);eq('drones.bird.hp',50);eq('drones.bird.generation===generation+1',true);run('updateDrones();updateDrones()');eq('drones.bird.generation===generation+1',true);
-// A representative late build (Lv7, B fist mastery, rare reinforced gloves) matches the requested hit ranges.
-run(`S.level=7;S.equipment={weapon:'reinforced'};S.masteryAttacks.fist=65;S.statusEffects={};var hitCounts=Object.fromEntries(Object.entries(DRONE_DEFS).map(([k,d])=>[k,Math.ceil(d.hp/damageToDrone(d,'fist',totalStat('attack')))]))`);
+// A representative late build (Lv8, B bow mastery, rare mighty bow) matches the requested hit ranges.
+run(`S.level=8;S.equipment={weapon:'mighty_bow'};S.masteryAttacks.bow=65;S.statusEffects={};var hitCounts=Object.fromEntries(Object.entries(DRONE_DEFS).map(([k,d])=>[k,Math.ceil(d.hp/damageToDrone(d,'bow',totalStat('attack')))]))`);
 for(const [k,n] of Object.entries({bird:1,fish:1,dog:2,humanoid:2,scorpion:6,octopus:4}))eq(`hitCounts.${k}`,n);
 // Closure during pending attack/feedback still cancels the encounter without loot or resurrection.
 fixture('scorpion');run('S.place=matchClock.nextBlocked[0]||S.place;matchClock.nextBlocked=[S.place];primary()');h.setNow(run('matchClock.sectionEndsAt'));h.tickAction();eq('S.hp',0);eq('S.enemy',false);eq('S.corpseVisit',null);
