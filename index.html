@@ -1569,7 +1569,7 @@ function payMovementCost(actor,now=Date.now()){
 function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>60)actor.history.shift()}
 function initializeComActors(count=COM_COUNT){
  comActors.length=0;
- for(let i=0;i<count;i++)comActors.push({id:i===0?'hayate':'com-'+String(i+1).padStart(2,'0'),name:i===0?'ハヤテ':i===1?'ユキヒョウ':'訓練COM '+String(i+1).padStart(2,'0'),character:i===1?'snow_leopard':'hayate',preferredWeaponType:i===1?'gun':'bow',startArea:[null,'射撃演習区画','住宅区画','港湾区画','山岳区画','戦闘演習区画','地下機構区画','公園区画','遺跡区画'][i]||null,goals:[...(i===1?COM_GUN_GOALS:i%2?COM_WESTERN_GOALS:COM_GOALS)],level:1,xp:0,hp:180,st:120,
+ for(let i=0;i<count;i++)comActors.push({id:i===0?'hayate':'com-'+String(i+1).padStart(2,'0'),name:i===0?'ハヤテ':i===1?'ヒョウガ':'訓練COM '+String(i+1).padStart(2,'0'),character:i===1?'snow_leopard':'hayate',preferredWeaponType:i===1?'gun':'bow',startArea:[null,'射撃演習区画','住宅区画','港湾区画','山岳区画','戦闘演習区画','地下機構区画','公園区画','遺跡区画'][i]||null,goals:[...(i===1?COM_GUN_GOALS:i%2?COM_WESTERN_GOALS:COM_GOALS)],level:1,xp:0,hp:180,st:120,
   masteryAttacks:initialMastery(i===1?'snow_leopard':'hayate'),place:'待機所',starterWeapon:null,
   equipment:Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null])),equipmentAmmo:{},
   bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},
