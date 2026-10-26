@@ -24,10 +24,12 @@ const eq=(s,v)=>assert.equal(run(s),v,s);
 
 
 const path=require('node:path'),manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/equipment-art-20261026.json'),'utf8'));
+manifest.sheets.push(...JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/body-art-20261026.json'),'utf8')).sheets);
 fresh();const ids=[];
 for(const sheet of manifest.sheets){assert(fs.existsSync(path.join(__dirname,'..',sheet.path)),sheet.path);eq(`itemArtSheets['${sheet.key}']`,sheet.path);for(const [quadrant,id]of sheet.ids.entries()){ids.push(id);eq(`JSON.stringify(itemArt['${id}'])`,JSON.stringify([sheet.key,quadrant]));run(`readySheets['${sheet.key}']=true`);assert(run(`itemIconHTML('${id}')`).includes('class="bp-item-art"'),id);assert(run(`itemIconHTML('${id}')`).includes(sheet.path),id);}}
-assert.equal(ids.length,39);assert.equal(new Set(ids).size,39);// Newly added equipment may await art; the 39 published mappings above remain complete.
+assert.equal(ids.length,59);assert.equal(new Set(ids).size,59);// Newly added equipment may await art; the published mappings above remain complete.
 eq('JSON.stringify(itemArt.simple_armguard)===JSON.stringify(itemArt.armguard)',false);
 run('showCraft("armor","head")');assert(run('$("modalBody").innerHTML').includes('assets/icon_equipment_01.webp'));
 run('showCraft("armor","legs")');assert(run('$("modalBody").innerHTML').includes('assets/icon_equipment_09.webp'));
-console.log('PASS: 39 distinct official item graphics, complete coverage, correct sheet/quadrant/file mappings, upgraded armguard distinction and craft-screen rendering');
+run('showCraft("armor","body")');assert(run('$("modalBody").innerHTML').includes('assets/icon_body_01.webp'));assert(run('$("modalBody").innerHTML').includes('assets/icon_body_02.webp'));run('showCraft("item","recovery")');assert(run('$("modalBody").innerHTML').includes('assets/icon_body_05.webp'));
+console.log('PASS: 59 distinct official item graphics, complete coverage, correct sheet/quadrant/file mappings, upgraded armguard distinction and craft-screen rendering');

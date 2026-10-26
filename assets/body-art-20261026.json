@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-26",
+  "generator": "Built-in image_gen",
+  "reference": "assets/icon_optics.webp",
+  "layout": "2x2: top-left, top-right, bottom-left, bottom-right; true transparent alpha",
+  "sheets": [
+    {
+      "key": "body_01",
+      "ids": [
+        "suit",
+        "royal_suit",
+        "sailor_suit",
+        "navy_suit"
+      ],
+      "subjects": [
+        "uncommon simple tailored charcoal men's suit jacket, broad shoulders, sturdy straight waist, white shirt and dark tie, no trousers, no person",
+        "epic royal men's suit jacket, broad masculine navy shoulders and straight waist, rich gold-thread embroidery, refined high collar, restrained regal red lining and gold fastenings, no crown",
+        "rare sailor uniform top for an adult masculine male, broad shoulders, straight torso, off-white naval shirt with wide navy sailor collar and dark blue neckerchief, practical military design, NOT a schoolgirl outfit, no skirt",
+        "epic navy uniform jacket for a mature masculine naval officer, broad shoulders, straight torso, deep navy cloth, gold epaulettes and buttons, subtle armored panels suggesting sci-fi combat gear"
+      ],
+      "path": "assets/icon_body_01.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for BEAST PROTOCOL, a male beastman SF survival crafting game. Input image is STYLE AND LAYOUT REFERENCE ONLY, not an edit target; do not copy telescopes. Match polished hand-painted anime RPG item art, crisp dark outlines, tactile materials, controlled highlights, strong silhouettes readable at small sizes. Square image with four EQUAL quadrants. Each item completely contained and CENTERED within its own quadrant with at least 60px transparent margin on all sides. TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT order as specified. True transparent alpha background and gutters, no black backdrop or checkerboard, no frames, grid lines, text, labels or watermark. Garments are empty standalone inventory objects with fully drawn fronts, NO people, mannequins, heads, hands or body parts. Clothing always cut for adult masculine male beastmen: broad shoulders, straight robust torso, no breasts or fitted feminine waist, no skirt, no heels. Keep every object and any glow separate from adjacent cells. Subjects: 1. uncommon simple tailored charcoal men's suit jacket, broad shoulders, sturdy straight waist, white shirt and dark tie, no trousers, no person; 2. epic royal men's suit jacket, broad masculine navy shoulders and straight waist, rich gold-thread embroidery, refined high collar, restrained regal red lining and gold fastenings, no crown; 3. rare sailor uniform top for an adult masculine male, broad shoulders, straight torso, off-white naval shirt with wide navy sailor collar and dark blue neckerchief, practical military design, NOT a schoolgirl outfit, no skirt; 4. epic navy uniform jacket for a mature masculine naval officer, broad shoulders, straight torso, deep navy cloth, gold epaulettes and buttons, subtle armored panels suggesting sci-fi combat gear"
+    },
+    {
+      "key": "body_02",
+      "ids": [
+        "lab_coat",
+        "apothecary_clothes",
+        "holy_robe",
+        "archangel_robe"
+      ],
+      "subjects": [
+        "common plain white laboratory coat, straight masculine broad-shouldered cut, simple pockets and grey undershirt visible, no insignia",
+        "uncommon apothecary's coat, cream and sage green masculine coat with utilitarian straps and compact medical pouches, broad shoulders, sturdy straight silhouette",
+        "rare holy robe, masculine white and sky-blue cleric robe with broad shoulders, straight substantial cloth silhouette, restrained gold edging and small radiant jewel, no feminine shaping",
+        "epic archangel robe for a masculine male beastman, broad shoulders, straight substantial white and silver robe, royal blue lining and golden feather-shaped shoulder ornaments, softly radiant blue jewel, no actual wings or wearer"
+      ],
+      "path": "assets/icon_body_02.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for BEAST PROTOCOL, a male beastman SF survival crafting game. Input image is STYLE AND LAYOUT REFERENCE ONLY, not an edit target; do not copy telescopes. Match polished hand-painted anime RPG item art, crisp dark outlines, tactile materials, controlled highlights, strong silhouettes readable at small sizes. Square image with four EQUAL quadrants. Each item completely contained and CENTERED within its own quadrant with at least 60px transparent margin on all sides. TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT order as specified. True transparent alpha background and gutters, no black backdrop or checkerboard, no frames, grid lines, text, labels or watermark. Garments are empty standalone inventory objects with fully drawn fronts, NO people, mannequins, heads, hands or body parts. Clothing always cut for adult masculine male beastmen: broad shoulders, straight robust torso, no breasts or fitted feminine waist, no skirt, no heels. Keep every object and any glow separate from adjacent cells. Subjects: 1. common plain white laboratory coat, straight masculine broad-shouldered cut, simple pockets and grey undershirt visible, no insignia; 2. uncommon apothecary's coat, cream and sage green masculine coat with utilitarian straps and compact medical pouches, broad shoulders, sturdy straight silhouette; 3. rare holy robe, masculine white and sky-blue cleric robe with broad shoulders, straight substantial cloth silhouette, restrained gold edging and small radiant jewel, no feminine shaping; 4. epic archangel robe for a masculine male beastman, broad shoulders, straight substantial white and silver robe, royal blue lining and golden feather-shaped shoulder ornaments, softly radiant blue jewel, no actual wings or wearer"
+    },
+    {
+      "key": "body_03",
+      "ids": [
+        "doctor_suit",
+        "black_doctor_gown",
+        "mad_doctor_gown",
+        "fine_cloth"
+      ],
+      "subjects": [
+        "uncommon doctor's protective coat, broad masculine shoulders, straight white and pale teal garment, practical dark rubberized trim and rubber glove cuffs, no hands",
+        "rare black doctor's gown, broad masculine shoulders, straight long charcoal-black medical coat with dark grey stitched trim and a high collar, no symbols or text",
+        "epic mad doctor's gown, imposing masculine high-collared charcoal and dark violet medical coat, asymmetrical buckles and reinforced shoulders, a small green poison vial clipped to the belt, coat only, no mask or weapons or wearer",
+        "uncommon fine cloth crafting material, neatly folded ivory high-quality fabric with subtle satin sheen, realistic layered folds"
+      ],
+      "path": "assets/icon_body_03.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for BEAST PROTOCOL, a male beastman SF survival crafting game. Input image is STYLE AND LAYOUT REFERENCE ONLY, not an edit target; do not copy telescopes. Match polished hand-painted anime RPG item art, crisp dark outlines, tactile materials, controlled highlights, strong silhouettes readable at small sizes. Square image with four EQUAL quadrants. Each item completely contained and CENTERED within its own quadrant with at least 60px transparent margin on all sides. TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT order as specified. True transparent alpha background and gutters, no black backdrop or checkerboard, no frames, grid lines, text, labels or watermark. Garments are empty standalone inventory objects with fully drawn fronts, NO people, mannequins, heads, hands or body parts. Clothing always cut for adult masculine male beastmen: broad shoulders, straight robust torso, no breasts or fitted feminine waist, no skirt, no heels. Keep every object and any glow separate from adjacent cells. Subjects: 1. uncommon doctor's protective coat, broad masculine shoulders, straight white and pale teal garment, practical dark rubberized trim and rubber glove cuffs, no hands; 2. rare black doctor's gown, broad masculine shoulders, straight long charcoal-black medical coat with dark grey stitched trim and a high collar, no symbols or text; 3. epic mad doctor's gown, imposing masculine high-collared charcoal and dark violet medical coat, asymmetrical buckles and reinforced shoulders, a small green poison vial clipped to the belt, coat only, no mask or weapons or wearer; 4. uncommon fine cloth crafting material, neatly folded ivory high-quality fabric with subtle satin sheen, realistic layered folds"
+    },
+    {
+      "key": "body_04",
+      "ids": [
+        "thread",
+        "gold_thread",
+        "sea_thread",
+        "black_thread"
+      ],
+      "subjects": [
+        "common thread, a simple compact wooden spool of plain ivory cotton thread with a short trailing end",
+        "rare golden thread, compact wooden spool wound with lustrous fine gold filament, metallic reflections, clearly thread rather than wire coil",
+        "uncommon sea breeze thread, compact wooden spool of sea-green and pale teal thread, a few intertwined fine seaweed fibers and a small curled strand, not an underwater scene",
+        "uncommon black thread, compact wooden spool tightly wound with matte charcoal black cotton thread, short trailing end"
+      ],
+      "path": "assets/icon_body_04.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for BEAST PROTOCOL, a male beastman SF survival crafting game. Input image is STYLE AND LAYOUT REFERENCE ONLY, not an edit target; do not copy telescopes. Match polished hand-painted anime RPG item art, crisp dark outlines, tactile materials, controlled highlights, strong silhouettes readable at small sizes. Square image with four EQUAL quadrants. Each item completely contained and CENTERED within its own quadrant with at least 60px transparent margin on all sides. TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT order as specified. True transparent alpha background and gutters, no black backdrop or checkerboard, no frames, grid lines, text, labels or watermark. Garments are empty standalone inventory objects with fully drawn fronts, NO people, mannequins, heads, hands or body parts. Clothing always cut for adult masculine male beastmen: broad shoulders, straight robust torso, no breasts or fitted feminine waist, no skirt, no heels. Keep every object and any glow separate from adjacent cells. Subjects: 1. common thread, a simple compact wooden spool of plain ivory cotton thread with a short trailing end; 2. rare golden thread, compact wooden spool wound with lustrous fine gold filament, metallic reflections, clearly thread rather than wire coil; 3. uncommon sea breeze thread, compact wooden spool of sea-green and pale teal thread, a few intertwined fine seaweed fibers and a small curled strand, not an underwater scene; 4. uncommon black thread, compact wooden spool tightly wound with matte charcoal black cotton thread, short trailing end"
+    },
+    {
+      "key": "body_05",
+      "ids": [
+        "herb_oil",
+        "poison_potion",
+        "herb",
+        "healing_potion"
+      ],
+      "subjects": [
+        "uncommon herbal oil, squat clear glass bottle of golden amber oil, a sprig of green herb suspended inside, cork stopper and simple twine tie",
+        "rare poison potion crafting material, compact angular dark glass vial containing vivid violet poisonous liquid, tiny green reflections and dark stopper, no skull labels or text",
+        "common healing herb, small freshly picked bundle of healthy green medicinal leaves and short stems tied with natural twine, no pot or ground",
+        "common healing potion, simple round clear glass bottle filled with ruby-red healing liquid, warm highlights, cork stopper and small plain cloth wrap on neck, no labels or text"
+      ],
+      "path": "assets/icon_body_05.webp",
+      "prompt": "Use case: stylized-concept. Asset type: one production 2x2 inventory sprite atlas for BEAST PROTOCOL, a male beastman SF survival crafting game. Input image is STYLE AND LAYOUT REFERENCE ONLY, not an edit target; do not copy telescopes. Match polished hand-painted anime RPG item art, crisp dark outlines, tactile materials, controlled highlights, strong silhouettes readable at small sizes. Square image with four EQUAL quadrants. Each item completely contained and CENTERED within its own quadrant with at least 60px transparent margin on all sides. TOP LEFT / TOP RIGHT / BOTTOM LEFT / BOTTOM RIGHT order as specified. True transparent alpha background and gutters, no black backdrop or checkerboard, no frames, grid lines, text, labels or watermark. Garments are empty standalone inventory objects with fully drawn fronts, NO people, mannequins, heads, hands or body parts. Clothing always cut for adult masculine male beastmen: broad shoulders, straight robust torso, no breasts or fitted feminine waist, no skirt, no heels. Keep every object and any glow separate from adjacent cells. Subjects: 1. uncommon herbal oil, squat clear glass bottle of golden amber oil, a sprig of green herb suspended inside, cork stopper and simple twine tie; 2. rare poison potion crafting material, compact angular dark glass vial containing vivid violet poisonous liquid, tiny green reflections and dark stopper, no skull labels or text; 3. common healing herb, small freshly picked bundle of healthy green medicinal leaves and short stems tied with natural twine, no pot or ground; 4. common healing potion, simple round clear glass bottle filled with ruby-red healing liquid, warm highlights, cork stopper and small plain cloth wrap on neck, no labels or text"
+    }
+  ]
+}
