@@ -1,0 +1,224 @@
+{
+  "items": [
+    {
+      "id": "iron_sword",
+      "name": "鉄の剣",
+      "rarity": "uncommon",
+      "attack": 20,
+      "need": {
+        "wood_sword": 1,
+        "iron": 1
+      }
+    },
+    {
+      "id": "steel_sword",
+      "name": "鋼の剣",
+      "rarity": "rare",
+      "attack": 30,
+      "need": {
+        "iron_sword": 1,
+        "steel": 1
+      }
+    },
+    {
+      "id": "zantetsu_sword",
+      "name": "斬鉄剣",
+      "rarity": "epic",
+      "attack": 46,
+      "need": {
+        "steel_sword": 1,
+        "blackiron": 1
+      }
+    },
+    {
+      "id": "hero_sword",
+      "name": "勇者の剣",
+      "rarity": "epic",
+      "attack": 48,
+      "need": {
+        "steel_sword": 1,
+        "ruby": 1
+      }
+    },
+    {
+      "id": "spirit_sword",
+      "name": "精霊の剣",
+      "rarity": "epic",
+      "attack": 47,
+      "need": {
+        "iron_sword": 1,
+        "laurel": 1
+      }
+    },
+    {
+      "id": "army_knife",
+      "name": "アーミーナイフ",
+      "rarity": "rare",
+      "attack": 35,
+      "need": {
+        "survival_knife": 1,
+        "handgun": 1
+      }
+    },
+    {
+      "id": "assassin_knife",
+      "name": "アサシンナイフ",
+      "rarity": "epic",
+      "attack": 44,
+      "need": {
+        "army_knife": 1,
+        "poison_potion": 1
+      }
+    },
+    {
+      "id": "mermaid_knife",
+      "name": "マーメイドナイフ",
+      "rarity": "rare",
+      "attack": 30,
+      "need": {
+        "survival_knife": 1,
+        "fish_scale": 1
+      }
+    },
+    {
+      "id": "jail_knife",
+      "name": "ジェイルナイフ",
+      "rarity": "epic",
+      "attack": 47,
+      "need": {
+        "mermaid_knife": 1,
+        "sapphire": 1
+      }
+    },
+    {
+      "id": "jambiya",
+      "name": "ジャンビーヤ",
+      "rarity": "rare",
+      "attack": 30,
+      "need": {
+        "survival_knife": 1,
+        "marble": 1
+      }
+    },
+    {
+      "id": "orichalcum",
+      "name": "オリハルコン",
+      "rarity": "epic",
+      "attack": 47,
+      "need": {
+        "jambiya": 1,
+        "obsidian": 1
+      }
+    },
+    {
+      "id": "kukri",
+      "name": "ククリ",
+      "rarity": "epic",
+      "attack": 45,
+      "need": {
+        "jambiya": 2
+      }
+    },
+    {
+      "id": "battle_axe",
+      "name": "バトルアックス",
+      "rarity": "uncommon",
+      "attack": 26,
+      "need": {
+        "bamboo_pole": 1,
+        "iron": 1
+      }
+    },
+    {
+      "id": "golden_axe",
+      "name": "ゴールデンアックス",
+      "rarity": "rare",
+      "attack": 38,
+      "need": {
+        "battle_axe": 1,
+        "gold": 1
+      }
+    },
+    {
+      "id": "platinum_axe",
+      "name": "プラチナムアックス",
+      "rarity": "epic",
+      "attack": 50,
+      "need": {
+        "golden_axe": 1,
+        "whitesilver": 1
+      }
+    },
+    {
+      "id": "booster_axe",
+      "name": "ブースターアックス",
+      "rarity": "rare",
+      "attack": 32,
+      "need": {
+        "battle_axe": 1,
+        "large_gear": 1
+      }
+    },
+    {
+      "id": "double_gear",
+      "name": "ダブルギア",
+      "rarity": "rare",
+      "attack": null,
+      "need": {
+        "large_gear": 1,
+        "small_gear": 1
+      }
+    },
+    {
+      "id": "automaton_axe",
+      "name": "オートマトンアックス",
+      "rarity": "epic",
+      "attack": 47,
+      "need": {
+        "booster_axe": 1,
+        "double_gear": 1
+      }
+    }
+  ],
+  "effects": {
+    "hero_sword": {
+      "name": "勇気の印",
+      "description": "ドローンへの与ダメージ＋30%・ドローンからの被ダメージ－30%",
+      "droneDamageBonus": 0.3,
+      "droneDamageReduction": 0.3
+    },
+    "spirit_sword": {
+      "name": "アカシアの精霊",
+      "description": "治療1回（1秒）ごとのHP回復量＋3",
+      "treatmentBonus": 3
+    },
+    "assassin_knife": {
+      "name": "蝕む劇毒",
+      "description": "命中時、蠍の紫毒を1付与しスタック数の追加ダメージ（最大10・5秒ごとに1減少）",
+      "purplePoison": true
+    },
+    "jail_knife": {
+      "name": "クリティカル補正",
+      "description": "クリティカル率＋3ポイント（合計6%）",
+      "criticalBonus": 0.03
+    },
+    "orichalcum": {
+      "name": "不滅の刃",
+      "description": "この武器は耐久値が下がらない",
+      "durabilityLossImmune": true
+    },
+    "automaton_axe": {
+      "name": "機械の照準",
+      "description": "命中率＋5ポイント",
+      "accuracyBonus": 5
+    }
+  },
+  "critical": {
+    "baseRate": 0.03,
+    "multiplier": 1.3,
+    "jailKnifeRate": 0.06,
+    "includesDrones": true,
+    "fixedDamage": false
+  },
+  "clarification": "シーサイドナイフはマーメイドナイフを指すとユーザー確認済み"
+}

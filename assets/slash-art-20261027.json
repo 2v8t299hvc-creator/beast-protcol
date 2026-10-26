@@ -1,0 +1,105 @@
+{
+  "generator": "Built-in image_gen",
+  "transparent_background": true,
+  "prompts": [
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL game item atlas 1. Square canvas, true transparent background. A 2x2 grid of independent inventory illustrations. Each object must be centered inside its own quadrant, occupy at most 75% of that quadrant, at least 12% empty padding, never cross midlines. top-left: plain iron straight sword, simple steel blade and dark grip; top-right: polished steel straight sword, reinforced crossguard; bottom-left: Zantetsu epic black-iron katana-like sword, dark angular cutting blade with subtle silver edge; bottom-right: heroic epic ruby sword, broad gleaming blade, golden crossguard and red ruby centerpiece. Cohesive hand-painted anime survival RPG inventory art, crisp dark outlines, dimensional metal shading, isolated objects, readable at 48px, diagonal view for weapons. No hands, no people, no lettering, no frames, no background, no shadows on floor.",
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL game item atlas 2. Square canvas, true transparent background. A 2x2 grid of independent inventory illustrations. Each object must be centered inside its own quadrant, occupy at most 75% of that quadrant, at least 12% empty padding, never cross midlines. top-left: epic forest spirit sword, elegant silver blade with acacia leaf-shaped jade guard and soft green wood grip; top-right: army survival knife, gray tactical blade, black military grip with subtle pistol-mechanism motif, NO gun attached; bottom-left: assassin knife, dark curved blade, purple venom vial in guard, poisonous purple edge; bottom-right: mermaid knife, curved aquatic cyan blade, silver fish-scale texture and pearl hilt. Cohesive hand-painted anime survival RPG inventory art, crisp dark outlines, dimensional metal shading, isolated objects, readable at 48px, diagonal view for weapons. No hands, no people, no lettering, no frames, no background, no shadows on floor.",
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL game item atlas 3. Square canvas, true transparent background. A 2x2 grid of independent inventory illustrations. Each object must be centered inside its own quadrant, occupy at most 75% of that quadrant, at least 12% empty padding, never cross midlines. top-left: jail knife, sapphire-blue faceted dagger with dark barred-cage guard and sapphire gemstone; top-right: jambiya, broad sharply curved Arabian dagger, ivory hilt and marble inlays; bottom-left: orichalcum epic dagger, ornate black obsidian curved blade, luminous gold edging, ivory hilt; bottom-right: kukri, single heavy forward-curving Nepalese kukri knife with dark leather grip. Cohesive hand-painted anime survival RPG inventory art, crisp dark outlines, dimensional metal shading, isolated objects, readable at 48px, diagonal view for weapons. No hands, no people, no lettering, no frames, no background, no shadows on floor.",
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL game item atlas 4. Square canvas, true transparent background. A 2x2 grid of independent inventory illustrations. Each object must be centered inside its own quadrant, occupy at most 75% of that quadrant, at least 12% empty padding, never cross midlines. top-left: battle axe, rugged single-bladed iron axe with bamboo haft; top-right: golden axe, broad shining gold axe head and sturdy dark haft; bottom-left: platinum epic axe, massive polished platinum double-edged head with white-silver filigree; bottom-right: booster axe, compact steel battle axe head mounted with large gear and cyan mechanical thruster. Cohesive hand-painted anime survival RPG inventory art, crisp dark outlines, dimensional metal shading, isolated objects, readable at 48px, diagonal view for weapons. No hands, no people, no lettering, no frames, no background, no shadows on floor.",
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL game item atlas 5. Square canvas, true transparent background. A 2x2 grid of independent inventory illustrations. Each object must be centered inside its own quadrant, occupy at most 75% of that quadrant, at least 12% empty padding, never cross midlines. top-left: double gear crafting component, two meshing steel gears of different diameters, compact and clearly two gears; top-right: automaton epic axe, elaborate steel axe with interlocking gear mechanism and glowing cyan optical targeting sensor; bottom-left: fully empty and transparent; bottom-right: fully empty and transparent. Cohesive hand-painted anime survival RPG inventory art, crisp dark outlines, dimensional metal shading, isolated objects, readable at 48px, diagonal view for weapons. No hands, no people, no lettering, no frames, no background, no shadows on floor."
+  ],
+  "files": [
+    "assets/icon_slash_01.webp",
+    "assets/icon_slash_02.webp",
+    "assets/icon_slash_03.webp",
+    "assets/icon_slash_04.webp",
+    "assets/icon_slash_05.webp"
+  ],
+  "source_images": [
+    "exec-1c4da61d-238a-47d5-a163-7bf55ceb03e6.png",
+    "exec-64d91b7c-fc05-4028-97b4-332ff0baab95.png",
+    "exec-f6322cb5-102c-4952-835b-ffc18660a73b.png",
+    "exec-7e47067b-7fc8-4fe9-aca8-1ab021bc13bd.png",
+    "exec-2488172b-9c20-4628-93db-14fb6fa7e9b0.png"
+  ],
+  "mapping": {
+    "iron_sword": [
+      "slash_01",
+      0
+    ],
+    "steel_sword": [
+      "slash_01",
+      1
+    ],
+    "zantetsu_sword": [
+      "slash_01",
+      2
+    ],
+    "hero_sword": [
+      "slash_01",
+      3
+    ],
+    "spirit_sword": [
+      "slash_02",
+      0
+    ],
+    "army_knife": [
+      "slash_02",
+      1
+    ],
+    "assassin_knife": [
+      "slash_02",
+      2
+    ],
+    "mermaid_knife": [
+      "slash_02",
+      3
+    ],
+    "jail_knife": [
+      "slash_03",
+      0
+    ],
+    "jambiya": [
+      "slash_03",
+      1
+    ],
+    "orichalcum": [
+      "slash_03",
+      2
+    ],
+    "kukri": [
+      "slash_03",
+      3
+    ],
+    "battle_axe": [
+      "slash_04",
+      0
+    ],
+    "golden_axe": [
+      "slash_04",
+      1
+    ],
+    "platinum_axe": [
+      "slash_04",
+      2
+    ],
+    "booster_axe": [
+      "slash_04",
+      3
+    ],
+    "double_gear": [
+      "slash_05",
+      0
+    ],
+    "automaton_axe": [
+      "slash_05",
+      1
+    ]
+  },
+  "edit_prompt": "Edit this transparent 2x2 game inventory atlas. Preserve exactly every existing design, color, and quadrant order; retain empty quadrants as transparent. Reduce each object 30 percent around the center of its assigned quadrant so there is clearly at least 12% transparent padding on all sides inside EACH quadrant. No part may cross either canvas midline. All swords/knives/axe tips must be wholly inside their original quadrant. Do not add or redesign anything. Keep true transparency; no text or frames.",
+  "edited_sheets": [
+    2,
+    4,
+    5
+  ]
+}
