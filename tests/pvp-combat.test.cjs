@@ -59,3 +59,16 @@ for(let n=1;n<=5;n++){h=harness();run=s=>h.run(s);run(`globalThis.seed=${n};sele
 function chronology(chunk){const z=harness();z.run(`selectPracticeWeapon('practice_gauntlet');move('森林区画')`);for(let t=chunk;t<=900000;t+=chunk)z.advance(chunk);return z.run('JSON.stringify({clock:matchClock,S,comActors,corpses,drones})')}
 assert.equal(chronology(1000),chronology(900000));
 console.log('PASS: local PvP discovery/portrait, player and COM rounds, shared one-second timing, stale-action cancellation, retreat, pending-item preservation, freeze/lifesteal/armor, victory/loot, simultaneous death, final closure and five competitive simulations');
+
+// A COM pays the same 900ms post-hit feedback as the player, including misses.
+fixture();run('a.nextActionAt=Date.now()+1000;playerCombatRound(a,S,Date.now(),true)');eq('a.nextActionAt',1001900);eq('a.opponent',null);
+fixture();run('Math.random=()=>0.999;a.nextActionAt=Date.now()+1000;var miss=playerCombatRound(a,S,Date.now(),true)');eq('miss.first.hit',false);eq('a.nextActionAt',1001900);
+// Slowdown is added once, on top of the ordinary action and feedback waits.
+fixture();run('a.slowUntil=Date.now()+5000;a.slowActionDelayMs=500;a.nextActionAt=Date.now()+1500;playerCombatRound(a,S,Date.now(),true)');eq('a.nextActionAt',1002400);
+// Guaranteed re-discovery: attacks land every 2.9s, not every 2s. Background catch-up is identical.
+function fairCadence(chunk){fixture();run(`S.hp=10000;var hits=[];stepCom=(actor,now)=>{if(!actor.opponent){observeOpponent(actor,S,now);return}const result=playerCombatRound(actor,S,now,true);if(result)hits.push(now)};a.nextActionAt=Date.now()+1000`);for(let i=0;i<8000;i+=chunk)h.advance(chunk);eq('JSON.stringify(hits)',JSON.stringify([1002000,1004900,1007800]));return run('JSON.stringify({hits,next:a.nextActionAt,hp:S.hp})')}
+assert.equal(fairCadence(100),fairCadence(8000));
+// Drone combat also pays feedback before searching/looting, preserving longer existing waits.
+fixture();run("Object.assign(drones.bird,{spawned:true,generation:7,hp:10000,area:a.place});a.enemy={kind:'bird',generation:7};handleComCombatDecision=()=>false;a.nextActionAt=Date.now()+1000;comFight(a,Date.now())");eq('a.nextActionAt',1001900);
+fixture();run('a.nextActionAt=Date.now()+5000;applyComCombatFeedback(a,Date.now())');eq('a.nextActionAt',1005000);
+console.log('PASS: equal 900ms post-hit COM lock, hit/miss, additive slow, 2.9s search/attack cycle, drone combat and background catch-up');

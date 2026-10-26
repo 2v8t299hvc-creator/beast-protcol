@@ -999,6 +999,10 @@ function logPlayerAttack(attacker,target,result,now){
  const message=actorName(attacker)+' → '+actorName(target)+'：'+(result.hit?result.damage+'ダメージ':result.damage?'外れ・噴火'+result.damage+'ダメージ':'MISS')+(result.healing?'／愛の矢HP＋'+result.healing:'')+(result.effect.frozen?'／凍結付与':'')+(result.effect.injury?'／負傷付与':'')+(result.reflected?'／トゲ反射'+result.reflected:'');
  if(attacker===S||target===S)addLog(message);recordMatchEvent(attacker,'combat',message,now);if(attacker!==S)comLog(attacker,message,now);
 }
+// Match the player's post-hit animation lock before the next paid action.
+function applyComCombatFeedback(actor,now){
+ actor.nextActionAt=Math.max(actor.nextActionAt||0,now+COM_ACTION_MS+actionDelayMs(actor,now)+COMBAT_FEEDBACK_MS);
+}
 function playerCombatRound(attacker,target,now,incomingOnly=false,skillId=null){
  if(!pvpEnabled()||attacker.hp<=0||target.hp<=0||attacker.place!==target.place||(attacker.combatReadyAt||0)>now)return null;
  const first=actorAttack(attacker,target,now,incomingOnly,skillId);if(!first)return null;attacker.combatReadyAt=now+1000+actionDelayMs(attacker,now);logPlayerAttack(attacker,target,first,now);
@@ -1010,7 +1014,7 @@ function playerCombatRound(attacker,target,now,incomingOnly=false,skillId=null){
   else eliminateCom(actor,actorName(killer)+'との戦闘',now,killer.id);
  }
  matchClock.resolvingCombat=false;
- for(const com of [attacker].filter(a=>a!==S)){com.opponent=null;com.enemy=null;com.nextActionAt=Math.max(com.nextActionAt,now+1000)}
+ for(const com of [attacker].filter(a=>a!==S)){com.opponent=null;com.enemy=null;applyComCombatFeedback(com,now)}
  const victim=target.hp<=0?target:attacker.hp<=0?attacker:null;
  const corpse=victim&&corpses.find(c=>c.id===victim.corpseId);
  const looter=attacker.hp>0?attacker:target.hp>0?target:null;if(corpse&&looter&&looter!==S)looter.loot=corpse.id;
@@ -1827,6 +1831,7 @@ function comFight(actor,now){
  if(!d?.spawned||d.generation!==ref.generation||d.area!==actor.place||d.hp<=0){actor.enemy=null;comLog(actor,'発見した敵は既にいない',now);return}
  if(handleComCombatDecision(actor,d,now,'drone'))return;
  const result=strikeDrone(actor,d,now);actor.enemy=null;if(!result)return;
+ applyComCombatFeedback(actor,now);
  if(S.enemy&&S.enemyKind===d.kind&&S.place===actor.place){S.ehp=d.hp;if(result.defeated&&!S.busy)S.enemy=false;}
  comLog(actor,def.name+'へ'+(result.hit?result.damage+'ダメージ':result.damage?'外れ・噴火'+result.damage+'ダメージ':'攻撃失敗')+(result.defeated?'・撃破':'／反撃'+result.counter)+(result.healing?'／愛の矢でHP＋'+result.healing:'')+(result.effect.frozen?'／凍結付与':''),now);
  if(actor.hp<=0){eliminateCom(actor,def.name+'の反撃',now,'drone-'+d.kind+'-'+d.generation);return}
