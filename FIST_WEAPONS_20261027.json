@@ -1,0 +1,163 @@
+{
+  "items": [
+    {
+      "id": "knuckle",
+      "name": "ナックル",
+      "rarity": "common",
+      "attack": 10,
+      "need": null
+    },
+    {
+      "id": "iron_knuckle",
+      "name": "アイアンナックル",
+      "rarity": "uncommon",
+      "attack": 22,
+      "need": {
+        "knuckle": 1,
+        "iron": 1
+      }
+    },
+    {
+      "id": "glass_knuckle",
+      "name": "ガラスナックル",
+      "rarity": "rare",
+      "attack": 34,
+      "need": {
+        "iron_knuckle": 1,
+        "glass_shard": 1
+      }
+    },
+    {
+      "id": "brilliant_knuckle",
+      "name": "ブリリアントナックル",
+      "rarity": "epic",
+      "attack": 47,
+      "need": {
+        "glass_knuckle": 1,
+        "diamond": 1
+      }
+    },
+    {
+      "id": "poseidon_knuckle",
+      "name": "ポセイドンナックル",
+      "rarity": "epic",
+      "attack": 47,
+      "need": {
+        "iron_knuckle": 1,
+        "sea_god_amulet": 1
+      }
+    },
+    {
+      "id": "sea_god_amulet",
+      "name": "海神の護符",
+      "rarity": "rare",
+      "defense": 20,
+      "slot": "accessory",
+      "need": {
+        "fish_scale": 1,
+        "sea_thread": 1
+      }
+    },
+    {
+      "id": "bandage",
+      "name": "包帯",
+      "rarity": "common",
+      "heal": 25,
+      "setCount": 3,
+      "need": null
+    },
+    {
+      "id": "fighting_wraps",
+      "name": "バンテージ",
+      "rarity": "uncommon",
+      "attack": 18,
+      "need": {
+        "ragglove": 1,
+        "bandage": 1
+      }
+    },
+    {
+      "id": "reinforced_wraps",
+      "name": "強化バンテージ",
+      "rarity": "rare",
+      "attack": 32,
+      "need": {
+        "fighting_wraps": 1,
+        "fine_cloth": 1
+      }
+    },
+    {
+      "id": "leather_wraps",
+      "name": "革のバンテージ",
+      "rarity": "rare",
+      "attack": 26,
+      "need": {
+        "fighting_wraps": 1,
+        "fur": 1
+      }
+    },
+    {
+      "id": "beast_fang",
+      "name": "ビーストファング",
+      "rarity": "epic",
+      "attack": 47,
+      "need": {
+        "reinforced_wraps": 1,
+        "leather_wraps": 1
+      }
+    }
+  ],
+  "placements": {
+    "戦闘演習区画": {
+      "knuckle": 2,
+      "bandage": 2
+    },
+    "工業区画": {
+      "knuckle": 2
+    },
+    "商業区画": {
+      "knuckle": 2
+    },
+    "医療区画": {
+      "bandage": 3
+    },
+    "住宅区画": {
+      "bandage": 2
+    }
+  },
+  "changes": {
+    "戦闘演習区画": {
+      "scrap": -2,
+      "knuckle": 2,
+      "wood": -2,
+      "bandage": 2
+    },
+    "工業区画": {
+      "scrap": -2,
+      "knuckle": 2
+    },
+    "商業区画": {
+      "ration": -1,
+      "fur": -1,
+      "knuckle": 2
+    },
+    "医療区画": {
+      "kit": -2,
+      "water": -1,
+      "bandage": 3
+    },
+    "住宅区画": {
+      "ration": -2,
+      "bandage": 2
+    }
+  },
+  "wildHunt": {
+    "items": [
+      "fur",
+      "feather"
+    ],
+    "count": 1,
+    "capacity": 12,
+    "priority": "after existing drops and primal boots bonus"
+  }
+}

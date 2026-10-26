@@ -1,0 +1,66 @@
+{
+  "generator": "Built-in image_gen",
+  "transparent_background": true,
+  "prompts": [
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL survival game item atlas, square transparent PNG, 2 by 2 equal cells. Exactly four isolated RPG inventory illustrations, each centered within its own quadrant with 12% padding, no crossing midlines. Top-left: basic gray metal brass knuckles, four finger holes. Top-right: upgraded heavy iron knuckles with reinforced rivets, four holes. Bottom-left: iron knuckles with jagged cyan glass shards mounted along striking edge. Bottom-right: brilliant elite silver knuckles with large diamond crystals along striking edge. Cohesive hand-painted anime game item art, crisp dark outlines, dimensional metal shading, readable at 48px, three-quarter view, no hands, no letters, no frame, no floor, no background. Distinct progression from plain to epic. Actual transparent background.",
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL survival game item atlas, square transparent PNG, 2 by 2 equal cells. Exactly four isolated RPG inventory illustrations, each centered within its quadrant with 12% padding. Top-left: Poseidon knuckles, four finger holes, ornate teal ocean metal with gold trident motifs and white wave accents, compact brass-knuckle silhouette, not a long weapon. Top-right: sea god amulet, a turquoise scale pendant bound with sea-blue cord and a small golden trident emblem. Bottom-left: a clean rolled medical white bandage with small gauze tail. Bottom-right: basic fighting hand wraps, ivory cloth wrapped around a hollow fingerless glove shape, no skin or hands. Hand-painted anime survival game inventory art, crisp dark outlines, dimensional cel shading, readable at 48px. No text, no frames, no floor, no background. Actual transparent background.",
+    "Use case: stylized-concept. Asset: BEAST PROTOCOL survival game item atlas, square transparent PNG, 2 by 2 equal cells. Three isolated RPG inventory illustrations centered within quadrants, 12% padding; bottom-right quadrant fully empty transparent. Top-left: reinforced fighting hand wraps, tightly layered fine white cloth with gray reinforced knuckle plates, hollow fingerless glove shape, no hand. Top-right: leather fighting hand wraps, brown leather straps and warm fur trim, hollow fingerless glove shape. Bottom-left: Beast Fang epic fist weapon, rugged dark leather fighting wraps with cream fur cuff and three curved ivory fang-shaped knuckle studs, claw-like compact gauntlet, no hand. Cohesive hand-painted anime survival game inventory art, crisp dark outlines, dimensional shading, readable at 48px, no text, no frames, no floor, no background. Actual transparent background."
+  ],
+  "files": [
+    "assets/icon_fist_01.webp",
+    "assets/icon_fist_02.webp",
+    "assets/icon_fist_03.webp"
+  ],
+  "source_images": [
+    "exec-a7853fdf-2c7d-4c1e-a220-5e731286e6c6.png",
+    "exec-b732dc7d-bdbd-48f2-bbbc-947d0b47195a.png",
+    "exec-7a816f55-e3fa-4c81-84e9-c237c5e1ecdb.png"
+  ],
+  "edit_prompt": "Preserve designs, colors, quadrant order and transparency; reduce each object by 20% around its quadrant center, keeping at least 10% padding, especially the top-left Poseidon knuckles. No text or frames.",
+  "mapping": {
+    "knuckle": [
+      "fist_01",
+      0
+    ],
+    "iron_knuckle": [
+      "fist_01",
+      1
+    ],
+    "glass_knuckle": [
+      "fist_01",
+      2
+    ],
+    "brilliant_knuckle": [
+      "fist_01",
+      3
+    ],
+    "poseidon_knuckle": [
+      "fist_02",
+      0
+    ],
+    "sea_god_amulet": [
+      "fist_02",
+      1
+    ],
+    "bandage": [
+      "fist_02",
+      2
+    ],
+    "fighting_wraps": [
+      "fist_02",
+      3
+    ],
+    "reinforced_wraps": [
+      "fist_03",
+      0
+    ],
+    "leather_wraps": [
+      "fist_03",
+      1
+    ],
+    "beast_fang": [
+      "fist_03",
+      2
+    ]
+  }
+}

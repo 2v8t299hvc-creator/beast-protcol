@@ -60,7 +60,7 @@
       "wood": 6
     },
     "工業区画": {
-      "scrap": 11,
+      "scrap": 9,
       "lighter": 5,
       "oil": 6,
       "survival_knife": 2,
@@ -69,7 +69,8 @@
       "cell": 4,
       "goggles": 3,
       "small_gear": 3,
-      "large_gear": 2
+      "large_gear": 2,
+      "knuckle": 2
     },
     "海岸区画": {
       "stone": 3,
@@ -156,19 +157,21 @@
       "wood_sword": 4,
       "survival_knife": 4,
       "pickaxe": 2,
-      "scrap": 7,
+      "scrap": 5,
       "cloth": 6,
       "wire": 3,
       "fur": 3,
       "boots": 4,
       "wood_mallet": 4,
-      "wood": 4
+      "wood": 2,
+      "knuckle": 2,
+      "bandage": 2
     },
     "住宅区画": {
       "telescope": 1,
       "cloth": 8,
       "fur": 2,
-      "ration": 4,
+      "ration": 2,
       "scissors": 6,
       "hat": 3,
       "glass_shard": 2,
@@ -177,7 +180,8 @@
       "thread": 6,
       "frying_pan": 2,
       "milk": 4,
-      "bamboo_pole": 1
+      "bamboo_pole": 1,
+      "bandage": 2
     },
     "公園区画": {
       "feather": 4,
@@ -195,13 +199,14 @@
     "医療区画": {
       "cloth": 8,
       "cell": 5,
-      "kit": 4,
+      "kit": 2,
       "rubber": 4,
       "scissors": 4,
       "lab_coat": 4,
       "herb": 5,
       "small_flower": 5,
-      "water": 6
+      "water": 5,
+      "bandage": 3
     },
     "森林区画": {
       "feather": 8,
@@ -230,16 +235,17 @@
       "telescope": 2,
       "wire": 3,
       "cloth": 8,
-      "fur": 2,
+      "fur": 1,
       "handgun": 2,
       "western_bow": 2,
       "bullets": 2,
       "arrows": 2,
-      "ration": 4,
+      "ration": 3,
       "scissors": 6,
       "thread": 6,
       "frying_pan": 2,
-      "milk": 4
+      "milk": 4,
+      "knuckle": 2
     },
     "海底研究区画": {
       "wire": 8,
@@ -273,5 +279,6 @@
     "密林区画": 38,
     "商業区画": 50,
     "海底研究区画": 25
-  }
+  },
+  "latestUpdate": "2026-10-27 fist weapons and bandages, preserving 45 objects per area"
 }
