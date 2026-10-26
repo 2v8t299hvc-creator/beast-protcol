@@ -8,7 +8,7 @@ function harness(){
  const document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id)},createElement:element,querySelector(){return null},querySelectorAll(){return []}};
  const context=vm.createContext({document,Image:class {},Date:class extends Date{static now(){return now}},getComputedStyle:()=>({backgroundImage:''}),setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearTimeout(){},setInterval(){},console});
  vm.runInContext("globalThis.seed=1;Math.random=()=>{seed=(seed*16807)%2147483647;return seed/2147483647}",context);
- vm.runInContext(source,context);vm.runInContext('comActors.splice(1)',context);vm.runInContext('matchClock.competitive=false',context);
+ vm.runInContext(source.replace('function grantStartingSupplies(actor){','function grantStartingSupplies(actor){ return; // Isolate the pre-supply fixture\n'),context);vm.runInContext('comActors.splice(1)',context);vm.runInContext('matchClock.competitive=false',context);
 
  return {run:code=>vm.runInContext(code,context),setNow:x=>{now=x},advance(ms){now+=ms;vm.runInContext('tickMatchClock()',context)},tickAction(){const i=timers.findIndex(t=>t.ms===1000);assert(i>=0);timers.splice(i,1)[0].fn()}};
 }
@@ -37,9 +37,9 @@ fixture();run('a.equipmentAmmo.weapon=18;receive("arrows",1,null,a)');eq('reload
 function drone(kind='bird',hp=50){run(`a.place=DRONE_DEFS['${kind}'].areas[0];Object.assign(drones['${kind}'],{spawned:true,hp:${hp},area:a.place,generation:7});a.enemy={kind:'${kind}',generation:7};a.hp=180;`)}
 drone('bird',26);const pMastery=run('S.masteryAttacks.bow');run('comFight(a,Date.now())');eq('a.equipmentAmmo.weapon',18);eq('a.masteryAttacks.bow',27);eq('S.masteryAttacks.bow',pMastery);eq('drones.bird.hp',13);eq('a.hp',163);eq('a.enemy',null);
 run('a.enemy={kind:"bird",generation:7};comFight(a,Date.now()+1000)');eq('drones.bird.spawned',false);eq('a.hp',163);eq('drones.bird.respawnAt',1081000);eq('corpses.at(-1).killerId','hayate');eq('corpses.at(-1).expiresAt',1081000);
-run('comLoot(a,Date.now()+2000,comPlan(a,"azusa_bow"))');eq('a.loot',null);eq('corpses.at(-1).items.length',1);eq('a.inventory.egg',1);
+run('comLoot(a,Date.now()+2000,comPlan(a,"azusa_bow"))');eq('a.loot',null);eq('corpses.at(-1).items.length',2);eq('a.inventory.egg',1);
 // An open player corpse menu is reserved against COM list mutation / stale button indexes.
-run('a.loot=corpses.at(-1).id;S.corpseVisit={id:a.loot,token:1}');eq('comLoot(a,Date.now()+3000,comPlan(a,"azusa_bow"))',false);eq('corpses.at(-1).items.length',1);
+run('a.loot=corpses.at(-1).id;S.corpseVisit={id:a.loot,token:1}');eq('comLoot(a,Date.now()+3000,comPlan(a,"azusa_bow"))',false);eq('corpses.at(-1).items.length',2);
 // Retreat leaves drone HP unchanged and avoids omniscient pursuit; poison/ink belong to the attacker.
 fixture();drone('scorpion',300);run('comFight(a,Date.now())');eq('drones.scorpion.hp',300);eq('a.leaveDanger',true);eq('a.equipmentAmmo.weapon',20);
 run('strikeDrone(a,drones.scorpion,Date.now())');eq('statusStacks("purplePoison",a)',1);eq('statusStacks("purplePoison")',0);run('updateStatusEffects(Date.now()+5000,a)');eq('statusStacks("purplePoison",a)',0);

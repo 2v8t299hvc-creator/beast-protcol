@@ -432,10 +432,11 @@ function unequip(slot){
 }
 let droppedSerial=0;
 function discardStack(index){
- if(!(matchClock.result==='win'?allowCorpseAction():allowMatchAction()))return;
+ if(!(matchClock.result==='win'?allowCorpseAction():allowMatchAction(true)))return;
  const stack=S.bag[index];if(!stack)return;
  if(S.busy||S.pendingFound)return toast('ほかの行動中です');
  const {id,count}=stack;S.bag.splice(index,1);syncInventory();
+ if(S.place==='待機所'){addLog(names[id]+' ×'+count+'を廃棄した');refresh();showBag();toast(names[id]+' ×'+count+'を廃棄した');return;}
  const pile={uid:S.place+':drop:'+(++droppedSerial),id,area:S.place,count,taken:false,dropped:true,...(equipmentDef(id)?.ammoType&&!equipmentDef(id).unlimitedAmmo?{ammo:weaponAmmo(id,stack.ammo)}:{}),...(stack.effects?{effects:{...stack.effects}}:{})};
  (regionObjects[S.place]||(regionObjects[S.place]=[])).push(pile);regionSeen[S.place]?.clear();pushStock(pile);
  addLog(names[id]+' ×'+count+'を'+S.place+'に置き、ストックへ追加した');
@@ -971,6 +972,42 @@ function corpseDiscoveryRate(corpse,actor=S){const id=actorIdentity(actor);retur
 const corpses=[];
 function corpseAvailable(c,now=Date.now()){return !!c&&(c.expiresAt===null||now<c.expiresAt)}
 function findCorpse(id){return corpses.find(c=>c.id===id&&corpseAvailable(c))}
+
+// Reusable weighted supply tables. Ordinary/recovery/jackpot weights are 70/25/5.
+// E is a dedicated recovery table. All entries refer to existing items.
+const RANDOM_SUPPLY_TABLES={
+ A:{name:'基礎物資',normal:['wood','stone','scrap','cloth','thread','rubber','hat','boots','bracelet','ragglove'],recovery:['ration','drink','water','seaweed_soup'],jackpot:['gold_thread','monitor','steel']},
+ B:{name:'生物素材',normal:['feather','fur','thread','cloth','wood','hat','boots'],recovery:['egg','beast_meat','ration','seaweed_soup'],jackpot:['gold_thread','black_thread']},
+ C:{name:'機械素材',normal:['scrap','wire','rubber','cell','oil','goggles','bracelet'],recovery:['drink','energy_drink','kit'],jackpot:['monitor','steel','discharger']},
+ D:{name:'鉱石素材',normal:['stone','mystery','marble','redstone','bluestone','whitestone','pickaxe'],recovery:['premium_ration','energy_drink','healing_potion'],jackpot:['ruby','sapphire','whitesilver']},
+ W:{name:'水辺素材',normal:['fish_scale','rubber','sea_thread','swimsuit','feather','cloth'],recovery:['water','seaweed_soup','minefish_sashimi'],jackpot:['monitor','gold_thread']},
+ E:{name:'回復物資',recovery:['ration','drink','water','seaweed_soup','healing_potion']}
+};
+const STARTING_SUPPLY_TABLES=['A','E'];
+const DRONE_SUPPLY_TABLES={bird:['B'],fish:['W'],dog:['B','E'],humanoid:['C','E'],scorpion:['D','D','E'],octopus:['W','C','E']};
+function supplySetCount(id){
+ if(RECOVERY_ITEMS[id])return recipes.find(r=>r.id===id)?.count||itemSetCount(id);
+ return itemSetCount(id);
+}
+function rollSupply(tableId,excluded=new Set()){
+ const table=RANDOM_SUPPLY_TABLES[tableId];if(!table)throw new Error('Unknown supply table: '+tableId);
+ const eligible=ids=>(ids||[]).filter(id=>names[id]&&!excluded.has(id));
+ let groups=table.normal?[[eligible(table.normal),70],[eligible(table.recovery),25],[eligible(table.jackpot),5]]:[[eligible(table.recovery),1]];
+ groups=groups.filter(([ids])=>ids.length);if(!groups.length)return null;
+ let roll=Math.random()*groups.reduce((n,[ids,w])=>n+w,0),pool=groups[groups.length-1][0];
+ for(const [ids,weight] of groups){roll-=weight;if(roll<0){pool=ids;break}}
+ const id=pool[rand(pool.length)];excluded.add(id);return {id,count:supplySetCount(id),source:'ランダム'+tableId};
+}
+function rollSupplies(tables){const excluded=new Set();return tables.map(id=>rollSupply(id,excluded)).filter(Boolean)}
+function grantStartingSupplies(actor){
+ if(actor.startingSuppliesGranted)return;
+ for(const entry of rollSupplies(STARTING_SUPPLY_TABLES)){
+  const bag=addToStacks(actor.bag,entry.id,entry.count);if(!bag)throw new Error('Starting supplies exceed bag capacity');actor.bag=bag;
+ }
+ syncInventory(actor);actor.startingSuppliesGranted=true;
+ if(actor===S)addLog('開始時ランダム補給を受領した。バッグで確認できます。');
+}
+
 function corpseBonusPool(){const obtainable=new Set([...Object.values(regionStock).flatMap(x=>Object.keys(x)),...recipes.map(r=>r.id),...Object.values(DRONE_DEFS).flatMap(d=>d.drops)]);return [...obtainable].filter(id=>names[id]&&['common','uncommon','rare'].includes(RECIPE_RARITY[id]||'common')&&!Object.hasOwn(PRACTICE_WEAPONS,id))}
 function createCorpse(kind,name,area,entries,now=Date.now(),details={}){
  const items=entries.filter(x=>x&&x.id&&x.count>0).map(x=>({...x}));
@@ -997,7 +1034,7 @@ function defeatPlayer(player,killer=null){
  return corpse;
 }
 function createDroneCorpse(kind,area,now=Date.now(),killerId=actorIdentity(S)){
- const def=DRONE_DEFS[kind];return createCorpse('drone',def.name,area,def.drops.map(id=>({id,count:itemSetCount(id)})),now,{killerId,lifetimeMs:def.respawn*1000});
+ const def=DRONE_DEFS[kind];return createCorpse('drone',def.name,area,[...def.drops.map(id=>({id,count:supplySetCount(id)})),...rollSupplies(DRONE_SUPPLY_TABLES[kind]||[])],now,{killerId,lifetimeMs:def.respawn*1000});
 }
 function pruneCorpses(now=Date.now()){
  for(let i=corpses.length-1;i>=0;i--)if(!corpseAvailable(corpses[i],now))corpses.splice(i,1);
@@ -1432,7 +1469,7 @@ function craft(id,category){
  if($('back').classList.contains('on')&&$('modalTitle').textContent.includes('製作'))refreshCraftCards();
 }
 
-function practiceWeaponChoices(){return '<h3>持ち込む武器を1つ選択</h3><div style="display:flex;flex-wrap:wrap;gap:8px">'+Object.entries(PRACTICE_WEAPONS).map(([id,[name]])=>`<button style="flex:1;min-width:100px;padding:10px;${S.starterWeapon===id?'border:2px solid #ffa83c;background:#59401f':''}" onclick="selectPracticeWeapon('${id}')">${itemIconHTML(id)}${name}<br>攻撃力8${S.starterWeapon===id?' ✓':''}</button>`).join('')+'</div><p>選択後、下の開始区画を選んで出発してください。</p>';}
+function practiceWeaponChoices(){return '<h3>持ち込む武器を1つ選択</h3><div style="display:flex;flex-wrap:wrap;gap:8px">'+Object.entries(PRACTICE_WEAPONS).map(([id,[name]])=>`<button style="flex:1;min-width:100px;padding:10px;${S.starterWeapon===id?'border:2px solid #ffa83c;background:#59401f':''}" onclick="selectPracticeWeapon('${id}')">${itemIconHTML(id)}${name}<br>攻撃力8${S.starterWeapon===id?' ✓':''}</button>`).join('')+'</div><p>開始時補給：基礎物資1枠＋回復物資1枠（支給済み）。バッグから確認・廃棄できます。</p><button onclick="showBag()">🎒 バッグを確認</button><p>選択後、下の開始区画を選んで出発してください。</p>';}
 function selectPracticeWeapon(id){
  if(!allowMatchAction(true)||matchClock.section!==0||S.place!=='待機所'||!PRACTICE_WEAPONS[id])return;
  S.starterWeapon=id;S.equipment.weapon=id;
@@ -1495,6 +1532,7 @@ function initializeComActors(count=COM_COUNT){
   recoveryReadyAt:{hp:0,stamina:0},statusEffects:{},seen:{},history:[],action:'出発準備',searches:0,noProgress:0,
   completedGoals:[],goal:null,enemy:null,loot:null,leaveDanger:false,restMode:null,visited:{},exhausted:{},
   nextActionAt:matchClock.startedAt+COM_ACTION_MS,corpseId:null});
+ for(const actor of comActors)grantStartingSupplies(actor);
 }
 function eliminateCom(actor,reason,now,killerId=null){
  if(actor.corpseId)return;
@@ -1549,8 +1587,9 @@ function comCurrentPlan(actor){
 }
 function comDrop(actor,index,now){
  const entry=actor.bag[index];if(!entry)return false;
+ if(actor.place==='待機所'){actor.bag.splice(index,1);syncInventory(actor);comLog(actor,'バッグ整理：'+names[entry.id]+'を廃棄した',now);return true;}
  const obj={...entry,uid:'drop:'+(++droppedSerial),area:actor.place,dropped:true,taken:false};
- regionObjects[actor.place].push(obj);regionSeen[actor.place].clear();actor.seen[actor.place]?.clear();
+ if(actor.place!=='待機所'){regionObjects[actor.place].push(obj);regionSeen[actor.place].clear();actor.seen[actor.place]?.clear();}
  actor.bag.splice(index,1);syncInventory(actor);comLog(actor,'バッグ整理：'+names[entry.id]+'を現地に置いた',now);return true;
 }
 function comMakeRoom(actor,id,count,plan,now){
@@ -1713,6 +1752,7 @@ function showComStatus(){
 initializeMatch();
 initializeDrones();
 initializeComActors();
+grantStartingSupplies(S);
 setInterval(tickMatchClock,250);
 document.addEventListener?.('visibilitychange',tickMatchClock);
 document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='visible')retryFailedItemArt()});
