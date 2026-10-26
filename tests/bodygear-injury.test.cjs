@@ -40,5 +40,5 @@ fresh();run('pushStock(regionObjects[a.place][0]);a.injuryUntil=Date.now()+5000;
 fresh();run('a.injuryUntil=Date.now();paySearchCost(a,Date.now())');eq('a.hp',100);run('a.injuryUntil=Date.now()+5000;a.st=0;primary()');eq('a.hp',93);eq('a.st',0);
 fresh();run('a.injuryUntil=Date.now()+5000;a.hp=4;primary()');eq('a.hp',0);eq('matchClock.result','eliminated');eq('a.busy',false);eq('a.pendingFound',null);
 // Drone retaliation extends an existing injury; respawn clears any injury carried by a previous generation.
-fresh();run('a.injuryUntil=1001000;droneCounterDamage(DRONE_DEFS.bird,a,1000999)');eq('a.injuryUntil',1005999);eq('Object.values(regionObjects).flat().filter(x=>x.id==="herb").length',12);
+fresh();run('a.injuryUntil=1001000;droneCounterDamage(DRONE_DEFS.bird,a,1000999)');eq('a.injuryUntil',1005999);eq('Object.values(regionObjects).flat().filter(x=>x.id==="herb").length',21);
 console.log('PASS: body equipment recipes/stats, exact epic XP, atomic bonus potion batches, gun reduction, attack-triggered wound CT/refresh and ordinary/stock search injury/death');

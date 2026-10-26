@@ -171,16 +171,16 @@
   "placements": {
     "山岳区画": {
       "wood_mallet": 3,
-      "bamboo_pole": 3
+      "bamboo_pole": 2
     },
     "戦闘演習区画": {
-      "wood_mallet": 3
-    },
-    "森林区画": {
-      "bamboo_pole": 4
+      "wood_mallet": 4
     },
     "住宅区画": {
-      "bamboo_pole": 2
+      "bamboo_pole": 1
+    },
+    "森林区画": {
+      "bamboo_pole": 5
     }
   },
   "notes": [

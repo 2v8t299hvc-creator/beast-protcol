@@ -114,14 +114,14 @@
     }
   ],
   "placements": {
-    "公園区画": {
-      "energy_fruit": 5
-    },
-    "森林区画": {
-      "energy_fruit": 5
-    },
     "住宅区画": {
       "milk": 4
+    },
+    "公園区画": {
+      "energy_fruit": 6
+    },
+    "森林区画": {
+      "energy_fruit": 4
     },
     "商業区画": {
       "milk": 4

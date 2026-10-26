@@ -159,22 +159,25 @@
   ],
   "placements": {
     "山岳区画": {
-      "rock_salt": 4
+      "rock_salt": 3
+    },
+    "神殿区画": {
+      "small_flower": 5
     },
     "海岸区画": {
-      "rock_salt": 6
-    },
-    "公園区画": {
-      "small_flower": 6
-    },
-    "森林区画": {
-      "small_flower": 6
+      "rock_salt": 5
     },
     "住宅区画": {
-      "frying_pan": 3
+      "frying_pan": 2
+    },
+    "公園区画": {
+      "small_flower": 10
+    },
+    "医療区画": {
+      "small_flower": 5
     },
     "商業区画": {
-      "frying_pan": 3
+      "frying_pan": 2
     }
   }
 }
