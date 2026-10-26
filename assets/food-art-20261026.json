@@ -1,0 +1,29 @@
+{
+  "style": "painted SF survival RPG inventory icons; warm orange/cool cyan edge light; transparent background; 2x2 atlases",
+  "sheets": {
+    "icon_food_01.webp": [
+      "roast_meat",
+      "smoked_meat",
+      "medium_ration",
+      "boiled_egg"
+    ],
+    "icon_food_02.webp": [
+      "rock_salt",
+      "seasoned_egg",
+      "frying_pan",
+      "heated_frying_pan"
+    ],
+    "icon_food_03.webp": [
+      "fried_egg",
+      "salted_meat",
+      "steak",
+      "small_flower"
+    ],
+    "icon_food_04.webp": [
+      "medium_healing_potion",
+      "advanced_healing_potion",
+      null,
+      null
+    ]
+  }
+}

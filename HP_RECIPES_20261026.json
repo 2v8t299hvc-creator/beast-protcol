@@ -1,0 +1,180 @@
+{
+  "items": [
+    {
+      "id": "roast_meat",
+      "name": "焼いた肉",
+      "rarity": "uncommon",
+      "hp": 80,
+      "need": {
+        "beast_meat": 1,
+        "lighter": 1
+      },
+      "count": 1
+    },
+    {
+      "id": "smoked_meat",
+      "name": "燻製肉",
+      "rarity": "rare",
+      "hp": 60,
+      "need": {
+        "beast_meat": 1,
+        "charcoal": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "medium_ration",
+      "name": "中級レーション",
+      "rarity": "uncommon",
+      "hp": 40,
+      "need": {
+        "ration": 1,
+        "egg": 1
+      },
+      "count": 2
+    },
+    {
+      "id": "boiled_egg",
+      "name": "ゆで卵",
+      "rarity": "common",
+      "hp": 60,
+      "need": {
+        "egg": 1,
+        "hotwater": 1
+      },
+      "count": 1
+    },
+    {
+      "id": "rock_salt",
+      "name": "岩塩",
+      "rarity": "common",
+      "hp": 5,
+      "need": null,
+      "count": 1
+    },
+    {
+      "id": "seasoned_egg",
+      "name": "味付き卵",
+      "rarity": "uncommon",
+      "hp": 60,
+      "need": {
+        "boiled_egg": 1,
+        "rock_salt": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "frying_pan",
+      "name": "フライパン",
+      "rarity": "common",
+      "hp": null,
+      "need": null,
+      "count": 1
+    },
+    {
+      "id": "heated_frying_pan",
+      "name": "熱したフライパン",
+      "rarity": "uncommon",
+      "hp": null,
+      "need": {
+        "frying_pan": 1,
+        "lighter": 1
+      },
+      "count": 1
+    },
+    {
+      "id": "fried_egg",
+      "name": "目玉焼き",
+      "rarity": "uncommon",
+      "hp": 50,
+      "need": {
+        "egg": 1,
+        "heated_frying_pan": 1
+      },
+      "count": 2
+    },
+    {
+      "id": "salted_meat",
+      "name": "塩漬け肉",
+      "rarity": "uncommon",
+      "hp": 20,
+      "need": {
+        "beast_meat": 1,
+        "rock_salt": 1
+      },
+      "count": 1
+    },
+    {
+      "id": "steak",
+      "name": "ステーキ",
+      "rarity": "epic",
+      "hp": 150,
+      "need": {
+        "salted_meat": 1,
+        "heated_frying_pan": 1
+      },
+      "count": 1
+    },
+    {
+      "id": "small_flower",
+      "name": "小さな花",
+      "rarity": "common",
+      "hp": 4,
+      "need": null,
+      "count": 1
+    },
+    {
+      "id": "medium_healing_potion",
+      "name": "中級回復薬",
+      "rarity": "rare",
+      "hp": 60,
+      "need": {
+        "healing_potion": 1,
+        "small_flower": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "advanced_healing_potion",
+      "name": "上級回復薬",
+      "rarity": "rare",
+      "hp": 90,
+      "need": {
+        "medium_healing_potion": 1,
+        "paradisefish": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "premium_ration",
+      "name": "高級レーション",
+      "rarity": "rare",
+      "hp": 80,
+      "need": {
+        "medium_ration": 1,
+        "salted_meat": 1
+      },
+      "count": 3
+    }
+  ],
+  "placements": {
+    "山岳区画": {
+      "rock_salt": 4
+    },
+    "海岸区画": {
+      "rock_salt": 6
+    },
+    "公園区画": {
+      "small_flower": 6
+    },
+    "森林区画": {
+      "small_flower": 6
+    },
+    "住宅区画": {
+      "frying_pan": 3
+    },
+    "商業区画": {
+      "frying_pan": 3
+    }
+  }
+}

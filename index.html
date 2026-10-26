@@ -235,6 +235,13 @@ function attackRoll(){return rand(3)-1}
 function combatDamage(attack,defense,type,other=1,actor=S){return Math.max(1,Math.floor(damageAfterDefense(attack,defense)*MASTERY_MULTIPLIERS[masteryRank(type,actor)]*other))}
 function addMastery(type,amount,actor=S){if(!WEAPON_TYPES[type]||amount<=0)return;const before=masteryRank(type,actor);actor.masteryAttacks[type]=(actor.masteryAttacks[type]||0)+amount;const after=masteryRank(type,actor);if(after>before&&actor===S)addLog(WEAPON_TYPES[type]+'熟練度が'+MASTERY_RANKS[after]+'に上昇！')}
 function recordAttack(type){addMastery(type,1)}
+
+// HP food and potion expansion, approved 2026-10-26.
+Object.assign(names,{"roast_meat":"焼いた肉","smoked_meat":"燻製肉","medium_ration":"中級レーション","boiled_egg":"ゆで卵","rock_salt":"岩塩","seasoned_egg":"味付き卵","frying_pan":"フライパン","heated_frying_pan":"熱したフライパン","fried_egg":"目玉焼き","salted_meat":"塩漬け肉","steak":"ステーキ","small_flower":"小さな花","medium_healing_potion":"中級回復薬","advanced_healing_potion":"上級回復薬","premium_ration":"高級レーション"});
+Object.assign(RECIPE_RARITY,{"roast_meat":"uncommon","smoked_meat":"rare","medium_ration":"uncommon","boiled_egg":"common","rock_salt":"common","seasoned_egg":"uncommon","frying_pan":"common","heated_frying_pan":"uncommon","fried_egg":"uncommon","salted_meat":"uncommon","steak":"epic","small_flower":"common","medium_healing_potion":"rare","advanced_healing_potion":"rare","premium_ration":"rare"});
+Object.assign(EQUIPMENT_DEFS,{"frying_pan":{"slot":"weapon","weaponType":"hammer","attack":4,"defense":0},"heated_frying_pan":{"slot":"weapon","weaponType":"hammer","attack":16,"defense":0}});
+for(let i=recipes.length-1;i>=0;i--)if(recipes[i].id==='premium_ration')recipes.splice(i,1);
+recipes.push(...[{"id":"roast_meat","name":"焼いた肉","category":"item","desc":"アンコモン・HP80回復","need":{"beast_meat":1,"lighter":1},"count":1},{"id":"smoked_meat","name":"燻製肉","category":"item","desc":"レア・HP60回復","need":{"beast_meat":1,"charcoal":1},"count":3},{"id":"medium_ration","name":"中級レーション","category":"item","desc":"アンコモン・HP40回復","need":{"ration":1,"egg":1},"count":2},{"id":"boiled_egg","name":"ゆで卵","category":"item","desc":"コモン・HP60回復","need":{"egg":1,"hotwater":1},"count":1},{"id":"seasoned_egg","name":"味付き卵","category":"item","desc":"アンコモン・HP60回復","need":{"boiled_egg":1,"rock_salt":1},"count":3},{"id":"heated_frying_pan","name":"熱したフライパン","category":"weapon","desc":"アンコモン・鈍器・攻撃16","need":{"frying_pan":1,"lighter":1},"count":1},{"id":"fried_egg","name":"目玉焼き","category":"item","desc":"アンコモン・HP50回復","need":{"egg":1,"heated_frying_pan":1},"count":2},{"id":"salted_meat","name":"塩漬け肉","category":"item","desc":"アンコモン・HP20回復","need":{"beast_meat":1,"rock_salt":1},"count":1},{"id":"steak","name":"ステーキ","category":"item","desc":"エピック・HP150回復","need":{"salted_meat":1,"heated_frying_pan":1},"count":1},{"id":"medium_healing_potion","name":"中級回復薬","category":"item","desc":"レア・HP60回復","need":{"healing_potion":1,"small_flower":1},"count":3},{"id":"advanced_healing_potion","name":"上級回復薬","category":"item","desc":"レア・HP90回復","need":{"medium_healing_potion":1,"paradisefish":1},"count":3},{"id":"premium_ration","name":"高級レーション","category":"item","desc":"レア・HP80回復","need":{"medium_ration":1,"salted_meat":1},"count":3}]);
 function craftConsumption(r,actor=S){
  let stacks=actor.bag.map(x=>({...x})),equipment={...actor.equipment},equipmentAmmo={...actor.equipmentAmmo},equipmentEffects={...actor.equipmentEffects};
  for(const [id,count] of Object.entries(r.need)){
@@ -496,6 +503,9 @@ for(const [id,areas] of Object.entries({boots:['住宅区画','戦闘演習区�
 regionStock['海岸区画'].goggles=4;regionStock['地下機構区画'].core=1;regionStock['海底研究区画'].core=1;
 Object.assign(regionStock['住宅区画'],{scissors:6});Object.assign(regionStock['商業区画'],{scissors:6});Object.assign(regionStock['医療区画'],{scissors:4});
 for(const [id,areas] of Object.entries({thread:['住宅区画','商業区画'],lab_coat:['医療区画','海底研究区画'],herb:['公園区画','森林区画','密林区画']}))for(const area of areas)regionStock[area][id]=4;
+Object.assign(regionStock['山岳区画'],{rock_salt:4});Object.assign(regionStock['海岸区画'],{rock_salt:6});
+Object.assign(regionStock['公園区画'],{small_flower:6});Object.assign(regionStock['森林区画'],{small_flower:6});
+Object.assign(regionStock['住宅区画'],{frying_pan:3});Object.assign(regionStock['商業区画'],{frying_pan:3});
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
  return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:itemSetCount(id),taken:false})))];
@@ -1175,6 +1185,7 @@ const RECOVERY_ITEMS={
  paradise_platter:{group:'hp',amount:100},paradise_broth:{group:'hp',amount:30},
  drink:{group:'stamina',amount:20},water:{group:'stamina',amount:10}
 };
+Object.assign(RECOVERY_ITEMS,{"roast_meat":{"group":"hp","amount":80},"smoked_meat":{"group":"hp","amount":60},"medium_ration":{"group":"hp","amount":40},"boiled_egg":{"group":"hp","amount":60},"rock_salt":{"group":"hp","amount":5},"seasoned_egg":{"group":"hp","amount":60},"fried_egg":{"group":"hp","amount":50},"salted_meat":{"group":"hp","amount":20},"steak":{"group":"hp","amount":150},"small_flower":{"group":"hp","amount":4},"medium_healing_potion":{"group":"hp","amount":60},"advanced_healing_potion":{"group":"hp","amount":90},"premium_ration":{"group":"hp","amount":80}});
 function recoveryWait(group,now=Date.now()){return Math.max(0,(S.recoveryReadyAt[group]||0)-now,(S.frozenUntil||0)-now)}
 function recoveryButtonHTML(id,label){
  const group=RECOVERY_ITEMS[id].group,wait=recoveryWait(group);
@@ -1339,6 +1350,9 @@ Object.assign(itemArtSheets,{"equipment_01":"assets/icon_equipment_01.webp","equ
 Object.assign(itemFallback,{"suit":"🥼","royal_suit":"🥼","sailor_suit":"🥼","navy_suit":"🥼","lab_coat":"🥼","apothecary_clothes":"🥼","holy_robe":"🥼","archangel_robe":"🥼","doctor_suit":"🥼","black_doctor_gown":"🥼","mad_doctor_gown":"🥼","fine_cloth":"🧵","thread":"🧵","gold_thread":"🧵","sea_thread":"🧵","black_thread":"🧵","herb_oil":"🧪","poison_potion":"🧪","herb":"🌿","healing_potion":"🧪"});
 Object.assign(itemArt,{"suit":["body_01",0],"royal_suit":["body_01",1],"sailor_suit":["body_01",2],"navy_suit":["body_01",3],"lab_coat":["body_02",0],"apothecary_clothes":["body_02",1],"holy_robe":["body_02",2],"archangel_robe":["body_02",3],"doctor_suit":["body_03",0],"black_doctor_gown":["body_03",1],"mad_doctor_gown":["body_03",2],"fine_cloth":["body_03",3],"thread":["body_04",0],"gold_thread":["body_04",1],"sea_thread":["body_04",2],"black_thread":["body_04",3],"herb_oil":["body_05",0],"poison_potion":["body_05",1],"herb":["body_05",2],"healing_potion":["body_05",3]});
 Object.assign(itemArtSheets,{"body_01":"assets/icon_body_01.webp","body_02":"assets/icon_body_02.webp","body_03":"assets/icon_body_03.webp","body_04":"assets/icon_body_04.webp","body_05":"assets/icon_body_05.webp"});
+Object.assign(itemArtSheets,{"food_01":"assets/icon_food_01.webp","food_02":"assets/icon_food_02.webp","food_03":"assets/icon_food_03.webp","food_04":"assets/icon_food_04.webp"});
+Object.assign(itemArt,{"roast_meat":["food_01",0],"smoked_meat":["food_01",1],"medium_ration":["food_01",2],"boiled_egg":["food_01",3],"rock_salt":["food_02",0],"seasoned_egg":["food_02",1],"frying_pan":["food_02",2],"heated_frying_pan":["food_02",3],"fried_egg":["food_03",0],"salted_meat":["food_03",1],"steak":["food_03",2],"small_flower":["food_03",3],"medium_healing_potion":["food_04",0],"advanced_healing_potion":["food_04",1]});
+Object.assign(itemFallback,{"roast_meat":"🍖","smoked_meat":"🍖","medium_ration":"🥫","boiled_egg":"🥚","rock_salt":"🧂","seasoned_egg":"🥚","frying_pan":"🍳","heated_frying_pan":"🍳","fried_egg":"🍳","salted_meat":"🍖","steak":"🍖","small_flower":"🌼","medium_healing_potion":"🧪","advanced_healing_potion":"🧪"});
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
@@ -1399,7 +1413,7 @@ function showBag(){
  while(slots.length<BAG_SLOTS)slots.push('<div class="slot empty">空き枠</div>');
  modal('🎒 所持品 '+occupied()+'/'+BAG_SLOTS+'枠',(S.corpseVisit?'<button onclick="renderCorpse()">← 死体へ戻る</button>':'')+'<p class="small">同じ種類も上限を超えると別枠です。</p><div class="slotgrid">'+slots.join('')+'</div>');
 }
-const POTION_CRAFT_ITEMS=new Set(['healing_potion']);
+const POTION_CRAFT_ITEMS=new Set(['healing_potion','medium_healing_potion','advanced_healing_potion']);
 function craftOutputCount(actor,r){return (r.count||1)+(POTION_CRAFT_ITEMS.has(r.id)?Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.potionCraftBonus||0),0):0)}
 function craftExperience(actor,r){const tier=RECIPE_RARITY[r.id]||'common',base=CRAFT_XP[tier],bonus=['epic','legendary'].includes(tier)?Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.epicCraftXpBonus||0),0):0;return Math.round(base*(1+bonus)*10)/10}
 function canCraft(r){const after=craftConsumption(r);return !!after&&!!addToStacks(after.stacks,r.id,craftOutputCount(S,r))}
@@ -1420,7 +1434,7 @@ function craftRecipeHTML(r){
 }
 // Recipe subcategories are independent of rarity and can be extended as new items arrive.
 const CRAFT_SUBCATEGORIES={
- weapon:[['fist','拳'],['slash','斬り'],['gun','銃'],['bow','弓']],
+ weapon:[['fist','拳'],['slash','斬り'],['hammer','鈍器'],['gun','銃'],['bow','弓']],
  armor:[['head','頭'],['arm','腕'],['body','身体'],['legs','脚'],['accessory','アクセ']],
  item:[['recovery','回復'],['mineral','鉱石・金属系'],['plant','植物系'],['other','その他']]
 };
@@ -1431,6 +1445,7 @@ const ITEM_CRAFT_GROUP={
  charcoal:'plant',discharger:'other',
  hotwater:'other',seaweed_soup:'recovery',glue:'other',heated_oil:'other',fried_swordfish:'recovery',swordfish_sashimi:'recovery',minefish_sashimi:'recovery',paradise_sashimi:'recovery',paradise_platter:'recovery',paradise_broth:'recovery'
 };
+Object.assign(ITEM_CRAFT_GROUP,{"roast_meat":"recovery","smoked_meat":"recovery","medium_ration":"recovery","boiled_egg":"recovery","rock_salt":"recovery","seasoned_egg":"recovery","fried_egg":"recovery","salted_meat":"recovery","steak":"recovery","small_flower":"recovery","medium_healing_potion":"recovery","advanced_healing_potion":"recovery","premium_ration":"recovery"});
 let selectedCraftSubcategory=null;
 function recipeSubcategory(r){
  if(r.category==='weapon')return EQUIPMENT_DEFS[r.id]?.weaponType||'fist';
