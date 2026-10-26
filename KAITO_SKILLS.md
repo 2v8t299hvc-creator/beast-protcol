@@ -15,3 +15,6 @@ COMの既存次回行動を500ms遅延し、効果中の各行動間隔を1000�
 CHARACTER_SKILLSでキャラクター別定義。カイトだけ登録。専用パネルにパッシブスタック・次の獲得値・アクティブCTを表示。敵側に減速残り時間。参加者の自動反撃は追加しない。
 
 kaito-skills.test.cjsでスタック・対象リセット・世代区別・武器種別加算・命中／外れ／キャンセル／CT・UI・実際のCOM行動間隔・ドローン遅延反撃と無効化・バックグラウンド時系列一致を検証。従来のダメージ比較と熟練度ペース比較は、同じランクまたはキャラボーナスなしの基準で検証する。
+
+## Compact skill icons
+The log ends at 62% of screen width; the skill dock occupies 63.5–75%, outside the right controls (76.5% onward). Inline SVG beast eyes show the passive stack badge (0/3 to 3/3). The foot-impact SVG is the active button, with a cooldown badge and accessible name. Icons stay mounted during refresh; only badges and button state change.

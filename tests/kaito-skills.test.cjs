@@ -1,10 +1,9 @@
-// Boundary and race-condition integration checks against the actual HTML game script.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
 const source=[...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');
 function harness(){
  let now=1000000;const timers=[],elements=new Map();
- function element(){const classes=new Set();return {style:{},textContent:'',innerHTML:'',children:[],classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),contains:x=>classes.has(x),toggle(x,on){if(on)classes.add(x);else classes.delete(x)}},prepend(x){this.children.unshift(x)},get lastChild(){return {remove:()=>this.children.pop()}},getAttribute(){return ''}}}
+ function element(){const classes=new Set();return {style:{},textContent:'',innerHTML:'',children:[],classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),contains:x=>classes.has(x),toggle(x,on){if(on)classes.add(x);else classes.delete(x)}},prepend(x){this.children.unshift(x)},get lastChild(){return {remove:()=>this.children.pop()}},setAttribute(k,v){this[k]=v},getAttribute(){return ''}}}
  const document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id)},createElement:element,querySelector(){return null},querySelectorAll(){return []}};
  const context=vm.createContext({document,Image:class {},Date:class extends Date{static now(){return now}},getComputedStyle:()=>({backgroundImage:''}),setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearTimeout(){},setInterval(){},console});
  vm.runInContext("globalThis.seed=1;Math.random=()=>{seed=(seed*16807)%2147483647;return seed/2147483647}",context);
@@ -25,7 +24,7 @@ run("awardAttackMastery(S,a,'fist');move('森林区画')");assert.equal(run('S.f
 fresh();run("var d=drones.bird;Object.assign(d,{spawned:true,hp:10000,area:S.place,generation:1});awardAttackMastery(S,d,'fist');awardAttackMastery(S,d,'fist');d.generation++;var before=S.masteryAttacks.fist;awardAttackMastery(S,d,'fist')");assert.equal(run('S.masteryAttacks.fist-before'),1);
 // Active is exactly one normal attack, consumes cooldown only on a valid executed attack.
 fresh();run('discoverOpponent(a);useCharacterSkill();useCharacterSkill()');assert.equal(run('S.pvpPending.skillId'),'step_break');assert.equal(run('S.characterSkillReadyAt||0'),0);h.advance(1000);
-assert.equal(run('S.characterSkillReadyAt'),1061000);assert.equal(run('a.slowUntil'),1006000);assert.equal(run('a.nextActionAt'),3000500);assert.equal(run('S.masteryAttacks.fist'),10);assert.equal(run('S.hp'),180);assert.equal(run('a.hp'),9989);assert.equal(run("$('characterSkillBtn').disabled"),true);assert.equal(run("$('characterSkillBtn').textContent.includes('60秒')"),true);
+assert.equal(run('S.characterSkillReadyAt'),1061000);assert.equal(run('a.slowUntil'),1006000);assert.equal(run('a.nextActionAt'),3000500);assert.equal(run('S.masteryAttacks.fist'),10);assert.equal(run('S.hp'),180);assert.equal(run('a.hp'),9989);assert.equal(run("$('characterSkillBtn').disabled"),true);assert.equal(run("$('characterSkillCount').textContent.includes('60秒')"),true);
 h.advance(5000);assert.equal(run('actionDelayMs(a,Date.now())'),0);run('discoverOpponent(a);useCharacterSkill()');assert.equal(run('S.pvpPending'),null);h.advance(55000);run('useCharacterSkill()');assert.equal(run('S.pvpPending.skillId'),'step_break');
 fresh();run("Math.random=()=>0.999;var result=playerCombatRound(S,a,Date.now(),false,'step_break')");assert.equal(run('result.first.hit'),false);assert.equal(run('a.slowUntil||0'),0);assert.equal(run('S.characterSkillReadyAt'),1060000);
 fresh();run("discoverOpponent(a);useCharacterSkill();a.place='森林区画'");h.advance(1000);assert.equal(run('S.characterSkillReadyAt||0'),0);assert.equal(run('S.masteryAttacks.fist'),9);assert.equal(run('S.busy'),false);
@@ -43,3 +42,5 @@ assert.equal(timeline(250),timeline(9000));
 function mixedTimeline(chunk){fresh();run(`var b=comActors[1];b.place=S.place;b.hp=11;b.equipment={weapon:'practice_gun'};b.equipmentAmmo.weapon=20;b.nextActionAt=Date.now()+750;Object.assign(drones.bird,{spawned:true,hp:10000,area:S.place,generation:9,slowUntil:Date.now()+5000,slowActionDelayMs:500});stepCom=(actor,now)=>{strikeDrone(actor,drones.bird,now);actor.nextActionAt=3000000};discoverOpponent(b);useCharacterSkill()`);for(let i=0;i<2000;i+=chunk)h.advance(chunk);assert.equal(run('corpses.find(c=>c.ownerId===b.id).killerId'),run('S.id'));assert.equal(run('S.characterSkillReadyAt'),1061000);return run('JSON.stringify({S,comActors,drones,corpses,matchClock,delayedDroneCounters})')}
 assert.equal(mixedTimeline(250),mixedTimeline(2000));
 console.log('PASS: Kaito 1/2/3/4 mastery, target/escape/movement/generation resets, independent weapon XP, active hit/miss/cancel/CT UI, actual COM slowdown, delayed drone retaliation and background chronology');
+
+fresh();run('renderCharacterSkills()');assert.equal(run("$('characterPassiveCount').textContent"),'0/3');run('S.fightingInstinct={targetKey:skillTargetKey(a),stacks:3};renderCharacterSkills()');assert.equal(run("$('characterPassiveCount').textContent"),'3/3');assert.equal(run("$('characterPassive').classList.contains('is-max')"),true);assert.equal(run("$('characterSkillCount').textContent"),'発動');
