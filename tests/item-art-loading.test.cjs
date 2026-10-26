@@ -10,7 +10,7 @@ function harness(){
   return [...elements.values()].flatMap(owner=>[...owner.innerHTML.matchAll(/<span class="itemIcon" data-item-id="([^"]+)" data-item-sheet="([^"]+)">[^<]*<\/span>/g)].map(m=>({dataset:{itemId:m[1],itemSheet:m[2]},set outerHTML(value){owner.innerHTML=owner.innerHTML.replace(m[0],value)}})));
  }};
  const context=vm.createContext({document,Image:class {constructor(){images.push(this)}},getComputedStyle:()=>({backgroundImage:''}),setTimeout(fn,ms){timers.push({fn,ms});return timers.length},clearTimeout(){},setInterval(){},console});
- vm.runInContext(source,context);vm.runInContext('matchClock.competitive=false',context);
+ vm.runInContext(source,context);vm.runInContext('comActors.splice(1)',context);vm.runInContext('matchClock.competitive=false',context);
  const run=s=>vm.runInContext(s,context);
  function flushZero(){let n=0;while(true){const i=timers.findIndex(t=>t.ms===0);if(i<0)break;assert(n++<200,'pump must terminate');timers.splice(i,1)[0].fn()}}
  function tick(ms){const i=timers.findIndex(t=>t.ms===ms);assert(i>=0,'scheduled timer '+ms);timers.splice(i,1)[0].fn();flushZero()}
