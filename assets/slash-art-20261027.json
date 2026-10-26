@@ -13,7 +13,8 @@
     "assets/icon_slash_02.webp",
     "assets/icon_slash_03.webp",
     "assets/icon_slash_04.webp",
-    "assets/icon_slash_05.webp"
+    "assets/icon_slash_05.webp",
+    "assets/icon_hero_sword_v2.webp"
   ],
   "source_images": [
     "exec-1c4da61d-238a-47d5-a163-7bf55ceb03e6.png",
@@ -36,8 +37,9 @@
       2
     ],
     "hero_sword": [
-      "slash_01",
-      3
+      "hero_sword_v2",
+      0,
+      "single"
     ],
     "spirit_sword": [
       "slash_02",
@@ -101,5 +103,8 @@
     2,
     4,
     5
-  ]
+  ],
+  "overrides": {
+    "hero_sword": "assets/hero-sword-v2-art.json"
+  }
 }

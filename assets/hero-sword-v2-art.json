@@ -1,0 +1,9 @@
+{
+  "generator": "Built-in image_gen",
+  "transparent_background": true,
+  "source_image": "exec-ba22d41f-bfd8-410d-992a-7f46d17de3d6.png",
+  "file": "assets/icon_hero_sword_v2.webp",
+  "item": "hero_sword",
+  "layout": "single",
+  "prompt": "Use case: precise-object-edit. Input image is a STYLE REFERENCE for BEAST PROTOCOL inventory illustrations; redesign ONLY the red hero sword shown at bottom-right. Output a SINGLE replacement sword, isolated and centered on a true transparent square canvas, no atlas or other weapons. Classic noble fantasy hero longsword: straight double-edged polished SILVER STEEL blade, a clear central fuller, a restrained elegant GOLD crossguard, dark navy-blue leather grip, small plain golden pommel. Exactly ONE SMALL RED RUBY inset at the center of the crossguard, only a subtle accent (under 3% of the sword's total area). Blade must be entirely silver metal, not red, not crystalline. Balanced traditional iconic heroic sword silhouette, clean noble shapes rather than jagged baroque ornament. Three-quarter diagonal orientation, grip lower-left and tip upper-right, whole sword inside canvas with 12% transparent padding. Match the reference's crisp dark outlines and dimensional hand-painted anime RPG item shading. No text, no frame, no hands, no aura, no background. Keep real alpha transparency."
+}

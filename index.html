@@ -1495,12 +1495,15 @@ Object.assign(itemFallback,{"knuckle":"🥊","iron_knuckle":"🥊","glass_knuckl
 Object.assign(itemArtSheets,{"slash_01":"assets/icon_slash_01.webp","slash_02":"assets/icon_slash_02.webp","slash_03":"assets/icon_slash_03.webp","slash_04":"assets/icon_slash_04.webp","slash_05":"assets/icon_slash_05.webp"});
 Object.assign(itemArt,{"iron_sword":["slash_01",0],"steel_sword":["slash_01",1],"zantetsu_sword":["slash_01",2],"hero_sword":["slash_01",3],"spirit_sword":["slash_02",0],"army_knife":["slash_02",1],"assassin_knife":["slash_02",2],"mermaid_knife":["slash_02",3],"jail_knife":["slash_03",0],"jambiya":["slash_03",1],"orichalcum":["slash_03",2],"kukri":["slash_03",3],"battle_axe":["slash_04",0],"golden_axe":["slash_04",1],"platinum_axe":["slash_04",2],"booster_axe":["slash_04",3],"double_gear":["slash_05",0],"automaton_axe":["slash_05",1]});
 Object.assign(itemFallback,{"iron_sword":"🗡️","steel_sword":"🗡️","zantetsu_sword":"🗡️","hero_sword":"🗡️","spirit_sword":"🗡️","army_knife":"🗡️","assassin_knife":"🗡️","mermaid_knife":"🗡️","jail_knife":"🗡️","jambiya":"🗡️","orichalcum":"🗡️","kukri":"🗡️","battle_axe":"🗡️","golden_axe":"🗡️","platinum_axe":"🗡️","booster_axe":"🗡️","double_gear":"⚙️","automaton_axe":"🗡️"});
+// Standalone replacement keeps the other three swords in the original atlas intact.
+itemArtSheets.hero_sword_v2='assets/icon_hero_sword_v2.webp';
+itemArt.hero_sword=['hero_sword_v2',0,'single'];
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
-  const [sheet,quadrant]=cfg;
+  const [sheet,quadrant,layout]=cfg;
   const x=quadrant%2===0?0:100,y=quadrant<2?0:100;
-  return '<span class="bp-item-art" role="img" aria-label="'+(names[id]||id)+'" style="background-image:url('+(loadedSheetUrls[sheet]||itemArtSheets[sheet])+');background-position:'+x+'% '+y+'%"></span>';
+  return '<span class="bp-item-art" role="img" aria-label="'+(names[id]||id)+'" style="background-image:url('+(loadedSheetUrls[sheet]||itemArtSheets[sheet])+');'+(layout==='single'?'background-size:100% 100%;':'')+'background-position:'+x+'% '+y+'%"></span>';
  }
  if(cfg){ensureItemSheet(cfg[0]);return '<span class="itemIcon" data-item-id="'+id+'" data-item-sheet="'+cfg[0]+'">'+(itemFallback[id]||'📦')+'</span>'}
  return '<span class="itemIcon">'+(itemFallback[id]||'📦')+'</span>';
