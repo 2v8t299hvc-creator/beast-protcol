@@ -50,7 +50,7 @@ run(`discardStack(0);renderCorpse();takeCorpseItem(1,token)`);eq('S.corpseVisit'
 run(`takeCorpseItem(0,token)`);eq('S.inventory.feather||0',0);run('updateDrones()');eq('drones.bird.spawned',false);
 h.advance(79999);eq('drones.bird.spawned',false);h.advance(1);eq('drones.bird.spawned',true);eq('drones.bird.hp',50);eq('drones.bird.generation===generation+1',true);run('updateDrones();updateDrones()');eq('drones.bird.generation===generation+1',true);
 // A representative late build (Lv8, B bow mastery, rare mighty bow) matches the requested hit ranges.
-run(`S.level=8;S.equipment={weapon:'mighty_bow'};S.masteryAttacks.bow=65;S.statusEffects={};var hitCounts=Object.fromEntries(Object.entries(DRONE_DEFS).map(([k,d])=>[k,Math.ceil(d.hp/damageToDrone(d,'bow',totalStat('attack')))]))`);
+run(`S.level=8;S.equipment={weapon:'mighty_bow'};S.masteryAttacks.bow=42;S.statusEffects={};var hitCounts=Object.fromEntries(Object.entries(DRONE_DEFS).map(([k,d])=>[k,Math.ceil(d.hp/damageToDrone(d,'bow',totalStat('attack')))]))`);
 for(const [k,n] of Object.entries({bird:1,fish:1,dog:2,humanoid:2,scorpion:6,octopus:4}))eq(`hitCounts.${k}`,n);
 // Closure during pending attack/feedback still cancels the encounter without loot or resurrection.
 fixture('scorpion');run('S.place=matchClock.nextBlocked[0]||S.place;matchClock.nextBlocked=[S.place];primary()');h.setNow(run('matchClock.sectionEndsAt'));h.tickAction();eq('S.hp',0);eq('S.enemy',false);eq('S.corpseVisit',null);

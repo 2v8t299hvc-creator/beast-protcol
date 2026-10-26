@@ -14,12 +14,12 @@ function harness(){
 
 
 const h=harness(),run=h.run;
-run("var a=comActors[2];stepCom(a,Date.now())");assert.equal(run('a.name'),'ビヨルン');assert.equal(run('a.character'),'bjorn');assert.equal(run('a.preferredWeaponType'),'hammer');assert.equal(run('a.masteryAttacks.hammer'),26);assert.equal(run('a.masteryAttacks.bow'),0);assert.equal(run('a.equipment.weapon'),'practice_hammer');assert.equal(run('a.equipmentAmmo.weapon'),undefined);
+run("var a=comActors[2];stepCom(a,Date.now())");assert.equal(run('a.name'),'ビヨルン');assert.equal(run('a.character'),'bjorn');assert.equal(run('a.preferredWeaponType'),'hammer');assert.equal(run('a.masteryAttacks.hammer'),20);assert.equal(run('a.masteryAttacks.bow'),0);assert.equal(run('a.equipment.weapon'),'practice_hammer');assert.equal(run('a.equipmentAmmo.weapon'),undefined);
 assert.equal(run('a.goals.includes("keraunos_hammer")'),true);assert.equal(run('comAmmoType(a)'),null);
 run("a.bag=[];syncInventory(a);var plan={missing:{},needed:{},crafts:[]}");assert.equal(run('comWants(a,"bullets",plan)'),false);assert.equal(run('comWants(a,"arrows",plan)'),false);
 run("receive('wood_mallet',1,null,a);comEquipBetter(a,Date.now())");assert.equal(run('a.equipment.weapon'),'wood_mallet');
 run("receive('japanese_bow',1,null,a);receive('rifle',1,null,a);comEquipBetter(a,Date.now())");assert.equal(run('a.equipment.weapon'),'wood_mallet');assert.equal(run('reloadActor(a)'),0);
-run("a.place=S.place;S.hp=180;Math.random=()=>0;var result=actorAttack(a,S,Date.now())");assert.equal(run('result.type'),'hammer');assert.equal(run('a.masteryAttacks.hammer'),27);
+run("a.place=S.place;S.hp=180;Math.random=()=>0;var result=actorAttack(a,S,Date.now())");assert.equal(run('result.type'),'hammer');assert.equal(run('a.masteryAttacks.hammer'),21);
 run("S.enemy=true;S.enemyPlayerId=a.id;S.ehp=a.hp;renderCombat();showIncomingDamage(a,{dealt:10});announceComDeath(a,'戦闘',Date.now(),S.id)");
 assert.equal(run("$('enemyArt').src"),run('actorArt(a)'));assert.equal(run("$('incomingFace').src"),run('actorArt(a)'));assert.equal(run('deathNotices.at(-1).art'),run('actorArt(a)'));assert.equal(run("$('deathFeed').innerHTML.includes('bjorn_encounter_transparent.webp')"),true);
 assert(fs.existsSync(require('node:path').join(__dirname,'../assets/characters/bjorn_encounter_transparent.webp')));

@@ -14,7 +14,7 @@ function harness(){
 
 
 const h=harness(),run=h.run;
-run("var a=comActors[1];stepCom(a,Date.now())");assert.equal(run('a.character'),'snow_leopard');assert.equal(run('a.masteryAttacks.gun'),26);assert.equal(run('a.masteryAttacks.bow'),0);assert.equal(run('a.equipment.weapon'),'practice_gun');assert.equal(run('a.equipmentAmmo.weapon'),20);
+run("var a=comActors[1];stepCom(a,Date.now())");assert.equal(run('a.character'),'snow_leopard');assert.equal(run('a.masteryAttacks.gun'),20);assert.equal(run('a.masteryAttacks.bow'),0);assert.equal(run('a.equipment.weapon'),'practice_gun');assert.equal(run('a.equipmentAmmo.weapon'),20);
 assert.equal(run('a.goals.includes("laser_rifle")'),true);assert.equal(run('comAmmoType(a)'),'bullets');
 run("a.bag=[];syncInventory(a);var plan={missing:{},needed:{},crafts:[]}");assert.equal(run('comWants(a,"bullets",plan)'),true);assert.equal(run('comWants(a,"arrows",plan)'),false);
 run("receive('rifle',1,null,a);comEquipBetter(a,Date.now())");assert.equal(run('a.equipment.weapon'),'rifle');

@@ -13,7 +13,7 @@ function harness(){
 }
 
 let h=harness(),run=s=>h.run(s);const eq=(s,v)=>assert.equal(run(s),v,s);
-eq('S.place','待機所');eq('masteryRank("fist")',3);eq('initialMastery("hayate").bow',26);eq('initialMastery("hayate").fist',0);
+eq('S.place','待機所');eq('masteryRank("fist")',3);eq('initialMastery("hayate").bow',20);eq('initialMastery("hayate").fist',0);
 run('move("山岳区画")');eq('S.place','待機所');
 for(const id of ['practice_sword','practice_hammer','practice_gauntlet','practice_bow','practice_gun']){
  run(`selectPracticeWeapon('${id}')`);eq('S.equipment.weapon',id);eq(`EQUIPMENT_DEFS['${id}'].attack`,8);eq('S.bag.length',2);

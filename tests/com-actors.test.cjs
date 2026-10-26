@@ -15,7 +15,7 @@ function harness(){
 
 
 let h=harness(),run=s=>h.run(s);const eq=(s,v)=>assert.equal(run(s),v,s);
-eq('comActors.length',1);eq('comActors[0].masteryAttacks.bow',26);
+eq('comActors.length',1);eq('comActors[0].masteryAttacks.bow',20);
 h.advance(1000);eq('comActors[0].equipment.weapon','practice_bow');eq('comActors[0].equipmentAmmo.weapon',20);
 h.advance(1000);assert.notEqual(run('comActors[0].place'),'待機所');eq('comActors[0].st',120);
 run('selectPracticeWeapon("practice_gauntlet");move("山岳区画")');h.advance(28000);

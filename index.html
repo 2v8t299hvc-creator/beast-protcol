@@ -173,11 +173,12 @@ Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{primal_boots:{name:'野生の本能',de
 Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{royal_suit:{name:'貴族の威光',description:'エピック以上の制作経験値＋10%',epicCraftXpBonus:0.10},navy_suit:{name:'対銃防護',description:'銃武器の被ダメージ－10%（軽減後切り捨て・最低1）',gunDamageReduction:0.10},archangel_robe:{name:'大天使の加護',description:'回復薬系統の制作個数＋1',potionCraftBonus:1},mad_doctor_gown:{name:'狂ったメス',description:'攻撃時に負傷付与（CT30秒）：5秒間、探索ごとにHP－4。命中を受けると残り時間が5秒に戻る',injuryMs:5000,cooldownMs:30000}});
 const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
 for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
-const INITIAL_MASTERY={kaito:{fist:12},hayate:{bow:26},snow_leopard:{gun:26},bjorn:{hammer:26}};
+const INITIAL_MASTERY={kaito:{fist:9},hayate:{bow:20},snow_leopard:{gun:20},bjorn:{hammer:20}};
 function initialMastery(character){return {fist:0,slash:0,hammer:0,bow:0,gun:0,...INITIAL_MASTERY[character]};}
 
 const MASTERY_RANKS=['F','F+','E','E+','D','D+','C','C+','B','B+','A','A+','S','S+','SS'];
-const MASTERY_THRESHOLDS=[0,3,7,12,18,26,36,49,65,85,105,132,165,205,250];
+// Cumulative mastery points: attack +1, weapon-crafting bonuses unchanged.
+const MASTERY_THRESHOLDS=[0,2,5,9,14,20,27,34,42,50,60,72,85,102,120];
 const MASTERY_MULTIPLIERS=[1,1.04,1.09,1.15,1.22,1.30,1.40,1.51,1.64,1.79,1.96,2.15,2.40,2.65,3];
 // Provisional per-character growth configuration; additional characters can be registered here.
 const CHARACTER_GROWTH={kaito:{baseHp:180,hpGrowth:6,baseSt:120,stGrowth:4,baseAttack:3,attackGrowth:3,baseDefense:0,defenseGrowth:1}};
