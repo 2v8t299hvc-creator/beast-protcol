@@ -1,0 +1,27 @@
+{
+  "sheets": {
+    "icon_stamina_01.webp": [
+      "energy_fruit",
+      "milk",
+      "hot_milk",
+      "fruit_milk"
+    ],
+    "icon_stamina_02.webp": [
+      "stamina_potion",
+      "advanced_stamina_potion",
+      "soda",
+      "fruit_punch"
+    ],
+    "icon_stamina_03.webp": [
+      "craft_cola",
+      null,
+      null,
+      null
+    ]
+  },
+  "prompts": [
+    "Create a square 2x2 item icon atlas for BEAST PROTOCOL, four equal square quadrants. Reference is rich painted SF survival RPG icon STYLE only, not objects to copy. Each specified item centered in its quadrant, generous margins, no crossing midlines. top left: a cluster of three small exotic golden-orange energy fruits with green leaves and tiny cyan veins; top right: a white glass bottle of fresh milk with silver cap; bottom left: a simple metal mug of hot milk with delicate steam; bottom right: a glass bottle of pale creamy peach-yellow fruit milk with colorful diced fruit alongside the bottle. Beautiful detailed game inventory illustration, clear small-size silhouettes, warm orange and cool cyan rim light. TRUE TRANSPARENT alpha background outside objects. No text, no letters, no labels, no grid, no border, no scenery, no people. Exactly two rows and two columns.",
+    "Create a square 2x2 item icon atlas for BEAST PROTOCOL, four equal square quadrants. Reference is rich painted SF survival RPG icon STYLE only, not objects to copy. Each specified item centered in its quadrant, generous margins, no crossing midlines. top left: stamina recovery potion, angular SF glass vial filled with bright cyan liquid and silver collar; top right: advanced stamina recovery potion, larger elaborate angular SF flask with blue-green liquid and gold/silver fittings; bottom left: a clear glass soda bottle with sparkling pale blue liquid and silver cap, no writing; bottom right: fruit punch in a sturdy clear bowl with colorful fruit chunks floating in sparkling liquid. Beautiful detailed game inventory illustration, clear small-size silhouettes, warm orange and cool cyan rim light. TRUE TRANSPARENT alpha background outside objects. No text, no letters, no labels, no grid, no border, no scenery, no people. Exactly two rows and two columns.",
+    "Create a square 2x2 item icon atlas for BEAST PROTOCOL, four equal square quadrants. Reference is rich painted SF survival RPG icon STYLE only, not objects to copy. Each specified item centered in its quadrant, generous margins, no crossing midlines. top left: premium craft cola in an elegant amber glass bottle with rich dark brown fizzy liquid, small spice sticks and citrus peel near its base, no writing; top right: a plain empty stainless steel cup; bottom left: a plain empty small glass bowl; bottom right: a plain silver bottle cap. Beautiful detailed game inventory illustration, clear small-size silhouettes, warm orange and cool cyan rim light. TRUE TRANSPARENT alpha background outside objects. No text, no letters, no labels, no grid, no border, no scenery, no people. Exactly two rows and two columns."
+  ]
+}

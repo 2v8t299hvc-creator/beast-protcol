@@ -242,6 +242,12 @@ Object.assign(RECIPE_RARITY,{"roast_meat":"uncommon","smoked_meat":"rare","mediu
 Object.assign(EQUIPMENT_DEFS,{"frying_pan":{"slot":"weapon","weaponType":"hammer","attack":4,"defense":0},"heated_frying_pan":{"slot":"weapon","weaponType":"hammer","attack":16,"defense":0}});
 for(let i=recipes.length-1;i>=0;i--)if(recipes[i].id==='premium_ration')recipes.splice(i,1);
 recipes.push(...[{"id":"roast_meat","name":"焼いた肉","category":"item","desc":"アンコモン・HP80回復","need":{"beast_meat":1,"lighter":1},"count":1},{"id":"smoked_meat","name":"燻製肉","category":"item","desc":"レア・HP60回復","need":{"beast_meat":1,"charcoal":1},"count":3},{"id":"medium_ration","name":"中級レーション","category":"item","desc":"アンコモン・HP40回復","need":{"ration":1,"egg":1},"count":2},{"id":"boiled_egg","name":"ゆで卵","category":"item","desc":"コモン・HP60回復","need":{"egg":1,"hotwater":1},"count":1},{"id":"seasoned_egg","name":"味付き卵","category":"item","desc":"アンコモン・HP60回復","need":{"boiled_egg":1,"rock_salt":1},"count":3},{"id":"heated_frying_pan","name":"熱したフライパン","category":"weapon","desc":"アンコモン・鈍器・攻撃16","need":{"frying_pan":1,"lighter":1},"count":1},{"id":"fried_egg","name":"目玉焼き","category":"item","desc":"アンコモン・HP50回復","need":{"egg":1,"heated_frying_pan":1},"count":2},{"id":"salted_meat","name":"塩漬け肉","category":"item","desc":"アンコモン・HP20回復","need":{"beast_meat":1,"rock_salt":1},"count":1},{"id":"steak","name":"ステーキ","category":"item","desc":"エピック・HP150回復","need":{"salted_meat":1,"heated_frying_pan":1},"count":1},{"id":"medium_healing_potion","name":"中級回復薬","category":"item","desc":"レア・HP60回復","need":{"healing_potion":1,"small_flower":1},"count":3},{"id":"advanced_healing_potion","name":"上級回復薬","category":"item","desc":"レア・HP90回復","need":{"medium_healing_potion":1,"paradisefish":1},"count":3},{"id":"premium_ration","name":"高級レーション","category":"item","desc":"レア・HP80回復","need":{"medium_ration":1,"salted_meat":1},"count":3}]);
+
+// Stamina recovery expansion, approved 2026-10-26.
+Object.assign(names,{"energy_fruit":"エナジーフルーツ","milk":"牛乳","hot_milk":"ホットミルク","fruit_milk":"フルーツ牛乳","stamina_potion":"S回復薬","advanced_stamina_potion":"上級S回復薬","soda":"ソーダ","fruit_punch":"フルーツポンチ","craft_cola":"クラフトコーラ","drink":"ドリンク","energy_drink":"エナジードリンク"});
+Object.assign(RECIPE_RARITY,{"energy_fruit":"common","milk":"uncommon","hot_milk":"uncommon","fruit_milk":"rare","stamina_potion":"uncommon","advanced_stamina_potion":"epic","soda":"rare","fruit_punch":"epic","craft_cola":"epic"});
+for(let i=recipes.length-1;i>=0;i--)if(['drink','energy_drink'].includes(recipes[i].id))recipes.splice(i,1);
+recipes.push(...[{"id":"hot_milk","name":"ホットミルク","category":"item","desc":"アンコモン・スタミナ20回復","need":{"milk":1,"lighter":1},"count":3},{"id":"fruit_milk","name":"フルーツ牛乳","category":"item","desc":"コモン・スタミナ50回復","need":{"energy_fruit":1,"milk":1},"count":3},{"id":"stamina_potion","name":"S回復薬","category":"item","desc":"アンコモン・スタミナ30回復","need":{"hotwater":1,"small_flower":1},"count":3},{"id":"advanced_stamina_potion","name":"上級S回復薬","category":"item","desc":"エピック・スタミナ80回復","need":{"hotwater":1,"herb_oil":1},"count":3},{"id":"fruit_punch","name":"フルーツポンチ","category":"item","desc":"エピック・スタミナ60回復","need":{"soda":1,"energy_fruit":1},"count":5},{"id":"craft_cola","name":"クラフトコーラ","category":"item","desc":"エピック・スタミナ150回復","need":{"soda":1,"herb_oil":1},"count":1},{"id":"drink","name":"ドリンク","category":"item","desc":"コモン・スタミナ20回復","need":{"energy_fruit":1,"water":1},"count":2},{"id":"energy_drink","name":"エナジードリンク","category":"item","desc":"コモン・スタミナ50回復","need":{"drink":1,"fish_scale":1},"count":3}]);
 function craftConsumption(r,actor=S){
  let stacks=actor.bag.map(x=>({...x})),equipment={...actor.equipment},equipmentAmmo={...actor.equipmentAmmo},equipmentEffects={...actor.equipmentEffects};
  for(const [id,count] of Object.entries(r.need)){
@@ -363,7 +369,7 @@ function renderCombat(){
 const FISH_ITEMS=new Set(['swordfish','minefish','porcupinefish','paradisefish']);
 // Provisional: arrows share the 99-item carried cap; reloading is immediate and costs no stamina.
 const AMMO_LIMITS={bullets:99,arrows:99};
-function itemSetCount(id){return AMMO_LIMITS[id]?20:(id==='water'||id==='lighter')?3:1}
+function itemSetCount(id){return AMMO_LIMITS[id]?20:(id==='water'||id==='lighter'||id==='energy_fruit')?3:1}
 function stackLimit(id){return AMMO_LIMITS[id]||(FISH_ITEMS.has(id)||!!equipmentDef(id)?1:10)}
 function totalIn(stacks,id){return stacks.reduce((sum,x)=>sum+(x.id===id?x.count:0),0)}
 function syncInventory(actor=S){const obj={};for(const x of actor.bag)obj[x.id]=(obj[x.id]||0)+x.count;actor.inventory=obj}
@@ -506,6 +512,8 @@ for(const [id,areas] of Object.entries({thread:['住宅区画','商業区画'],l
 Object.assign(regionStock['山岳区画'],{rock_salt:4});Object.assign(regionStock['海岸区画'],{rock_salt:6});
 Object.assign(regionStock['公園区画'],{small_flower:6});Object.assign(regionStock['森林区画'],{small_flower:6});
 Object.assign(regionStock['住宅区画'],{frying_pan:3});Object.assign(regionStock['商業区画'],{frying_pan:3});
+Object.assign(regionStock['公園区画'],{energy_fruit:5});Object.assign(regionStock['森林区画'],{energy_fruit:5});
+Object.assign(regionStock['住宅区画'],{milk:4});Object.assign(regionStock['商業区画'],{milk:4});
 const regionObjects=Object.fromEntries(Object.entries(regionStock).map(([area,counts])=>{
  let serial=0;
  return [area,Object.entries(counts).flatMap(([id,count])=>Array.from({length:count},()=>({uid:area+':'+(++serial),id,area,count:itemSetCount(id),taken:false})))];
@@ -1035,7 +1043,7 @@ const RANDOM_SUPPLY_TABLES={
  C:{name:'機械素材',normal:['scrap','wire','rubber','cell','oil','goggles','bracelet'],recovery:['drink','energy_drink','kit'],jackpot:['monitor','steel','discharger']},
  D:{name:'鉱石素材',normal:['stone','mystery','marble','redstone','bluestone','whitestone','pickaxe'],recovery:['premium_ration','energy_drink','healing_potion'],jackpot:['ruby','sapphire','whitesilver']},
  W:{name:'水辺素材',normal:['fish_scale','rubber','sea_thread','swimsuit','feather','cloth'],recovery:['water','seaweed_soup','minefish_sashimi'],jackpot:['monitor','gold_thread']},
- E:{name:'回復物資',recovery:['ration','drink','water','seaweed_soup','healing_potion']}
+ E:{name:'回復物資',recovery:['ration','drink','water','seaweed_soup','healing_potion'],rareRecovery:['soda']}
 };
 const STARTING_SUPPLY_TABLES=['A','E'];
 const DRONE_SUPPLY_TABLES={bird:['B'],fish:['W'],dog:['B','E'],humanoid:['C','E'],scorpion:['D','D','E'],octopus:['W','C','E']};
@@ -1046,7 +1054,7 @@ function supplySetCount(id){
 function rollSupply(tableId,excluded=new Set()){
  const table=RANDOM_SUPPLY_TABLES[tableId];if(!table)throw new Error('Unknown supply table: '+tableId);
  const eligible=ids=>(ids||[]).filter(id=>names[id]&&!excluded.has(id));
- let groups=table.normal?[[eligible(table.normal),70],[eligible(table.recovery),25],[eligible(table.jackpot),5]]:[[eligible(table.recovery),1]];
+ let groups=table.normal?[[eligible(table.normal),70],[eligible(table.recovery),25],[eligible(table.jackpot),5]]:table.rareRecovery?[[eligible(table.recovery),95],[eligible(table.rareRecovery),5]]:[[eligible(table.recovery),1]];
  groups=groups.filter(([ids])=>ids.length);if(!groups.length)return null;
  let roll=Math.random()*groups.reduce((n,[ids,w])=>n+w,0),pool=groups[groups.length-1][0];
  for(const [ids,weight] of groups){roll-=weight;if(roll<0){pool=ids;break}}
@@ -1186,6 +1194,7 @@ const RECOVERY_ITEMS={
  drink:{group:'stamina',amount:20},water:{group:'stamina',amount:10}
 };
 Object.assign(RECOVERY_ITEMS,{"roast_meat":{"group":"hp","amount":80},"smoked_meat":{"group":"hp","amount":60},"medium_ration":{"group":"hp","amount":40},"boiled_egg":{"group":"hp","amount":60},"rock_salt":{"group":"hp","amount":5},"seasoned_egg":{"group":"hp","amount":60},"fried_egg":{"group":"hp","amount":50},"salted_meat":{"group":"hp","amount":20},"steak":{"group":"hp","amount":150},"small_flower":{"group":"hp","amount":4},"medium_healing_potion":{"group":"hp","amount":60},"advanced_healing_potion":{"group":"hp","amount":90},"premium_ration":{"group":"hp","amount":80}});
+Object.assign(RECOVERY_ITEMS,{"energy_fruit":{"group":"stamina","amount":10},"milk":{"group":"stamina","amount":20},"hot_milk":{"group":"stamina","amount":20},"fruit_milk":{"group":"stamina","amount":50},"stamina_potion":{"group":"stamina","amount":30},"advanced_stamina_potion":{"group":"stamina","amount":80},"soda":{"group":"stamina","amount":40},"fruit_punch":{"group":"stamina","amount":60},"craft_cola":{"group":"stamina","amount":150},"drink":{"group":"stamina","amount":20},"energy_drink":{"group":"stamina","amount":50}});
 function recoveryWait(group,now=Date.now()){return Math.max(0,(S.recoveryReadyAt[group]||0)-now,(S.frozenUntil||0)-now)}
 function recoveryButtonHTML(id,label){
  const group=RECOVERY_ITEMS[id].group,wait=recoveryWait(group);
@@ -1353,6 +1362,9 @@ Object.assign(itemArtSheets,{"body_01":"assets/icon_body_01.webp","body_02":"ass
 Object.assign(itemArtSheets,{"food_01":"assets/icon_food_01.webp","food_02":"assets/icon_food_02.webp","food_03":"assets/icon_food_03.webp","food_04":"assets/icon_food_04.webp"});
 Object.assign(itemArt,{"roast_meat":["food_01",0],"smoked_meat":["food_01",1],"medium_ration":["food_01",2],"boiled_egg":["food_01",3],"rock_salt":["food_02",0],"seasoned_egg":["food_02",1],"frying_pan":["food_02",2],"heated_frying_pan":["food_02",3],"fried_egg":["food_03",0],"salted_meat":["food_03",1],"steak":["food_03",2],"small_flower":["food_03",3],"medium_healing_potion":["food_04",0],"advanced_healing_potion":["food_04",1]});
 Object.assign(itemFallback,{"roast_meat":"🍖","smoked_meat":"🍖","medium_ration":"🥫","boiled_egg":"🥚","rock_salt":"🧂","seasoned_egg":"🥚","frying_pan":"🍳","heated_frying_pan":"🍳","fried_egg":"🍳","salted_meat":"🍖","steak":"🍖","small_flower":"🌼","medium_healing_potion":"🧪","advanced_healing_potion":"🧪"});
+Object.assign(itemArtSheets,{"stamina_01":"assets/icon_stamina_01.webp","stamina_02":"assets/icon_stamina_02.webp","stamina_03":"assets/icon_stamina_03.webp"});
+Object.assign(itemArt,{"energy_fruit":["stamina_01",0],"milk":["stamina_01",1],"hot_milk":["stamina_01",2],"fruit_milk":["stamina_01",3],"stamina_potion":["stamina_02",0],"advanced_stamina_potion":["stamina_02",1],"soda":["stamina_02",2],"fruit_punch":["stamina_02",3],"craft_cola":["stamina_03",0]});
+Object.assign(itemFallback,{"energy_fruit":"🍊","milk":"🥛","hot_milk":"🥛","fruit_milk":"🥛","stamina_potion":"🧪","advanced_stamina_potion":"🧪","soda":"🥤","fruit_punch":"🥤","craft_cola":"🥤"});
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
@@ -1413,7 +1425,7 @@ function showBag(){
  while(slots.length<BAG_SLOTS)slots.push('<div class="slot empty">空き枠</div>');
  modal('🎒 所持品 '+occupied()+'/'+BAG_SLOTS+'枠',(S.corpseVisit?'<button onclick="renderCorpse()">← 死体へ戻る</button>':'')+'<p class="small">同じ種類も上限を超えると別枠です。</p><div class="slotgrid">'+slots.join('')+'</div>');
 }
-const POTION_CRAFT_ITEMS=new Set(['healing_potion','medium_healing_potion','advanced_healing_potion']);
+const POTION_CRAFT_ITEMS=new Set(['healing_potion','medium_healing_potion','advanced_healing_potion','stamina_potion','advanced_stamina_potion']);
 function craftOutputCount(actor,r){return (r.count||1)+(POTION_CRAFT_ITEMS.has(r.id)?Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.potionCraftBonus||0),0):0)}
 function craftExperience(actor,r){const tier=RECIPE_RARITY[r.id]||'common',base=CRAFT_XP[tier],bonus=['epic','legendary'].includes(tier)?Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.epicCraftXpBonus||0),0):0;return Math.round(base*(1+bonus)*10)/10}
 function canCraft(r){const after=craftConsumption(r);return !!after&&!!addToStacks(after.stacks,r.id,craftOutputCount(S,r))}
@@ -1446,6 +1458,7 @@ const ITEM_CRAFT_GROUP={
  hotwater:'other',seaweed_soup:'recovery',glue:'other',heated_oil:'other',fried_swordfish:'recovery',swordfish_sashimi:'recovery',minefish_sashimi:'recovery',paradise_sashimi:'recovery',paradise_platter:'recovery',paradise_broth:'recovery'
 };
 Object.assign(ITEM_CRAFT_GROUP,{"roast_meat":"recovery","smoked_meat":"recovery","medium_ration":"recovery","boiled_egg":"recovery","rock_salt":"recovery","seasoned_egg":"recovery","fried_egg":"recovery","salted_meat":"recovery","steak":"recovery","small_flower":"recovery","medium_healing_potion":"recovery","advanced_healing_potion":"recovery","premium_ration":"recovery"});
+Object.assign(ITEM_CRAFT_GROUP,{"energy_fruit":"recovery","milk":"recovery","hot_milk":"recovery","fruit_milk":"recovery","stamina_potion":"recovery","advanced_stamina_potion":"recovery","soda":"recovery","fruit_punch":"recovery","craft_cola":"recovery","drink":"recovery","energy_drink":"recovery"});
 let selectedCraftSubcategory=null;
 function recipeSubcategory(r){
  if(r.category==='weapon')return EQUIPMENT_DEFS[r.id]?.weaponType||'fist';
@@ -1460,7 +1473,7 @@ function showMaterialSource(id,fromRecipe){
  const makers=recipes.filter(r=>r.id===id);
  const areaHtml=areas.length?areas.map(([area,stock])=>'<div class="bp-source-place">'+area+(area===S.place?' <b>● 現在地</b>':'')+' <small>探索物体 '+stock[id]+'件</small></div>').join(''):'<p class="small">通常の区画配置にはありません。</p>';
  const makerHtml=makers.length?makers.map(r=>'<div class="bp-source-craft"><p>'+r.name+'：'+Object.entries(r.need).map(([k,n])=>names[k]+' ×'+n).join(' ＋ ')+'</p><button onclick="openMaterialRecipe(\''+r.id+'\')">🔧 このレシピへ移動</button></div>').join(''):'<p class="small">現時点では製作レシピがありません。</p>';
- modal('🔎 '+names[id]+'の入手方法','<button onclick="returnFromMaterialSource()">← 元の製作画面へ戻る</button><h3>📍 探索で入手</h3>'+areaHtml+'<h3>🤖 ドローン撃破で入手</h3>'+Object.values(DRONE_DEFS).filter(d=>d.drops.includes(id)).map(d=>'<p>'+d.name+'（セクション'+d.section+'以降・2択報酬）</p>').join('')+'<h3>🔧 製作で入手</h3>'+makerHtml);
+ modal('🔎 '+names[id]+'の入手方法','<button onclick="returnFromMaterialSource()">← 元の製作画面へ戻る</button><h3>📍 探索で入手</h3>'+areaHtml+'<h3>🤖 ドローン撃破で入手</h3>'+Object.values(DRONE_DEFS).filter(d=>d.drops.includes(id)).map(d=>'<p>'+d.name+'（セクション'+d.section+'以降・2択報酬）</p>').join('')+(id==='soda'?'<p>共通の回復物資抽選（ランダムE）で低確率入手。開始時補給と犬型・人型・サソリ型・タコ型ドローンの追加報酬が対象です。</p>':'')+'<h3>🔧 製作で入手</h3>'+makerHtml);
 }
 function openMaterialRecipe(id){
  const r=recipes.find(x=>x.id===id);if(!r)return;

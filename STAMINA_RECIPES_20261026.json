@@ -1,0 +1,135 @@
+{
+  "items": [
+    {
+      "id": "energy_fruit",
+      "name": "エナジーフルーツ",
+      "rarity": "common",
+      "stamina": 10,
+      "need": null,
+      "count": 3
+    },
+    {
+      "id": "milk",
+      "name": "牛乳",
+      "rarity": "uncommon",
+      "stamina": 20,
+      "need": null,
+      "count": 1
+    },
+    {
+      "id": "hot_milk",
+      "name": "ホットミルク",
+      "rarity": "uncommon",
+      "stamina": 20,
+      "need": {
+        "milk": 1,
+        "lighter": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "fruit_milk",
+      "name": "フルーツ牛乳",
+      "rarity": "rare",
+      "stamina": 50,
+      "need": {
+        "energy_fruit": 1,
+        "milk": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "stamina_potion",
+      "name": "S回復薬",
+      "rarity": "uncommon",
+      "stamina": 30,
+      "need": {
+        "hotwater": 1,
+        "small_flower": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "advanced_stamina_potion",
+      "name": "上級S回復薬",
+      "rarity": "epic",
+      "stamina": 80,
+      "need": {
+        "hotwater": 1,
+        "herb_oil": 1
+      },
+      "count": 3
+    },
+    {
+      "id": "soda",
+      "name": "ソーダ",
+      "rarity": "rare",
+      "stamina": 40,
+      "need": null,
+      "count": 1
+    },
+    {
+      "id": "fruit_punch",
+      "name": "フルーツポンチ",
+      "rarity": "epic",
+      "stamina": 60,
+      "need": {
+        "soda": 1,
+        "energy_fruit": 1
+      },
+      "count": 5
+    },
+    {
+      "id": "craft_cola",
+      "name": "クラフトコーラ",
+      "rarity": "epic",
+      "stamina": 150,
+      "need": {
+        "soda": 1,
+        "herb_oil": 1
+      },
+      "count": 1
+    },
+    {
+      "id": "drink",
+      "name": "ドリンク",
+      "rarity": "common",
+      "stamina": 20,
+      "need": {
+        "energy_fruit": 1,
+        "water": 1
+      },
+      "count": 2
+    },
+    {
+      "id": "energy_drink",
+      "name": "エナジードリンク",
+      "rarity": "common",
+      "stamina": 50,
+      "need": {
+        "drink": 1,
+        "fish_scale": 1
+      },
+      "count": 3
+    }
+  ],
+  "placements": {
+    "公園区画": {
+      "energy_fruit": 5
+    },
+    "森林区画": {
+      "energy_fruit": 5
+    },
+    "住宅区画": {
+      "milk": 4
+    },
+    "商業区画": {
+      "milk": 4
+    }
+  },
+  "soda": "Random E rareRecovery 5%; no ordinary area placement or recipe.",
+  "potionBonus": [
+    "stamina_potion",
+    "advanced_stamina_potion"
+  ]
+}
