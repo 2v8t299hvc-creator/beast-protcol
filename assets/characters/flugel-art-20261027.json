@@ -1,0 +1,20 @@
+{
+  "generator": "Built-in image_gen",
+  "asset": "assets/characters/flugel_encounter_transparent.webp",
+  "source_image": "exec-832f674e-d431-4a41-aa1e-6f36151ccf7b.png",
+  "status": "Implemented as COM com-04, starting slash D+, practice_sword",
+  "transparent_background": true,
+  "approved_concept": "Option 1: navy trilby, hat-tipping red fox swordsman",
+  "references": [
+    "kaito_stand.png",
+    "snow_leopard_encounter_transparent.webp",
+    "bjorn_encounter_transparent.webp",
+    "hayate_encounter_transparent.webp"
+  ],
+  "prompt": "Use case: identity-preserve / style-transfer. Create the FINAL single-character full-body standing illustration for BEAST PROTOCOL. Input image 1 is the approved FOX DESIGN: use ONLY the LEFTMOST character labelled 1, the adult red fox swordsman tipping his navy trilby hat. Preserve his species, masculine fox muzzle, sly friendly amber eyes, orange-red fur with white muzzle and throat, visible fox ears, one white-tipped bushy tail, lean athletic adult male build, easygoing roguish personality, navy/ivory cropped open jacket, one hand tipping the hat and the other casually resting on the sheathed sword hilt. Images 2, 3, 4 and 5 are the EXISTING GAME CAST and are authoritative STYLE AND UNIFORM references only; do not depict or merge those characters. Match their crisp detailed anime beastman rendering, expressive face, clean dimensional cel shading, confident linework and close-fitting athletic proportions. Bring the fox's outfit into the same equipment family: navy short field jacket with ivory lapels, black fitted tactical undershirt, rolled cuffs exposing orange-furred forearms, black fingerless tactical gloves, restrained white light armor at one forearm, WHITE/BLACK technical buckles and straps with signature ORANGE fasteners, black tactical trousers with white geometric accents and a few orange strap tabs, chunky WHITE/BLACK/ORANGE training sneakers like the game cast rather than medieval knee-high armored boots. The hat remains a jaunty dark NAVY SHORT-BRIM TRILBY with ivory band, a small silver clasp and subtle orange detail, accommodating two visible fox ears. Keep hat size moderate and his playful eyes visible. One elegant silver straight sword SHEATHED at his hip in a practical black/ivory scabbard with small orange details; he is a swordsman, no firearms, no second sword, no cape. Relaxed slightly tilted shoulders and confident easy contrapposto, mischievous half-smile, readable single-character silhouette. Adult man mid twenties, lean defined shoulders and forearms, not bulky, not chibi, not childlike, not feminine. Clearly furry FOX head, not a human face with ears. Composition: one character only, tall portrait canvas, entire hat, ears, tail and both shoes inside the frame with comfortable transparent margins. Three-quarter front view, face large and readable, character fills most of canvas like existing cast. True transparent background with clean alpha edges; no floor, no drop shadow background, no gray backdrop, no mist, no scenery, no labels, no numbers, no text, no frame. Final production-ready isolated game standing character art.",
+  "revision": "Smaller, slimmer tail, preserving the character design",
+  "name": "フリューゲル",
+  "character": "flugel",
+  "approved_revision": "Smaller tail v2",
+  "tail_edit": "Reduce fluffy tail thickness by about 45 percent and length by about 20 percent; preserve pose, face, clothing, hat and true alpha."
+}

@@ -176,7 +176,7 @@ Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{primal_boots:{name:'野生の本能',de
 Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{royal_suit:{name:'貴族の威光',description:'エピック以上の制作経験値＋10%',epicCraftXpBonus:0.10},navy_suit:{name:'対銃防護',description:'銃武器の被ダメージ－10%（軽減後切り捨て・最低1）',gunDamageReduction:0.10},archangel_robe:{name:'大天使の加護',description:'回復薬系統の制作個数＋1',potionCraftBonus:1},mad_doctor_gown:{name:'狂ったメス',description:'攻撃時に負傷付与（CT30秒）：5秒間、探索ごとにHP－4。命中を受けると残り時間が5秒に戻る',injuryMs:5000,cooldownMs:30000}});
 const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
 for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
-const INITIAL_MASTERY={kaito:{fist:9},hayate:{bow:20},snow_leopard:{gun:20},bjorn:{hammer:20}};
+const INITIAL_MASTERY={kaito:{fist:9},hayate:{bow:20},snow_leopard:{gun:20},bjorn:{hammer:20},flugel:{slash:20}};
 function initialMastery(character){return {fist:0,slash:0,hammer:0,bow:0,gun:0,...INITIAL_MASTERY[character]};}
 
 const MASTERY_RANKS=['F','F+','E','E+','D','D+','C','C+','B','B+','A','A+','S','S+','SS'];
@@ -450,7 +450,7 @@ function renderCombat(){
  $('game').classList.toggle('in-combat',fighting);$('enemy').classList.toggle('on',fighting);
  const opponent=S.enemyPlayerId&&findActor(S.enemyPlayerId);
  const def=opponent?{name:actorName(opponent),hp:actorMax(opponent,'hp'),art:actorArt(opponent)}:DRONE_DEFS[S.enemyKind];
- $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?(opponent.character==='bjorn'?'🐰':opponent.character==='snow_leopard'?'🐆':'🦅'):'🛰️';
+ $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?(opponent.character==='flugel'?'🦊':opponent.character==='bjorn'?'🐰':opponent.character==='snow_leopard'?'🐆':'🦅'):'🛰️';
  if(def&&$('enemyArt').getAttribute('src')!==def.art){$('enemyArt').hidden=false;$('enemyFallback').hidden=true;$('enemyArt').src=def.art;$('enemyArt').alt=def.name;}
  $('droneTraits').innerHTML=def?.shell?'<span>頑丈な殻</span><span>毒針</span>':def?.ink?'<span>ぬめぬめ</span><span>タコ墨ブレス</span>':'';
  if((drones[S.enemyKind]?.frozenUntil||0)>Date.now())$('droneTraits').innerHTML+='<span>❄ 凍結（'+Math.ceil((drones[S.enemyKind].frozenUntil-Date.now())/1000)+'秒）</span>';
@@ -955,7 +955,7 @@ function handleComCombatDecision(actor,target,now,kind){
 // Shared player combat. Encounters reveal only local actors; the AI never tracks a moved opponent.
 const PLAYER_DISCOVERY_RATE=0.85;
 function pvpEnabled(){return !!matchClock&&matchClock.competitive!==false&&matchClock.section>0&&!matchClock.ended}
-function actorArt(actor){return actor?.character==='bjorn'?'assets/characters/bjorn_encounter_transparent.webp':actor?.character==='snow_leopard'?'assets/characters/snow_leopard_encounter_transparent.webp':actor?.character==='kaito'?'assets/characters/kaito_stand.png':'assets/characters/hayate_encounter_transparent.webp'}
+function actorArt(actor){return actor?.character==='flugel'?'assets/characters/flugel_encounter_transparent.webp':actor?.character==='bjorn'?'assets/characters/bjorn_encounter_transparent.webp':actor?.character==='snow_leopard'?'assets/characters/snow_leopard_encounter_transparent.webp':actor?.character==='kaito'?'assets/characters/kaito_stand.png':'assets/characters/hayate_encounter_transparent.webp'}
 function comAmmoType(actor){const type=actor.preferredWeaponType||'bow';return type==='gun'?'bullets':type==='bow'?'arrows':null}
 function actorName(actor){return actor?.name||(actor?.character==='kaito'?'カイト':'参加者')}
 function findActor(id){return S.id===id?S:comActors.find(a=>a.id===id)}
@@ -1722,6 +1722,7 @@ const COM_GOALS=['strong_bow','simple_armguard','rubber_suit','mighty_bow','azus
 const COM_WESTERN_GOALS=['longbow','simple_armguard','rubber_suit','silver_bow','golden_bow','eros_bow'];
 const COM_GUN_GOALS=['sniper_rifle','simple_armguard','rubber_suit','laser_rifle'];
 const COM_HAMMER_GOALS=['wood_hammer','simple_armguard','rubber_suit','steel_hammer','keraunos_hammer'];
+const COM_SLASH_GOALS=['iron_sword','simple_armguard','rubber_suit','steel_sword','hero_sword'];
 const COM_COUNT=9;
 function payMovementCost(actor,now=Date.now()){
  const cost=matchClock.section>0?Math.max(0,5-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.movementDiscount||0),0)):0;
@@ -1731,8 +1732,8 @@ function payMovementCost(actor,now=Date.now()){
 function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>60)actor.history.shift()}
 function initializeComActors(count=COM_COUNT){
  comActors.length=0;
- for(let i=0;i<count;i++)comActors.push({id:i===0?'hayate':'com-'+String(i+1).padStart(2,'0'),name:i===0?'ハヤテ':i===1?'ヒョウガ':i===2?'ビヨルン':'訓練COM '+String(i+1).padStart(2,'0'),character:i===1?'snow_leopard':i===2?'bjorn':'hayate',preferredWeaponType:i===1?'gun':i===2?'hammer':'bow',startArea:[null,'射撃演習区画','住宅区画','港湾区画','山岳区画','戦闘演習区画','地下機構区画','公園区画','遺跡区画'][i]||null,goals:[...(i===1?COM_GUN_GOALS:i===2?COM_HAMMER_GOALS:i%2?COM_WESTERN_GOALS:COM_GOALS)],level:1,xp:0,hp:180,st:120,
-  masteryAttacks:initialMastery(i===1?'snow_leopard':i===2?'bjorn':'hayate'),place:'待機所',starterWeapon:null,
+ for(let i=0;i<count;i++)comActors.push({id:i===0?'hayate':'com-'+String(i+1).padStart(2,'0'),name:i===0?'ハヤテ':i===1?'ヒョウガ':i===2?'ビヨルン':i===3?'フリューゲル':'訓練COM '+String(i+1).padStart(2,'0'),character:i===1?'snow_leopard':i===2?'bjorn':i===3?'flugel':'hayate',preferredWeaponType:i===1?'gun':i===2?'hammer':i===3?'slash':'bow',startArea:[null,'射撃演習区画','住宅区画','港湾区画','山岳区画','戦闘演習区画','地下機構区画','公園区画','遺跡区画'][i]||null,goals:[...(i===1?COM_GUN_GOALS:i===2?COM_HAMMER_GOALS:i===3?COM_SLASH_GOALS:i%2?COM_WESTERN_GOALS:COM_GOALS)],level:1,xp:0,hp:180,st:120,
+  masteryAttacks:initialMastery(i===1?'snow_leopard':i===2?'bjorn':i===3?'flugel':'hayate'),place:'待機所',starterWeapon:null,
   equipment:Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null])),equipmentAmmo:{},
   bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},
   recoveryReadyAt:{hp:0,stamina:0},statusEffects:{},seen:{},history:[],action:'出発準備',searches:0,noProgress:0,
@@ -1885,7 +1886,7 @@ function comRecoveryPlan(actor){
 function stepCom(actor,now){
  updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
-  if(!actor.starterWeapon){actor.starterWeapon=actor.preferredWeaponType==='gun'?'practice_gun':actor.preferredWeaponType==='hammer'?'practice_hammer':'practice_bow';actor.equipment.weapon=actor.starterWeapon;if(equipmentDef(actor.starterWeapon)?.ammoType)actor.equipmentAmmo.weapon=20;comLog(actor,names[actor.starterWeapon]+'を選択',now);return}
+  if(!actor.starterWeapon){actor.starterWeapon=actor.preferredWeaponType==='gun'?'practice_gun':actor.preferredWeaponType==='hammer'?'practice_hammer':actor.preferredWeaponType==='slash'?'practice_sword':'practice_bow';actor.equipment.weapon=actor.starterWeapon;if(equipmentDef(actor.starterWeapon)?.ammoType)actor.equipmentAmmo.weapon=20;comLog(actor,names[actor.starterWeapon]+'を選択',now);return}
   comMove(actor,now,'待機所から出発');return;
  }
  if(matchClock.section===0)return;
@@ -1975,7 +1976,7 @@ function updateComActors(now){
  }
 }
 function showComStatus(){
- modal('開発用：COM行動確認','<p>プレイヤー＋COM9人の10人戦。追加COMはハヤテの画像・基礎能力・弓AIを共用する仮参加者です。和弓系と洋弓系の制作ルートに分かれ、素材・死体・ドローンを共有します。対人戦・最後の1人の勝利判定を接続済み。能力値はカイトと同じ仮値。装備の性能・特殊効果はプレイヤーと共通です。</p>'+comActors.map(a=>{
+ modal('開発用：COM行動確認','<p>プレイヤー＋COM9人の10人戦。ハヤテ（弓）・ヒョウガ（銃）・ビヨルン（鈍器）・フリューゲル（斬り）と、ハヤテの画像を共用する仮参加者5人です。それぞれの制作ルートで、素材・死体・ドローンを共有します。対人戦・最後の1人の勝利判定を接続済み。能力値はカイトと同じ仮値。装備の性能・特殊効果はプレイヤーと共通です。</p>'+comActors.map(a=>{
   const plan=comCurrentPlan(a),ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t,a)]).join(' ／ ');
   return '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ Lv.'+a.level+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+'</p><p>目標：'+(a.goal?names[a.goal]:'物資・回復の確保')+'<br>不足：'+(Object.entries(plan.missing).map(([id,n])=>names[id]+' ×'+n).join('、')||'なし')+'</p><p>武器：'+(names[a.equipment.weapon]||'なし')+ammoLabel(a.equipment.weapon,a.equipmentAmmo.weapon)+'<br>'+ranks+'</p><p>装備：'+Object.values(a.equipment).filter(Boolean).map(id=>names[id]).join('、')+'<br>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-20).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('');
  }).join('')+'<button onclick="showComStatus()">更新</button>');
