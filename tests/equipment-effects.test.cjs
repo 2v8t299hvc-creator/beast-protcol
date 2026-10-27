@@ -28,16 +28,16 @@ run(`receive('unerring_bow',1);equip('unerring_bow');receive('optical_sight',1);
 // Infinite laser: no carried bullets used, no reload, no unarmed fallback, no Infinity stored in item state.
 fresh();run(`receive('laser_rifle',1);globalThis.serialized=JSON.stringify(a.bag);equip('laser_rifle');receive('bullets',12);for(let i=0;i<40;i++){Object.assign(d,{spawned:true,hp:1,area:a.place});strikeDrone(a,d,Date.now())}`);
 eq('weaponAmmo()',Infinity);eq('a.inventory.bullets',12);eq('actorWeaponType(a)','gun');eq('a.masteryAttacks.fist',0);eq('reloadActor(a)',0);eq('a.equipmentAmmo.weapon',undefined);eq('serialized.includes("null")',false);eq('ammoLabel("laser_rifle",0)','〔∞〕');run('showEquipment()');eq('$("modalBody").innerHTML.includes("弾薬・リロード不要")',true);
-// Eruption counts misses, its damage is fixed, and an empty gun's fist attack cannot advance it.
+// Eruption counts guarded attacks, its damage is fixed, and an empty gun's fist attack cannot advance it.
 fresh();run(`receive('magma_blaster',1);equip('magma_blaster');Math.random=()=>0.999;globalThis.r1=strikeDrone(a,d,Date.now());globalThis.r2=strikeDrone(a,d,Date.now());globalThis.r3=strikeDrone(a,d,Date.now())`);
-eq('r1.damage',0);eq('r2.damage',0);eq('r3.hit',false);eq('r3.damage',15);eq('d.hp',9985);eq('a.equipmentAmmo.weapon',5);run('a.equipmentAmmo.weapon=0;strikeDrone(a,d,Date.now())');eq('equipmentState(a,"weapon").attacks',0);
+eq('r1.damage',24);eq('r2.damage',25);eq('r3.hit',true);eq('r3.guarded',true);eq('r3.damage',34);eq('d.hp',9917);eq('a.equipmentAmmo.weapon',5);run('a.equipmentAmmo.weapon=0;strikeDrone(a,d,Date.now())');eq('equipmentState(a,"weapon").attacks',0);
 // Love Arrow heals ceil(actual HP loss * 5%), not requested/overkill damage, and caps at max HP.
 fresh();run(`receive('eros_bow',1);equip('eros_bow');d.hp=21;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.dealt',21);eq('r.healing',2);eq('a.hp',127);eq('a.level',2);eq('a.matchStats.killXp',30);
 fresh();run(`receive('eros_bow',1);equip('eros_bow');a.hp=maxHp()-1;d.hp=10000;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',1);eq('a.hp',163); // healed to 180 then countered for 17
-fresh();run(`receive('eros_bow',1);equip('eros_bow');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',0);
-// Blizzard: first eligible HIT procs automatically; misses never spend the 45-second cooldown.
-fresh();run(`receive('blizzard_cannon',1);equip('blizzard_cannon');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.effect.frozen',false);eq('equipmentState(a,"weapon").readyAt',undefined);
-run(`Math.random=()=>0;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.effect.frozen',true);eq('d.frozenUntil',1004000);eq('equipmentState(a,"weapon").readyAt',1045000);
+fresh();run(`receive('eros_bow',1);equip('eros_bow');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',2);
+// Blizzard: first eligible contact procs automatically; guards spend the 45-second cooldown.
+fresh();run(`receive('blizzard_cannon',1);equip('blizzard_cannon');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.guarded',true);eq('r.effect.frozen',true);eq('equipmentState(a,"weapon").readyAt',1045000);
+run(`Math.random=()=>0;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.effect.frozen',false);eq('d.frozenUntil',1004000);eq('equipmentState(a,"weapon").readyAt',1045000);
 eq('applyWeaponEffects(a,d,"gun",true,1044999).frozen',false);eq('applyWeaponEffects(a,d,"gun",true,1045000).frozen',true);
 // The shared target effect also blocks a character's HP/ST consumables, without consuming items or CT.
 run(`globalThis.target={...comActors[0],character:'kaito',level:1,hp:20,st:20,bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},recoveryReadyAt:{hp:0,stamina:0}};equipmentState(a,'weapon').readyAt=0;applyWeaponEffects(a,target,'gun',true,1000000)`);

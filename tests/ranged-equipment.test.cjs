@@ -51,9 +51,9 @@ reset();run(`receive('handgun',1,{ammo:6});equip('handgun');receive('gunpowder',
 // Atomic crafting capacity checks: a full bag can craft only when the output fits after consumption.
 reset();run(`receive('rubber',1);receive('fur',1);for(const id of ['stone','wood','wire','cloth'])receive(id,1);craft('rubbery_hide')`);eq('S.inventory.rubbery_hide',1);eq('S.inventory.rubber||0',0);
 reset();run(`receive('rubber',2);receive('fur',2);for(const id of ['stone','wood','wire','cloth'])receive(id,1);craft('rubbery_hide')`);eq('S.inventory.rubbery_hide||0',0);eq('S.inventory.rubber',2);
-// An attack uses its last round even on a miss; the next attack is an unarmed attack with fist mastery.
+// An attack uses its last round even when guarded; the next attack is an unarmed attack with fist mastery.
 for(const [id,type,ammo] of [['handgun','gun','bullets'],['japanese_bow','bow','arrows']]){
- reset();run(`receive('${id}',1,{ammo:1});equip('${id}');S.enemy=true;S.ehp=10000;Math.random=()=>0.999;attackDiscoveredDrone()`);h.tick();eq('weaponAmmo()',0);eq(`S.masteryAttacks.${type}`,1);eq('S.ehp',10000);
+ reset();run(`receive('${id}',1,{ammo:1});equip('${id}');S.enemy=true;S.ehp=10000;Math.random=()=>0.999;attackDiscoveredDrone()`);h.tick();eq('weaponAmmo()',0);eq(`S.masteryAttacks.${type}`,1);eq('S.ehp',type==='gun'?9989:9992);
  run(`S.enemy=true;attackDiscoveredDrone()`);h.tick();eq('S.masteryAttacks.fist',2);eq(`S.masteryAttacks.${type}`,1);eq('S.equipment.weapon',id);
  run(`receive('${ammo}',20);reloadWeapon('${ammo}')`);eq('weaponType()',type);
 }

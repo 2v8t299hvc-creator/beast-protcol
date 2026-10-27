@@ -31,15 +31,15 @@ fixture();run('primary();globalThis.token=S.actionToken;discoverOpponent(a,true)
 fixture();run('S.pendingFound=regionObjects[S.place][0];S.recoveryMode="hp";S.corpseVisit={id:"x"};$("back").classList.add("on");observeOpponent(a,S,Date.now());globalThis.token=S.actionToken;comFightOpponent(a,Date.now())');eq('S.pendingFound!==null',true);eq('S.found.length',0);eq('S.recoveryMode','hp');eq('S.corpseVisit.id','x');eq('$("back").classList.contains("on")',true);eq('S.hp',167);eq('a.hp',180);eq('S.enemyPlayerId',null);eq('S.actionToken',run('token'));eq('S.pvpFeedback',undefined);
 fixture();run('primary();globalThis.token=S.actionToken;observeOpponent(a,S,Date.now());comFightOpponent(a,Date.now())');eq('S.busy',true);eq('S.actionToken',run('token'));eq('S.enemy',false);eq('S.hp',167);h.tickAction();eq('S.ticks',1);eq('S.busy',false);
 fixture();run('globalThis.item=regionObjects[S.place][0];pushStock(item);takeFound(0);globalThis.token=S.actionToken;observeOpponent(a,S,Date.now());comFightOpponent(a,Date.now())');eq('S.actionToken',run('token'));h.tickAction();eq('S.pendingFound.uid',run('item.uid'));eq('S.found[0].uid',run('item.uid'));
-// Nonblocking incoming notice reports actual damage, evasion and ignores stale catch-up events.
-fixture();run('observeOpponent(a,S,Date.now());comFightOpponent(a,Date.now())');eq('$("incomingNotice").classList.contains("show")',true);eq('$("incomingText").textContent','ハヤテから13ダメージ！');eq('S.enemy',false);run('showIncomingDamage(a,{dealt:0},Date.now())');eq('$("incomingText").textContent','ハヤテの攻撃を回避！');run('showIncomingDamage(a,{dealt:99},Date.now()-3000)');eq('$("incomingText").textContent','ハヤテの攻撃を回避！');assert(html.includes('pointer-events:none'));
+// Nonblocking incoming notice reports actual damage, guard and ignores stale catch-up events.
+fixture();run('observeOpponent(a,S,Date.now());comFightOpponent(a,Date.now())');eq('$("incomingNotice").classList.contains("show")',true);eq('$("incomingText").textContent','ハヤテから13ダメージ！');eq('S.enemy',false);run('showIncomingDamage(a,{dealt:7,guarded:true},Date.now())');eq('$("incomingText").textContent','ハヤテから7ダメージ！ ガード！');run('showIncomingDamage(a,{dealt:99},Date.now()-3000)');eq('$("incomingText").textContent','ハヤテから7ダメージ！ ガード！');assert(html.includes('pointer-events:none'));
 // Offensive equipment and defensive retaliation run through the same player/COM mutation path.
 fixture();run('S.equipment.weapon="blizzard_cannon";S.equipmentAmmo.weapon=4;actorAttack(S,a,Date.now())');eq('a.frozenUntil',1004000);eq('recoverActor(a,"ration",1003999)',false);eq('a.inventory.ration',2);eq('recoverActor(a,"ration",1004000)',true);
 fixture();run('S.equipment.weapon="eros_bow";S.equipmentAmmo.weapon=16;S.hp=100;globalThis.r=actorAttack(S,a,Date.now())');eq('r.healing',3);eq('S.hp',103);
 fixture();run('a.equipment.body="stinger_suit";S.hp=100;globalThis.r=actorAttack(S,a,Date.now())');eq('r.reflected',4);eq('S.hp',96);
 fixture();run('a.equipment.body="charged_suit";S.equipment.weapon="handgun";S.equipmentAmmo.weapon=8;equipmentState(S,"weapon").durability=10;actorAttack(S,a,Date.now());actorAttack(S,a,Date.now()+1000)');eq('equipmentState(S,"weapon").durability',9);eq('equipmentState(a,"body").readyAt',1090000);
-// Three missed magma shots still produce a lethal fixed eruption; no projectile or counter duplication.
-fixture();run('S.equipment.weapon="magma_blaster";S.equipmentAmmo.weapon=8;a.hp=15;Math.random=()=>0.999;actorAttack(S,a,Date.now());actorAttack(S,a,Date.now()+1000);globalThis.r=playerCombatRound(S,a,Date.now()+2000)');eq('r.first.hit',false);eq('r.first.damage',15);eq('r.counter',null);eq('S.equipmentAmmo.weapon',5);eq('matchClock.result','win');
+// Three guarded magma shots still produce a lethal halved eruption; no projectile or counter duplication.
+fixture();run('S.equipment.weapon="magma_blaster";S.equipmentAmmo.weapon=8;a.hp=80;Math.random=()=>0.999;actorAttack(S,a,Date.now());actorAttack(S,a,Date.now()+1000);globalThis.r=playerCombatRound(S,a,Date.now()+2000)');eq('r.first.hit',true);eq('r.first.guarded',true);eq('r.first.damage',34);eq('r.counter',null);eq('S.equipmentAmmo.weapon',5);eq('matchClock.result','win');
 // A COM without a safe escape area keeps acting instead of locking up at its exploration limit.
 fixture();run('matchClock.blocked=Object.keys(regionStock).filter(x=>x!==a.place);a.searches=36;a.noProgress=12;a.goal=null;a.completedGoals=[...COM_GOALS];a.opponent=null;S.place="森林区画";stepCom(a,Date.now())');eq('a.searches',1);
 // Lethal first hit receives no counter and ends the match; real corpse contents remain claimable.
@@ -62,7 +62,7 @@ console.log('PASS: local PvP discovery/portrait, player and COM rounds, shared o
 
 // A COM pays the same 900ms post-hit feedback as the player, including misses.
 fixture();run('a.nextActionAt=Date.now()+1000;playerCombatRound(a,S,Date.now(),true)');eq('a.nextActionAt',1001900);eq('a.opponent',null);
-fixture();run('Math.random=()=>0.999;a.nextActionAt=Date.now()+1000;var miss=playerCombatRound(a,S,Date.now(),true)');eq('miss.first.hit',false);eq('a.nextActionAt',1001900);
+fixture();run('Math.random=()=>0.999;a.nextActionAt=Date.now()+1000;var miss=playerCombatRound(a,S,Date.now(),true)');eq('miss.first.hit',true);eq('miss.first.guarded',true);eq('a.nextActionAt',1001900);
 // Slowdown is added once, on top of the ordinary action and feedback waits.
 fixture();run('a.slowUntil=Date.now()+5000;a.slowActionDelayMs=500;a.nextActionAt=Date.now()+1500;playerCombatRound(a,S,Date.now(),true)');eq('a.nextActionAt',1002400);
 // Guaranteed re-discovery: attacks land every 2.9s, not every 2s. Background catch-up is identical.
