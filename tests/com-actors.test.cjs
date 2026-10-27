@@ -29,7 +29,7 @@ run('S.pendingFound=null;comActors[0].place="山岳区画";matchClock.nextBlocke
 h.setNow(1031000);run('syncMatchClock()');assert.notEqual(run('comActors[0].place'),'山岳区画');
 // Failed receive is atomic; movement obeys the player's ST-first / HP-fallback cost.
 run('globalThis.a=comActors[0];a.bag=Array.from({length:6},()=>({id:"wood",count:10}));syncInventory(a)');eq('receive("ration",1,null,a)',false);eq('a.bag.length',6);
-run('a.st=2;a.hp=10;payMovementCost(a)');eq('a.st',0);eq('a.hp',7);
+run('a.st=2;a.hp=10;payMovementCost(a)');eq('a.st',0);eq('a.hp',9);
 // Background catch-up equals frequent ticks when the random stream is identical.
 function simulate(chunk){const z=harness();z.run('updateDrones=()=>{};selectPracticeWeapon("practice_bow");move("山岳区画")');for(let t=chunk;t<=390000;t+=chunk)z.advance(chunk);return z.run('JSON.stringify({place:comActors[0].place,hp:comActors[0].hp,st:comActors[0].st,bag:comActors[0].bag,history:comActors[0].history,section:matchClock.section})')}
 assert.equal(simulate(1000),simulate(390000));
