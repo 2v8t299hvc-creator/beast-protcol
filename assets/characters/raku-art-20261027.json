@@ -1,0 +1,11 @@
+{
+  "character": "raku",
+  "name": "ラク",
+  "approved_reference": "exec-78ecea05-89b2-4107-b03d-f004152cba3e.png",
+  "style_reference": "kaito_stand.png",
+  "generated_file": "exec-5a109ee5-e10e-4c22-b7ef-cdc7c08becd7.png",
+  "asset": "assets/characters/raku_encounter_transparent.webp",
+  "tool": "built-in image_gen",
+  "prompt": "Use case: identity-preserve / background-extraction. Final production portrait for BEAST PROTOCOL game: Raku, the adult MALE raccoon handyman in reference 1. Reference 1 is the approved identity, pose, ochre yellow jacket, goggles and equipment; preserve his actual raccoon face, black eye-mask, amber eyes, playful closed-mouth smile, rounded ears, head goggles above eyes, thick forearms, compact athletic adult masculine build, held small gear, backpack, utility tools and big ringed tail. Reference 2 is a STYLE AND FACTION EQUIPMENT finish reference only: use the same crisp polished anime linework, clean rich cel shading, technical fabric detail, white trim, restrained orange fasteners, silver X belt buckle and black-white reinforced high-top footwear. Do not copy the dog's species, expression or pose. Keep the approved raccoon design and all props, with no added weapons or extra items. Exactly one adult male raccoon. Full body, both ears, goggles, raised hand/gear, backpack, whole tail and both shoes safely within portrait canvas, small margins. Genuine alpha TRANSPARENT background; remove white background and floor shadow completely. No haze, gradient, colored glow, background, ground, text or logos. Preserve opaque cream fur and white clothing details. Do not make him a child, human-faced, female, slim or a fox.",
+  "conversion": "RGBA WebP, quality92; preserve alpha"
+}
