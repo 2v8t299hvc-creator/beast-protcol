@@ -1,0 +1,11 @@
+{
+  "character": "zakuro",
+  "name": "ザクロ",
+  "approved_concept": "① 黒曜石×青緑",
+  "source_concept": "exec-6ee0ce37-76e9-49df-818d-0e2d71e0bb0c.png",
+  "background_extraction": "exec-3d907fb0-92ab-4fc9-a158-9a9695d18254.png",
+  "asset": "assets/characters/zakuro_encounter_transparent.webp",
+  "tool": "built-in image_gen",
+  "edit_instruction": "Remove only white background and floor shadow; preserve approved male lizard, face, scales, clothes, dagger, bow, quiver, ore pouch and tail; genuine alpha transparency.",
+  "conversion": "RGBA WebP, quality 92; preserve alpha"
+}
