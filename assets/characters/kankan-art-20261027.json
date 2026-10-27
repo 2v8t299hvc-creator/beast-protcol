@@ -1,0 +1,14 @@
+{
+  "character": "kankan",
+  "name": "カンカン",
+  "approved_reference": "exec-912db7cf-fdbb-48b5-8950-14998973a867.png",
+  "style_references": [
+    "kaito_stand.png",
+    "jerk_encounter_transparent.webp"
+  ],
+  "generated_file": "exec-c1159f26-f71f-4a17-8390-b38a0bfde013.png",
+  "asset": "assets/characters/kankan_encounter_transparent.webp",
+  "tool": "built-in image_gen",
+  "prompt": "Use case: identity-preserve / background-extraction. Create the final production full-body standing portrait of Kankan, the adult MALE panda kung-fu bodyguard in reference 1. Reference 1 is the APPROVED character identity and pose: preserve his cute kind rounded brown eyes and gentle brow exactly, adult masculine panda face, closed-mouth smile, short broad muzzle, black eye patches, round ears, enormous strong arms, heavyset round belly, green Chinese-collar jacket with frog buttons, black undershirt and trousers, bamboo snack bundle, open-palm kung-fu stance and other fist. References 2 and 3 are STYLE AND EQUIPMENT FINISH references only from the same game; do not copy their species, bodies or outfits. Harmonize only the polish of crisp anime linework, detailed technical fabric, subtle orange fasteners, silver hardware, white-black reinforced high-top boots and protective gauntlets so he belongs with this cast. His deep forest-green jacket, Chinese frog buttons and gentle eyes must remain as in reference 1. Do NOT make him slim, angry, feminine, human-faced or childlike. Exactly ONE adult male panda. Full figure with ears, palm, both shoes and bamboo entirely within canvas with small safe margins. Genuinely TRANSPARENT background; remove white background and ground shadow, no colored haze, gradients, glow, scenery, text, logos or additional figures. Preserve opaque white panda fur and white clothing trim.",
+  "conversion": "RGBA WebP, quality92; preserve alpha"
+}

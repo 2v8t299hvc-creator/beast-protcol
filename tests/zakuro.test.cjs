@@ -26,6 +26,6 @@ run("receive('laser_rifle',1,null,a);comEquipBetter(a,Date.now())");assert.equal
 run("S.enemy=true;S.enemyPlayerId=a.id;S.ehp=a.hp;renderCombat();showIncomingDamage(a,{dealt:10});announceComDeath(a,'戦闘',Date.now(),S.id)");assert.equal(run("$('enemyArt').src"),run('actorArt(a)'));assert.equal(run("$('enemyFallback').textContent"),'🦎');assert.equal(run("$('incomingFace').src"),run('actorArt(a)'));assert.equal(run('deathNotices.at(-1).art'),run('actorArt(a)'));
 assert(fs.existsSync(require('node:path').join(__dirname,'../assets/characters/zakuro_encounter_transparent.webp')));
 const z=harness();z.run("var a=comActors[6];a.bag=[];syncInventory(a);receive('western_bow',1,null,a);receive('bronze',1,null,a);stepCom(a,Date.now())");assert.equal(z.run('a.starterWeapon'),'practice_bow');assert.equal(z.run('a.equipmentAmmo.weapon'),20);
-// Production initialization still has nine COMs, seven official COM characters and two placeholders.
-run('initializeComActors()');assert.equal(run('comActors.length'),9);assert.equal(run('comActors.filter(a=>!a.name.startsWith("訓練COM")).length'),7);assert.equal(run('comActors.filter(a=>a.name==="ザクロ").length'),1);
+// Production initialization still has nine COMs, eight official COM characters and one placeholder.
+run('initializeComActors()');assert.equal(run('comActors.length'),9);assert.equal(run('comActors.filter(a=>!a.name.startsWith("訓練COM")).length'),8);assert.equal(run('comActors.filter(a=>a.name==="ザクロ").length'),1);
 console.log('PASS: Zakuro dual D, material-based slash/bow start, real crafting, independent attacks/mastery, guarded bow and reload, weapon preference, portraits and ten-person roster');

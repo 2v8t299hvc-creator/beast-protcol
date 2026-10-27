@@ -18,7 +18,7 @@ function harness(){
 
 let h,run;const eq=(s,v)=>assert.equal(run(s),v,s);
 function fresh(){h=harness();run=s=>h.run(s)}
-fresh();eq('comActors.length',9);eq('new Set([S,...comActors].map(a=>a.id)).size',10);eq('new Set(comActors.map(a=>a.name)).size',9);eq('$("participantCount").textContent','生存 10/10');eq('comActors.filter(a=>a.goals.includes("longbow")).length',1);
+fresh();eq('comActors.length',9);eq('new Set([S,...comActors].map(a=>a.id)).size',10);eq('new Set(comActors.map(a=>a.name)).size',9);eq('$("participantCount").textContent','生存 10/10');eq('comActors.filter(a=>a.goals.includes("longbow")).length',0);
 run('comActors[0].bag[0].count=1;comActors[0].goals.push("test");comActors[0].statusEffects.test={stacks:2}');eq('comActors[1].bag[0].count',2);eq('comActors[1].goals.includes("test")',false);eq('comActors[1].statusEffects.test',undefined);eq('S.inventory.ration',2);
 fresh();run('selectPracticeWeapon("practice_gauntlet");move("森林区画")');h.advance(2000);assert(run('new Set(comActors.map(a=>a.place)).size>=7'));h.advance(28000);eq('comActors.every(a=>a.place!=="待機所"&&a.equipment.weapon===(a.preferredWeaponType==="gun"?"practice_gun":a.preferredWeaponType==="hammer"?"practice_hammer":a.preferredWeaponType==="slash"?"practice_sword":a.preferredWeaponType==="fist"?"practice_gauntlet":"practice_bow"))',true);eq('comActors.every(a=>a.masteryAttacks[a.preferredWeaponType]===(["jerk","bat","zakuro"].includes(a.character)?14:20))',true);
 // No index-zero preference when several opponents share a region; no knowledge of remote actors.
