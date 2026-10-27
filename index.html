@@ -225,9 +225,9 @@ function awardDefeatXp(actor,target,now){
  recordMatchEvent(actor,'killXp',message,now);if(actor===S)addLog(message);else comLog(actor,message,now);return amount;
 }
 function rollSearchCount(){const roll=Math.random();return roll>=1-SEARCH_REWARDS.tripleChance?3:roll>=1-(SEARCH_REWARDS.tripleChance+SEARCH_REWARDS.doubleChance)?2:1}
-function drawSearchBatch(actor){
- const count=rollSearchCount(),items=[];
- for(let i=0;i<count;i++){const obj=drawRegionItem(actor.place,actor,items);if(!obj)break;items.push(obj)}
+function drawSearchBatch(actor,count=rollSearchCount(),initial=[]){
+ const items=initial.slice();
+ for(let i=items.length;i<count;i++){const obj=drawRegionItem(actor.place,actor,items);if(!obj)break;items.push(obj)}
  if(items.length>1)bumpMatchStat(actor,'multiSearches');return items;
 }
 function advanceDiscoveryQueue(){
@@ -240,7 +240,7 @@ function presentSearchBatch(items){
 
 
 
-const CHARACTER_SKILLS={kaito:{passive:{id:'fighting_instinct',name:'闘争本能',maxStacks:3},active:{id:'step_break',name:'ステップブレイク',cooldownMs:60000,durationMs:5000,actionDelayMs:500}},hayate:{passive:{id:'spirit_breeze',name:'精霊の薫風',maxStacks:4,durationMs:30000},active:{id:'gale_shoot',name:'ゲイルシュート',cooldownMs:40000}},snow_leopard:{passive:{id:'footwork',name:'フットワーク',searchInterval:10},active:{id:'white_target',name:'ホワイトターゲット',cooldownMs:60000}},bjorn:{field:{id:'herb_gathering',name:'薬草採集',cooldownMs:45000},active:{id:'physics_blow',name:'物理学的殴打',cooldownMs:100000}}};
+const CHARACTER_SKILLS={kaito:{passive:{id:'fighting_instinct',name:'闘争本能',maxStacks:3},active:{id:'step_break',name:'ステップブレイク',cooldownMs:60000,durationMs:5000,actionDelayMs:500}},hayate:{passive:{id:'spirit_breeze',name:'精霊の薫風',maxStacks:4,durationMs:30000},active:{id:'gale_shoot',name:'ゲイルシュート',cooldownMs:40000}},snow_leopard:{passive:{id:'footwork',name:'フットワーク',searchInterval:10},active:{id:'white_target',name:'ホワイトターゲット',cooldownMs:60000}},bjorn:{field:{id:'herb_gathering',name:'薬草採集',cooldownMs:45000},active:{id:'physics_blow',name:'物理学的殴打',cooldownMs:100000}},flugel:{passive:{id:'efficiency',name:'効率重視',searchInterval:6},active:{id:'une_deux',name:'ユヌードゥ',cooldownMs:80000}},jerk:{passive:{id:'marine_gang',name:'マリンギャング'},active:{id:'outlaw_bite',name:'アウトローバイト',cooldownMs:90000}}};
 const delayedDroneCounters=[];
 function skillTargetKey(target){return target?.kind&&Number.isInteger(target.generation)?'drone:'+target.kind+':'+target.generation:'player:'+actorIdentity(target)}
 function resetFightingInstinct(actor){if(actor.fightingInstinct)actor.fightingInstinct=null}
@@ -265,6 +265,25 @@ function applyActionSlow(target,source,definition,now){
 function breezeStacks(actor,now=Date.now()){
  return actor.character==='hayate'&&(actor.breezeUntil||0)>now?actor.breezeStacks||0:0;
 }
+const WATER_AREAS=new Set(['海岸区画','港湾区画','湖畔区画','水没施設区画','海底研究区画']);
+function isWaterArea(area){return WATER_AREAS.has(area)}
+function actorStatMultiplier(stat,actor){return (stat==='attack'&&hasBodyInjury(actor,'hand')?.95:1)*(actor.character==='jerk'&&isWaterArea(actor.place)?1.1:1)}
+function postureBonus(actor,target,now){return (target?.postureBreaks?.[actor.id]||0)>now}
+function postureDamage(damage,actor,target,now){return postureBonus(actor,target,now)?Math.max(1,Math.floor(damage*1.7)):damage}
+function attackCriticalChance(actor,type,skill,target,now){return Math.min(1,(skill?.criticalChance??actorCriticalChance(actor,type))+(postureBonus(actor,target,now)?.25:0))}
+function isMovementLocked(actor,now=Date.now()){return (actor.biteUntil||0)>now}
+function marineKillRecovery(actor,target,now){
+ if(actor.character!=='jerk'||target.kind!=='fish'||actor.hp<=0)return 0;
+ const restored=Math.min(150,Math.max(0,actorMax(actor,'hp')-actor.hp));actor.hp+=restored;
+ const text='マリンギャング：魚型ドローン撃破でHP＋'+restored;recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return restored;
+}
+function consumeEfficiency(actor){const triggered=actor.character==='flugel'&&!!actor.efficiencyTriggered;actor.efficiencyTriggered=false;return triggered}
+function resolveEfficientPlayerSearch(preferred=null){
+ if(!consumeEfficiency(S))return false;
+ const items=drawSearchBatch(S,3,preferred?[preferred]:[]);addLog('効率重視：アイテムを'+items.length+'個発見！');
+ if(items.length)presentSearchBatch(items);else{toast('この区画の素材はなくなった');awardEmptySearchXp(S,Date.now())}
+ return true;
+}
 function prepareCharacterAttack(actor,target,skillId,now){
  const def=CHARACTER_SKILLS[actor.character]?.active;
  if(!skillId||def?.id!==skillId||now<(actor.characterSkillReadyAt||0))return null;
@@ -274,13 +293,13 @@ function prepareCharacterAttack(actor,target,skillId,now){
   const stacks=breezeStacks(actor,now);actor.breezeStacks=0;actor.breezeUntil=0;
   return {id:skillId,stacks,multiplier:(115+stacks*5)/100};
  }
- return {id:skillId,multiplier:1.1,criticalChance:skillId==='white_target'?whiteTargetCriticalChance(actor,target):null};
+ return {id:skillId,multiplier:skillId==='une_deux'?.75:skillId==='outlaw_bite'?(isWaterArea(actor.place)?1.3:1.1):1.1,criticalChance:skillId==='white_target'?whiteTargetCriticalChance(actor,target):null};
 }
 function targetMaxHp(target){return target.kind?DRONE_DEFS[target.kind]?.hp||target.hp:actorMax(target,'hp')}
 function whiteTargetCriticalChance(actor,target){const base=actorCriticalChance(actor);return Math.min(.4,base+(.4-base)*Math.max(0,Math.min(1,target.hp/targetMaxHp(target))))}
 function characterSkillDamage(damage,skill){return skill?Math.max(1,Math.floor(damage*skill.multiplier)):damage}
-function attackCritical(actor,type,skill){return skill?.criticalChance!=null?Math.random()>=1-skill.criticalChance:rollCritical(actor,type)}
-function comCharacterSkill(actor,now){const def=CHARACTER_SKILLS[actor.character]?.active;return ['gale_shoot','white_target','physics_blow'].includes(def?.id)&&now>=(actor.characterSkillReadyAt||0)?def.id:null}
+function attackCritical(actor,type,skill,target,now){return skill?.criticalChance!=null||postureBonus(actor,target,now)?Math.random()>=1-attackCriticalChance(actor,type,skill,target,now):rollCritical(actor,type)}
+function comCharacterSkill(actor,now){const def=CHARACTER_SKILLS[actor.character]?.active;return ['gale_shoot','white_target','physics_blow','une_deux','outlaw_bite'].includes(def?.id)&&now>=(actor.characterSkillReadyAt||0)?def.id:null}
 function gatherHerbs(actor,now=Date.now()){
  const def=CHARACTER_SKILLS[actor.character]?.field;
  if(!def||actor.hp<=0||now<(actor.characterFieldReadyAt||0))return false;
@@ -330,6 +349,8 @@ function treatBodyInjury(part){
 }
 function resolveCharacterSkill(actor,target,skillId,hit,now,gale=null,dealt=0){
  if(gale&&gale.id!=='gale_shoot'){
+  if(hit&&target.hp>0&&gale.id==='une_deux'){target.postureBreaks||={};target.postureBreaks[actorIdentity(actor)]=now+6000}
+  if(hit&&target.hp>0&&gale.id==='outlaw_bite'){target.biteUntil=Math.max(target.biteUntil||0,now+3000);target.biteSourceId=actorIdentity(actor)}
   if(gale.id==='white_target'&&target.hp<=0)actor.characterSkillReadyAt=now+5000;
   const text=CHARACTER_SKILLS[actor.character].active.name+(target.hp<=0?'：撃破':'');recordMatchEvent(actor,'skill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);
   return {...gale,applied:true};
@@ -359,14 +380,14 @@ function renderCharacterSkills(now=Date.now()){
   field.disabled=!!wait||!!S.enemy||!!S.busy||!!S.pendingFound||!!S.corpseVisit||S.hp<=0||matchClock.ended||!!matchClock.result;
  }
  if(definition.passive){
-  const target=currentSkillTarget(),state=S.fightingInstinct,hayate=S.character==='hayate',footwork=S.character==='snow_leopard';
-  const stacks=hayate?breezeStacks(S,now):footwork?S.footworkSearches||0:state&&(!target||state.targetKey===skillTargetKey(target))?state.stacks:0;
-  const max=footwork?10:definition.passive.maxStacks;$('characterPassiveCount').textContent=stacks+'/'+max;
-  passive.title=definition.passive.name+' '+stacks+'/'+max+(hayate?'（残り'+Math.ceil(Math.max(0,(S.breezeUntil||0)-now)/1000)+'秒／移動時に30秒へ更新）':footwork?'（探索10回ごとにスタミナ＋10）':'（次の攻撃：熟練度＋'+(1+stacks)+'）');passive.ariaLabel=passive.title;passive.classList.toggle('is-max',stacks===max);
+  const target=currentSkillTarget(),state=S.fightingInstinct,hayate=S.character==='hayate',footwork=S.character==='snow_leopard',efficient=S.character==='flugel',marine=S.character==='jerk';
+  const stacks=hayate?breezeStacks(S,now):footwork?S.footworkSearches||0:efficient?S.efficiencySearches||0:marine?Number(isWaterArea(S.place)):state&&(!target||state.targetKey===skillTargetKey(target))?state.stacks:0;
+  const max=footwork?10:efficient?6:marine?1:definition.passive.maxStacks;$('characterPassiveCount').textContent=stacks+'/'+max;
+  passive.title=definition.passive.name+' '+stacks+'/'+max+(hayate?'（残り'+Math.ceil(Math.max(0,(S.breezeUntil||0)-now)/1000)+'秒／移動時に30秒へ更新）':footwork?'（探索10回ごとにスタミナ＋10）':efficient?'（6回目の探索で必ずアイテム3個発見）':marine?'（水辺で攻防＋10%／魚型撃破でHP150回復）':'（次の攻撃：熟練度＋'+(1+stacks)+'）');passive.ariaLabel=passive.title;passive.classList.toggle('is-max',stacks===max);
  }
  const wait=Math.max(0,(S.characterSkillReadyAt||0)-now),button=$('characterSkillBtn');
  $('characterSkillCount').textContent=wait?Math.ceil(wait/1000)+'秒':'発動';button.ariaLabel=definition.active.name+(wait?' あと'+Math.ceil(wait/1000)+'秒':'');
- button.title=({gale_shoot:'薫風を全消費して115＋5×スタック%の攻撃。4消費時、実ダメージの25%のスタミナ回復。CT40秒',step_break:'攻撃と同時に相手を5秒間減速（ガードでも発動）。CT60秒',white_target:'110%ダメージ。敵の残りHP割合でクリティカル率上昇（最大40%）。撃破でCT5秒。通常CT60秒',physics_blow:'110%ダメージ。攻撃後の敵がHP50%以下ならランダムな部位に永続の怪我。CT100秒'})[definition.active.id];
+ button.title=({gale_shoot:'薫風を全消費して115＋5×スタック%の攻撃。4消費時、実ダメージの25%のスタミナ回復。CT40秒',step_break:'攻撃と同時に相手を5秒間減速（ガードでも発動）。CT60秒',white_target:'110%ダメージ。敵の残りHP割合でクリティカル率上昇（最大40%）。撃破でCT5秒。通常CT60秒',une_deux:'75%ダメージ後、6秒間、自分からのダメージ＋70%・クリティカル率＋25ポイント。CT80秒',outlaw_bite:'110%ダメージ（水辺130%）。相手は3秒間区域移動不可。CT90秒',physics_blow:'110%ダメージ。攻撃後の敵がHP50%以下ならランダムな部位に永続の怪我。CT100秒'})[definition.active.id];
  button.disabled=!!wait||!S.enemy||!!S.busy||S.hp<=0||matchClock.ended||!!matchClock.result;
 }
 function useCharacterSkill(){
@@ -415,7 +436,7 @@ function masteryProgress(type){const rank=masteryRank(type),total=masteryCount(t
 function masteryRank(type,actor=S){let n=masteryCount(type,actor);for(let i=MASTERY_THRESHOLDS.length-1;i>=0;i--)if(n>=MASTERY_THRESHOLDS[i])return i;return 0}
 function equipmentAttackBonus(actor,slot='weapon'){const id=actor.equipment?.[slot],state=actor.equipmentEffects?.[slot];return EQUIPMENT_SPECIAL_EFFECTS[id]?.growthInterval&&state?.id===id?state.bonusAttack||0:0}
 function judgmentDamage(target){return Object.keys(EQUIPMENT_SLOTS).filter(slot=>!['epic','legendary'].includes(RECIPE_RARITY[target.equipment?.[slot]]||'common')).length*2}
-function totalStat(stat,actor=S){const atk=stat==='attack',growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;const value=growth[atk?'baseAttack':'baseDefense']+growth[atk?'attackGrowth':'defenseGrowth']*(actor.level-1)+Object.entries(actor.equipment).reduce((n,[slot,id])=>n+(equipmentDef(id)?.[stat]||0)+(atk?equipmentAttackBonus(actor,slot):0),0);return atk&&hasBodyInjury(actor,'hand')?value*.95:value}
+function totalStat(stat,actor=S){const atk=stat==='attack',growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;const value=growth[atk?'baseAttack':'baseDefense']+growth[atk?'attackGrowth':'defenseGrowth']*(actor.level-1)+Object.entries(actor.equipment).reduce((n,[slot,id])=>n+(equipmentDef(id)?.[stat]||0)+(atk?equipmentAttackBonus(actor,slot):0),0);return value*actorStatMultiplier(stat,actor)}
 function slashDamageMultiplier(actor,type){return type==='slash'?1-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.slashDamageReduction||0),0):1}
 // Tuned against Lv1 practice/naked, Lv8 rare/full and Lv15 epic/SS/full PvP builds.
 function damageAfterDefense(attack,defense){return Math.max(1,attack)*100/(100+Math.max(0,defense)*1.5)}
@@ -572,7 +593,7 @@ function renderCombat(){
  if(!opponent&&def)$('droneTraits').innerHTML='<span>Lv.'+def.level+'</span>'+$('droneTraits').innerHTML;
  if(opponent)$('droneTraits').innerHTML='<span>Lv.'+opponent.level+'</span>'+((opponent.frozenUntil||0)>Date.now()?'<span>❄ 凍結</span>':'');
  const slowTarget=opponent||drones[S.enemyKind];if(slowTarget&&statusStacks('purplePoison',slowTarget))$('droneTraits').innerHTML+='<span>☠ 蠍の紫毒 ×'+statusStacks('purplePoison',slowTarget)+'</span>';if(slowTarget&&actionDelayMs(slowTarget,Date.now()))$('droneTraits').innerHTML+='<span>⏳ 減速 '+Math.ceil((slowTarget.slowUntil-Date.now())/1000)+'秒</span>';
- if(slowTarget)$('droneTraits').innerHTML+=Object.keys(BODY_INJURIES).filter(part=>hasBodyInjury(slowTarget,part)).map(part=>'<span>'+BODY_INJURIES[part].name+'</span>').join('');
+ if(slowTarget)$('droneTraits').innerHTML+=characterDebuffHTML(slowTarget)+Object.keys(BODY_INJURIES).filter(part=>hasBodyInjury(slowTarget,part)).map(part=>'<span>'+BODY_INJURIES[part].name+'</span>').join('');
  renderOpponentEquipment(fighting?opponent:null);
  $('ebar').style.width=Math.max(0,Math.min(100,S.ehp/(def?.hp||1)*100))+'%';
  $('mainBtn').textContent=fighting?(S.busy?'⚔ 攻撃中…':'⚔ 攻撃'):'⌕ 探索';
@@ -581,7 +602,7 @@ function renderCombat(){
  $('skillBtn').disabled=!!S.busy||(!fighting&&(matchClock?.section===0||!!matchClock?.result||matchClock?.ended));
  $('restBtn').disabled=fighting||!!S.busy||matchClock?.section===0||!!matchClock?.result||matchClock?.ended;
  $('skillBtn').textContent=fighting?'↩ 逃走':S.bodyTreatment?'■ 怪我の治療中':S.recoveryMode==='hp'?'■ 治療中':'🩹 治療';
- $('moveBtn').disabled=fighting||!!S.busy;
+ $('moveBtn').disabled=fighting||!!S.busy||isMovementLocked(S,Date.now());
  const id=equipped('weapon');
  $('combatWeapon').textContent=(id?names[id]+ammoLabel(id,S.equipmentAmmo.weapon):'素手')+(fighting&&equipmentDef(id)?.ammoType&&!weaponAmmo()?' → 弾切れ・素手で攻撃':'');
 }
@@ -658,6 +679,7 @@ function takeFound(i){
   if(actionToken!==S.actionToken||!allowMatchAction()||actionToken!==S.actionToken)return;
   const pos=S.found.indexOf(obj);
   recordExploration(S,Date.now());S.busy=false;
+  if(resolveEfficientPlayerSearch(pos>=0&&!obj.taken&&(!obj.dropped||obj.area===S.place)?obj:null)){refresh();return}
   if(pos>=0&&!obj.taken&&(!obj.dropped||obj.area===S.place)){
    pushStock(obj);addFound(obj);refresh();return;
   }
@@ -873,7 +895,7 @@ function updateDrones(now=Date.now()){
   const def=DRONE_DEFS[kind];updateStatusEffects(now,d);if(matchClock.section<def.section)continue;
   const safe=def.areas.filter(a=>!isBlocked(a));
   if(d.spawned){if(!safe.includes(d.area))d.area=safe.length?safe[rand(safe.length)]:null;}
-  else if(now>=d.respawnAt&&safe.length){d.spawned=true;d.hp=def.hp;d.frozenUntil=0;d.slowUntil=0;d.slowActionDelayMs=0;d.injuryUntil=0;d.injurySourceId=null;d.bodyInjuries={};d.statusEffects={};d.area=safe[rand(safe.length)];d.generation++;}
+  else if(now>=d.respawnAt&&safe.length){d.spawned=true;d.hp=def.hp;d.frozenUntil=0;d.slowUntil=0;d.slowActionDelayMs=0;d.injuryUntil=0;d.injurySourceId=null;d.bodyInjuries={};d.postureBreaks={};d.biteUntil=0;d.biteSourceId=null;d.statusEffects={};d.area=safe[rand(safe.length)];d.generation++;}
  }
 }
 const STATUS_DEFS={purplePoison:{name:'蠍の紫毒',icon:'☠'},blackInk:{name:'蛸の黒墨',icon:'●'}};
@@ -904,8 +926,13 @@ function paySearchCost(actor,now){
  }
  return true;
 }
+function characterDebuffHTML(actor,now=Date.now()){
+ let html=isMovementLocked(actor,now)?'<span>喰らいつき：区域移動不可（'+Math.ceil((actor.biteUntil-now)/1000)+'秒）</span>':'';
+ for(const [id,until] of Object.entries(actor.postureBreaks||{}))if(until>now)html+='<span>姿勢崩し：'+actorName(findActor(id)||{name:id})+'からのダメージ＋70%／クリティカル率＋25ポイント（'+Math.ceil((until-now)/1000)+'秒）</span>';
+ return html;
+}
 function renderStatusEffects(){
- $('statusEffects').innerHTML=Object.keys(BODY_INJURIES).filter(part=>hasBodyInjury(S,part)).map(part=>'<span>'+BODY_INJURIES[part].name+'：'+BODY_INJURIES[part].effect+'（永続）</span>').join('')+((S.injuryUntil||0)>Date.now()?'<span>🩸 負傷：探索でHP－4（'+Math.ceil((S.injuryUntil-Date.now())/1000)+'秒）</span>':'')+Object.entries(STATUS_DEFS).filter(([id])=>statusStacks(id)>0).map(([id,def])=>'<span title="'+def.name+'：5秒ごとに1減少">'+def.icon+' '+def.name+' ×'+statusStacks(id)+'（'+Math.max(0,Math.ceil((S.statusEffects[id].nextDecayAt-Date.now())/1000))+'秒）</span>').join('')+((S.frozenUntil||0)>Date.now()?'<span>❄ 凍結：回復アイテム不可（'+Math.ceil((S.frozenUntil-Date.now())/1000)+'秒）</span>':'');
+ $('statusEffects').innerHTML=characterDebuffHTML(S)+Object.keys(BODY_INJURIES).filter(part=>hasBodyInjury(S,part)).map(part=>'<span>'+BODY_INJURIES[part].name+'：'+BODY_INJURIES[part].effect+'（永続）</span>').join('')+((S.injuryUntil||0)>Date.now()?'<span>🩸 負傷：探索でHP－4（'+Math.ceil((S.injuryUntil-Date.now())/1000)+'秒）</span>':'')+Object.entries(STATUS_DEFS).filter(([id])=>statusStacks(id)>0).map(([id,def])=>'<span title="'+def.name+'：5秒ごとに1減少">'+def.icon+' '+def.name+' ×'+statusStacks(id)+'（'+Math.max(0,Math.ceil((S.statusEffects[id].nextDecayAt-Date.now())/1000))+'秒）</span>').join('')+((S.frozenUntil||0)>Date.now()?'<span>❄ 凍結：回復アイテム不可（'+Math.ceil((S.frozenUntil-Date.now())/1000)+'秒）</span>':'');
 }
 function droneAccuracy(def,type,actor=S){return Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,actor)]+actorAccuracyBonus(actor,type)-(def.evasion||0)-statusStacks('blackInk',actor)))}
 function equipmentState(actor,slot){
@@ -957,6 +984,8 @@ function selectGeneratedMineral(minTier=null,rng=Math.random){
 }
 function recordExploration(actor,now){
  actor.ticks=(actor.ticks||0)+1;bumpMatchStat(actor,'searches');
+ actor.efficiencyTriggered=false;
+ if(actor.character==='flugel'){actor.efficiencySearches=((actor.efficiencySearches||0)+1)%6;actor.efficiencyTriggered=actor.efficiencySearches===0}
  if(actor.character==='snow_leopard'){
   actor.footworkSearches=(actor.footworkSearches||0)+1;
   if(actor.footworkSearches>=10){actor.footworkSearches=0;const restored=Math.min(10,Math.max(0,actorMax(actor,'stamina')-actor.st));actor.st+=restored;const text='フットワーク：スタミナ＋'+restored;recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now)}
@@ -1028,14 +1057,14 @@ function usableCombatRecovery(actor,now){
  const missing=Math.max(0,actorMax(actor,'hp')-actor.hp);
  return actor.bag.filter(x=>RECOVERY_ITEMS[x.id]?.group==='hp').map(x=>({id:x.id,heal:Math.min(missing,recoveryAmount(actor,x.id))})).filter(x=>x.heal>0).sort((a,b)=>b.heal-a.heal)[0]||null;
 }
-function safeComRetreat(actor){return Object.keys(regionStock).some(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a))}
+function safeComRetreat(actor,now=Date.now()){return !isMovementLocked(actor,now)&&Object.keys(regionStock).some(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a))}
 // Pure estimate: only own supplies/mastery, visible enemy gear/HP and personally observed hits.
 // Enemy inventory, ammunition, skill cooldowns and mastery are never inspected.
 function evaluateCombat(actor,target,now,kind='player'){
  const weapon=equipmentDef(actor.equipment.weapon),loaded=weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon),reserve=weapon?.ammoType?actor.inventory[weapon.ammoType]||0:0;
  const type=weapon?.ammoType&&(weapon.unlimitedAmmo||loaded+reserve>0)?weapon.weaponType:actorWeaponType(actor);
  const targetDef=kind==='drone'?DRONE_DEFS[target.kind]:null,armor=kind==='player'?EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]||{}:{};
- const attack=totalStat('attack',actor)-(weapon?.ammoType&&type==='fist'?(weapon.attack||0)*(hasBodyInjury(actor,'hand')?.95:1):0);
+ const attack=totalStat('attack',actor)-(weapon?.ammoType&&type==='fist'?(weapon.attack||0)*actorStatMultiplier('attack',actor):0);
  const defense=targetDef?targetDef.defense:totalStat('defense',target);
  const bonus=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.damageBonus||0;
  let perHit=targetDef?damageToDrone(targetDef,type,attack,bonus,actor):combatDamage(attack,defense,type,1,actor)+bonus;
@@ -1045,7 +1074,7 @@ function evaluateCombat(actor,target,now,kind='player'){
  const accuracy=targetDef?droneAccuracy(targetDef,type,actor):Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,actor)]+actorAccuracyBonus(actor,type)-statusStacks('blackInk',actor)));
  const effect=type===weapon?.weaponType?EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.weapon]||{}:{};
  const fixed=(effect.purplePoison?Math.min(10,statusStacks('purplePoison',target)+1):0)+(effect.attackInterval?effect.fixedDamage/effect.attackInterval:0)+(effect.judgment?judgmentDamage(target)/30:0);
- const expected=(hasBodyInjury(target,'torso')?1.1:1)*Math.max(1,(perHit*(1+(CRITICAL_MULTIPLIER-1)*actorCriticalChance(actor,type))+fixed)*accuracy/100+guardDamage(perHit+fixed)*(1-accuracy/100));
+ const expected=(postureBonus(actor,target,now)?1.7:1)*(hasBodyInjury(target,'torso')?1.1:1)*Math.max(1,(perHit*(1+(CRITICAL_MULTIPLIER-1)*attackCriticalChance(actor,type,null,target,now))+fixed)*accuracy/100+guardDamage(perHit+fixed)*(1-accuracy/100));
  const turns=Math.max(1,Math.ceil(target.hp/expected)),finite=weapon?.ammoType&&!weapon.unlimitedAmmo&&type!=='fist';
  const ammoShort=!!finite&&loaded+reserve<turns,reloadTurns=finite?Math.ceil(Math.max(0,Math.min(turns,loaded+reserve)-loaded)/weapon.capacity):0;
  let incoming;
@@ -1054,7 +1083,7 @@ function evaluateCombat(actor,target,now,kind='player'){
   const visibleWeapon=equipmentDef(target.equipment.weapon),enemyType=visibleWeapon?.weaponType||'fist';
   incoming=Math.max(1,Math.floor(damageAfterDefense(totalStat('attack',target),totalStat('defense',actor))*1.15))+(EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]?.damageBonus||0);
   if(enemyType==='fist')incoming*=1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.fistDamageReduction||0);
-  incoming*=1+(CRITICAL_MULTIPLIER-1)*actorCriticalChance(target,enemyType);incoming*=slashDamageMultiplier(actor,enemyType);if(enemyType==='gun')incoming*=1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.gunDamageReduction||0);
+  incoming*=(postureBonus(target,actor,now)?1.7:1)*(1+(CRITICAL_MULTIPLIER-1)*attackCriticalChance(target,enemyType,null,actor,now));incoming*=slashDamageMultiplier(actor,enemyType);if(enemyType==='gun')incoming*=1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.gunDamageReduction||0);
   const observed=actor.observedOpponents?.[target.id];if(observed&&observed.weapon===target.equipment.weapon&&observed.level===target.level&&observed.defense===totalStat('defense',actor)&&observed.body===actor.equipment.body&&(observed.head||null)===(actor.equipment.head||null)&&now-observed.at<30000)incoming=Math.max(incoming,observed.damage);
  }
  incoming*=hasBodyInjury(actor,'torso')?1.1:1;if(targetDef){incoming*=hasBodyInjury(target,'hand')?.95:1;incoming*=hasBodyInjury(target,'head')?.95:1}
@@ -1082,7 +1111,7 @@ function logCombatDecision(actor,target,decision,now,kind){
 function handleComCombatDecision(actor,target,now,kind){
  if(kind==='player'&&!hasObservedOpponent(actor,target,now))return false;
  const decision=evaluateCombat(actor,target,now,kind);logCombatDecision(actor,target,decision,now,kind);
- if(decision.action==='retreat'&&safeComRetreat(actor)){
+ if(decision.action==='retreat'&&safeComRetreat(actor,now)){
   if(kind==='drone'){actor.enemy=null;actor.leaveDanger=true;actor.retreatReason=decision.reason}
   else if(!comMove(actor,now,'対戦相手から撤退：'+decision.reason))return false;
   bumpMatchStat(actor,'retreats');recordMatchEvent(actor,'retreat',decision.reason,now);comLog(actor,'撤退：'+decision.reason,now);return true;
@@ -1137,14 +1166,14 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  updateStatusEffects(now,attacker);awardAttackMastery(attacker,target,type);
  const accuracy=Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,attacker)]+actorAccuracyBonus(attacker,type)-statusStacks('blackInk',attacker)));
  const guarded=Math.random()*100>=accuracy,hit=true,armor=EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]||{};
- const attack=totalStat('attack',attacker)-(ranged&&type==='fist'?(weapon.attack||0)*(hasBodyInjury(attacker,'hand')?.95:1):0)+attackRoll();
+ const attack=totalStat('attack',attacker)-(ranged&&type==='fist'?(weapon.attack||0)*actorStatMultiplier('attack',attacker):0)+attackRoll();
  let base=hit?combatDamage(attack,totalStat('defense',target),type,1,attacker)+(EQUIPMENT_SPECIAL_EFFECTS[attacker.equipment.body]?.damageBonus||0):0;
  if(hit&&type==='fist'&&armor.fistDamageReduction)base=Math.max(1,Math.floor(base*(1-armor.fistDamageReduction)));
  if(hit&&type==='slash')base=Math.max(1,Math.floor(base*slashDamageMultiplier(target,type)));
  if(hit&&type==='gun')base=Math.max(1,Math.floor(base*(1-(EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]?.gunDamageReduction||0))));
- const critical=!guarded&&attackCritical(attacker,type,gale);base=criticalDamage(base,critical);
+ const critical=!guarded&&attackCritical(attacker,type,gale,target,now);base=criticalDamage(base,critical);
  applyAttackInjury(attacker,target,hit,now);
- const effect=applyWeaponEffects(attacker,target,type,hit,now),damage=guarded?guardDamage(injuryDamage(characterSkillDamage(base+effect.fixedDamage,gale),target)):injuryDamage(characterSkillDamage(base+effect.fixedDamage,gale),target),dealt=Math.min(target.hp,damage);
+ const effect=applyWeaponEffects(attacker,target,type,hit,now),damage=guarded?guardDamage(injuryDamage(postureDamage(characterSkillDamage(base+effect.fixedDamage,gale),attacker,target,now),target)):injuryDamage(postureDamage(characterSkillDamage(base+effect.fixedDamage,gale),attacker,target,now),target),dealt=Math.min(target.hp,damage);
  target.hp=Math.max(0,target.hp-damage);const bodyInjury=applyBodyAttackInjury(attacker,target,gale,now);
  const lifesteal=effect.lifesteal&&dealt?Math.ceil(dealt*effect.lifesteal):0,healing=Math.min(Math.max(0,actorMax(attacker,'hp')-attacker.hp),lifesteal);attacker.hp+=healing;
  const reflected=hit&&type==='fist'?(armor.fistCounterDamage||0):0,reflectedTaken=Math.min(attacker.hp,reflected);attacker.hp=Math.max(0,attacker.hp-reflected);
@@ -1266,20 +1295,20 @@ function strikeDrone(actor,d,now,skillId=null){
  if(ranged&&!weapon.unlimitedAmmo&&type!=='fist')actor.equipmentAmmo.weapon=weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)-1;
  updateStatusEffects(now,d);awardAttackMastery(actor,d,type);
  const guarded=Math.random()*100>=droneAccuracy(def,type,actor),hit=true,bonus=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.damageBonus||0;
- const attack=totalStat('attack',actor)-(ranged&&type==='fist'?(weapon.attack||0)*(hasBodyInjury(actor,'hand')?.95:1):0)+attackRoll();
- const critical=!guarded&&attackCritical(actor,type,gale),baseDamage=hit?criticalDamage(damageToDrone(def,type,attack,bonus,actor),critical):0;
+ const attack=totalStat('attack',actor)-(ranged&&type==='fist'?(weapon.attack||0)*actorStatMultiplier('attack',actor):0)+attackRoll();
+ const critical=!guarded&&attackCritical(actor,type,gale,d,now),baseDamage=hit?criticalDamage(damageToDrone(def,type,attack,bonus,actor),critical):0;
  applyAttackInjury(actor,d,hit,now);
- const effect=applyWeaponEffects(actor,d,type,hit,now),damage=guarded?guardDamage(injuryDamage(characterSkillDamage(baseDamage+effect.fixedDamage,gale),d)):injuryDamage(characterSkillDamage(baseDamage+effect.fixedDamage,gale),d),dealt=Math.min(d.hp,damage);
+ const effect=applyWeaponEffects(actor,d,type,hit,now),damage=guarded?guardDamage(injuryDamage(postureDamage(characterSkillDamage(baseDamage+effect.fixedDamage,gale),actor,d,now),d)):injuryDamage(postureDamage(characterSkillDamage(baseDamage+effect.fixedDamage,gale),actor,d,now),d),dealt=Math.min(d.hp,damage);
  d.hp=Math.max(0,d.hp-damage);const bodyInjury=applyBodyAttackInjury(actor,d,gale,now);
  const healing=effect.lifesteal&&dealt>0?Math.min(actorMax(actor,'hp')-actor.hp,Math.ceil(dealt*effect.lifesteal)):0;actor.hp+=healing;
  gainXp(1,actor);
  const characterSkill=resolveCharacterSkill(actor,d,skillId,hit,now,gale,dealt);
- let body=null,counter=0,counterPending=false;const counterDetails={critical:false};
+ let body=null,counter=0,counterPending=false,marineHealing=0;const counterDetails={critical:false};
  if(d.hp===0){
   body=createDroneCorpse(d.kind,actor.place,now,actorIdentity(actor));
-  d.spawned=false;d.area=null;d.respawnAt=now+def.respawn*1000;awardDefeatXp(actor,d,now);bumpMatchStat(actor,'droneKills');recordMatchEvent(actor,'kill',def.name+'を撃破',now);
+  d.spawned=false;d.area=null;d.respawnAt=now+def.respawn*1000;awardDefeatXp(actor,d,now);marineHealing=marineKillRecovery(actor,d,now);bumpMatchStat(actor,'droneKills');recordMatchEvent(actor,'kill',def.name+'を撃破',now);
  }else if(actionDelayMs(d,now)){scheduleDroneCounter(actor,d,now);counterPending=true;}else{counter=droneCounterDamage(def,actor,now,counterDetails);bumpMatchStat(actor,'damageTaken',Math.min(actor.hp,counter));actor.hp=Math.max(0,actor.hp-counter);}
- const result={type,hit,guarded,critical,damage,dealt,bodyInjury,healing,effect,counter,counterCritical:counterDetails.critical,counterPending,characterSkill,body,defeated:d.hp===0};trackActorAttack(actor,d,result,now,'drone');return result;
+ const result={type,hit,guarded,critical,damage,dealt,bodyInjury,healing,effect,counter,counterCritical:counterDetails.critical,counterPending,characterSkill,marineHealing,body,defeated:d.hp===0};trackActorAttack(actor,d,result,now,'drone');return result;
 }
 function discoverDrone(kind){
  if(!allowMatchAction()||S.busy||S.pendingFound||S.corpseVisit||S.enemy)return;
@@ -1437,6 +1466,7 @@ function primary(){
   if(actionToken!==S.actionToken)return;
   if(actionToken!==S.actionToken||!allowMatchAction()||actionToken!==S.actionToken)return;
   S.busy=false;recordExploration(S,Date.now());
+  if(resolveEfficientPlayerSearch()){refresh();return}
   const opponent=pvpEnabled()?chooseLocalOpponent(S):null;
   if(opponent&&Math.random()<actorDiscoveryRate(opponent)){discoverOpponent(opponent);refresh();return}
   const bodies=corpses.filter(c=>corpseAvailable(c)&&c.area===S.place&&c.items.length>0);
@@ -1866,6 +1896,7 @@ function move(p){
  if(isBlocked(p))return toast('封鎖中の区画には移動できません');
  if(S.busy||S.pendingFound)return toast('探索中は移動できません');
  if(p===S.place)return;
+ if(isMovementLocked(S,Date.now()))return toast('喰らいつき：あと'+Math.ceil((S.biteUntil-Date.now())/1000)+'秒は区域移動できません');
  stopRecoveryMode();invalidateLocationSight(S);S.place=p;S.enemy=false;S.stacks=0;S.found=[];
  const {staminaCost,hpCost}=payMovementCost(S);
  addLog(p+'へ移動した（スタミナ −'+staminaCost+(hpCost?'／HP −'+hpCost:'')+'・発見履歴は破棄）');closeModal();
@@ -2035,6 +2066,7 @@ function reloadActor(actor,now=Date.now()){
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.equipmentAmmo.weapon=loaded+amount;bumpMatchStat(actor,'reloads');recordMatchEvent(actor,'reload',names[id]+'に'+amount+'発装填',now);return amount;
 }
 function comMove(actor,now,reason,plan=comCurrentPlan(actor)){
+ if(isMovementLocked(actor,now))return false;
  cancelBodyTreatment(actor);
  const safe=Object.keys(regionStock).filter(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a));
  if(!safe.length)return false;
@@ -2143,18 +2175,19 @@ function stepCom(actor,now){
  }
  // Discover only local corpses and drones during a paid search, matching player search probabilities.
  if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;recordExploration(actor,now);
- const opponent=pvpEnabled()?chooseLocalOpponent(actor):null;
+ const efficient=consumeEfficiency(actor);if(efficient)comLog(actor,'効率重視：アイテム3個を探索',now);
+ const opponent=!efficient&&pvpEnabled()?chooseLocalOpponent(actor):null;
  if(opponent&&Math.random()<actorDiscoveryRate(opponent,actor)){observeOpponent(actor,opponent,now);actor.restMode=null;comLog(actor,'探索：'+actorName(opponent)+'を発見',now);return}
- const bodies=corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&c.items.length>0&&S.corpseVisit?.id!==c.id);
+ const bodies=efficient?[]:corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&c.items.length>0&&S.corpseVisit?.id!==c.id);
  const body=bodies.length?bodies[rand(bodies.length)]:null;
  if(body&&Math.random()<corpseDiscoveryRate(body,actor)){actor.loot=body.id;comLog(actor,'探索：死体を発見',now);return}
- const present=Object.values(drones).filter(d=>d.spawned&&d.hp>0&&d.area===actor.place);
+ const present=efficient?[]:Object.values(drones).filter(d=>d.spawned&&d.hp>0&&d.area===actor.place);
  if(present.length&&Math.random()<droneDiscoveryRate(actor)){
   const d=present[rand(present.length)];actor.enemy={kind:d.kind,generation:d.generation};actor.restMode=null;
   comLog(actor,'探索：'+DRONE_DEFS[d.kind].name+'を発見',now);return;
  }
- if(Math.random()>=0.84){comLog(actor,'探索：何も見つからない',now);awardEmptySearchXp(actor,now);return}
- const items=drawSearchBatch(actor);
+ if(!efficient&&Math.random()>=0.84){comLog(actor,'探索：何も見つからない',now);awardEmptySearchXp(actor,now);return}
+ const items=efficient?drawSearchBatch(actor,3):drawSearchBatch(actor);
  if(!items.length){actor.exhausted[actor.place]=true;comLog(actor,'探索して物資切れを確認',now);awardEmptySearchXp(actor,now);return}
  let madeRoom=false;
  for(const obj of items){
