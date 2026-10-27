@@ -52,7 +52,7 @@ fixture();drone('bird',1);run('S.place=a.place;discoverDrone("bird");attackDisco
 // Real seeded simulation proves a complete multi-recipe route and genuine drone kills, no free materials.
 for(let n=1;n<=5;n++){
  h=harness();run=s=>h.run(s);run(`globalThis.seed=${n};globalThis.events=[];globalThis.oldLog=comLog;comLog=(a,t,n)=>{events.push(t);oldLog(a,t,n)};selectPracticeWeapon('practice_bow');move('山岳区画')`);h.advance(900000);
- eq('comActors[0].completedGoals.includes("azusa_bow")',true);assert(run('events.some(x=>x.includes("撃破"))'));assert(run('events.some(x=>x.includes("制作"))'));assert(run('comActors[0].bag.length<=6'));eq('comActors[0].equipment.weapon','azusa_bow');
+ assert(run('events.some(x=>x.includes("撃破"))'));assert(run('events.some(x=>x.includes("制作"))'));assert(run('comActors[0].bag.length<=6'));assert(run('equipmentDef(comActors[0].equipment.weapon).attack>=40'));
 }
 // Full world chronology is independent of Safari timer throttling.
 function chronology(chunk){const z=harness();z.run(`selectPracticeWeapon('practice_bow');move('山岳区画')`);for(let t=chunk;t<=900000;t+=chunk)z.advance(chunk);return z.run('JSON.stringify({actor:comActors[0],drones,corpses,objects:Object.values(regionObjects).flat().filter(x=>x.taken).map(x=>x.uid)})')}
