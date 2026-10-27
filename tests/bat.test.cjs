@@ -16,7 +16,7 @@ function harness(){
 const h=harness(),run=h.run;
 assert.equal(run('comActors.length'),6);
 run("var a=comActors[5];a.bag=[];syncInventory(a);receive('rifle',1,null,a);receive('optical_sight',1,null,a);stepCom(a,Date.now())");
-assert.equal(run('a.name'),'コウモリ');assert.equal(run('a.character'),'bat');assert.equal(run('a.masteryAttacks.bow'),14);assert.equal(run('a.masteryAttacks.gun'),14);assert.equal(run('a.starterWeapon'),'practice_gun');assert.equal(run('a.equipmentAmmo.weapon'),20);
+assert.equal(run('a.name'),'ノクス');assert.equal(run('a.character'),'bat');assert.equal(run('a.masteryAttacks.bow'),14);assert.equal(run('a.masteryAttacks.gun'),14);assert.equal(run('a.starterWeapon'),'practice_gun');assert.equal(run('a.equipmentAmmo.weapon'),20);
 run("a.place='射撃演習区画';matchClock.section=1;craftActor(a,recipes.find(r=>r.id==='sniper_rifle'));comEquipBetter(a,Date.now())");assert.equal(run('a.equipment.weapon'),'sniper_rifle');assert.equal(run('comAmmoType(a)'),'bullets');
 run("a.place=S.place;S.hp=180;Math.random=()=>0;var shot=actorAttack(a,S,Date.now())");assert.equal(run('shot.type'),'gun');assert.equal(run('a.equipmentAmmo.weapon'),5);
 run("receive('azusa_bow',1,null,a);comEquipBetter(a,Date.now())");assert.equal(run("a.bag.find(x=>x.id==='sniper_rifle').ammo"),5);assert.equal(run('a.equipment.weapon'),'azusa_bow');assert.equal(run('a.preferredWeaponType'),'bow');assert.equal(run('comAmmoType(a)'),'arrows');
