@@ -35,7 +35,7 @@ for(const [type,old,tier,need] of [['fist','practice_gauntlet','uncommon',1],['s
 }
 // Threshold boundaries1/5/10/45, including future registered legendary candidates; no failed-use cooldown.
 for(const [old,need] of [['practice_gauntlet',1],['glove',5],['reinforced',10],['plasma',45]]){fresh();run(`S.equipment.weapon='${old}';EQUIPMENT_DEFS.fixture_legend={...EQUIPMENT_DEFS.plasma};RECIPE_RARITY.fixture_legend='legendary';names.fixture_legend='test legendary';S.modificationStacks=${need-1}`);eq('modifyEquippedWeapon(S,1000000)',false);eq('S.characterFieldReadyAt||0',0);eq('S.equipment.weapon',old);run(`S.modificationStacks=${need}`);eq('modifyEquippedWeapon(S,1000000)',true);eq('S.modificationStacks',need)}
-fresh();run("S.equipment.weapon='practice_gun';S.modificationStacks=100");eq('weaponModificationPlan(S).candidates.length',0);eq('modifyEquippedWeapon(S,1000000)',false);eq('S.characterFieldReadyAt||0',0);
+fresh();run("S.equipment.weapon='practice_gun';S.modificationStacks=1;S.equipmentAmmo.weapon=3;var pool=weaponModificationPlan(S).candidates");assert.deepEqual(JSON.parse(run('JSON.stringify(pool)')),['handgun','rifle']);eq('modifyEquippedWeapon(S,1000000)',true);eq('RECIPE_RARITY[S.equipment.weapon]','uncommon');eq('S.modificationStacks',1);eq('S.equipmentAmmo.weapon',3);eq('S.characterFieldReadyAt',1090000);
 fresh();run("S.equipment.weapon='plasma';S.modificationStacks=100");eq('modifyEquippedWeapon(S,1000000)',false);eq('S.characterFieldReadyAt||0',0);
 fresh();run("S.equipment.weapon=null;S.modificationStacks=100");eq('modifyEquippedWeapon(S,1000000)',false);
 // Cooldown at90sec, finite ammo preserved/clamped, clean state and full-bag in-place replacement.
