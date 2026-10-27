@@ -32,7 +32,7 @@ eq('weaponAmmo()',Infinity);eq('a.inventory.bullets',12);eq('actorWeaponType(a)'
 fresh();run(`receive('magma_blaster',1);equip('magma_blaster');Math.random=()=>0.999;globalThis.r1=strikeDrone(a,d,Date.now());globalThis.r2=strikeDrone(a,d,Date.now());globalThis.r3=strikeDrone(a,d,Date.now())`);
 eq('r1.damage',0);eq('r2.damage',0);eq('r3.hit',false);eq('r3.damage',15);eq('d.hp',9985);eq('a.equipmentAmmo.weapon',5);run('a.equipmentAmmo.weapon=0;strikeDrone(a,d,Date.now())');eq('equipmentState(a,"weapon").attacks',0);
 // Love Arrow heals ceil(actual HP loss * 5%), not requested/overkill damage, and caps at max HP.
-fresh();run(`receive('eros_bow',1);equip('eros_bow');d.hp=21;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.dealt',21);eq('r.healing',2);eq('a.hp',102);
+fresh();run(`receive('eros_bow',1);equip('eros_bow');d.hp=21;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.dealt',21);eq('r.healing',2);eq('a.hp',127);eq('a.level',2);eq('a.matchStats.killXp',30);
 fresh();run(`receive('eros_bow',1);equip('eros_bow');a.hp=maxHp()-1;d.hp=10000;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',1);eq('a.hp',163); // healed to 180 then countered for 17
 fresh();run(`receive('eros_bow',1);equip('eros_bow');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',0);
 // Blizzard: first eligible HIT procs automatically; misses never spend the 45-second cooldown.

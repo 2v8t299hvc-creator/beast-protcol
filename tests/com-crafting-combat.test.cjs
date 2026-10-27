@@ -36,7 +36,7 @@ run('a.searches=8;a.noProgress=0;a.place="山岳区画";a.bag=[{id:"japanese_bow
 fixture();run('a.equipmentAmmo.weapon=18;receive("arrows",1,null,a)');eq('reloadActor(a)',1);eq('a.equipmentAmmo.weapon',19);eq('a.inventory.arrows||0',0);
 function drone(kind='bird',hp=50){run(`a.place=DRONE_DEFS['${kind}'].areas[0];Object.assign(drones['${kind}'],{spawned:true,hp:${hp},area:a.place,generation:7});a.enemy={kind:'${kind}',generation:7};a.hp=180;`)}
 drone('bird',26);const pMastery=run('S.masteryAttacks.bow');run('comFight(a,Date.now())');eq('a.equipmentAmmo.weapon',18);eq('a.masteryAttacks.bow',21);eq('S.masteryAttacks.bow',pMastery);eq('drones.bird.hp',13);eq('a.hp',163);eq('a.enemy',null);
-run('a.enemy={kind:"bird",generation:7};comFight(a,Date.now()+1000)');eq('drones.bird.spawned',false);eq('a.hp',163);eq('drones.bird.respawnAt',1081000);eq('corpses.at(-1).killerId','hayate');eq('corpses.at(-1).expiresAt',1081000);
+run('a.enemy={kind:"bird",generation:7};comFight(a,Date.now()+1000)');eq('drones.bird.spawned',false);eq('a.hp',186);eq('a.level',2);eq('a.matchStats.killXp',30);eq('drones.bird.respawnAt',1081000);eq('corpses.at(-1).killerId','hayate');eq('corpses.at(-1).expiresAt',1081000);
 run('comLoot(a,Date.now()+2000,comPlan(a,"azusa_bow"))');eq('a.loot',null);eq('corpses.at(-1).items.length',2);eq('a.inventory.egg',1);
 // An open player corpse menu is reserved against COM list mutation / stale button indexes.
 run('a.loot=corpses.at(-1).id;S.corpseVisit={id:a.loot,token:1}');eq('comLoot(a,Date.now()+3000,comPlan(a,"azusa_bow"))',false);eq('corpses.at(-1).items.length',2);
