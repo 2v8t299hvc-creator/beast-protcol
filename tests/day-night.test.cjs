@@ -14,18 +14,29 @@ function harness(){
 
 
 const h=harness(),run=h.run;
-assert.equal(run('ACTIVE_MATCH_SECONDS'),1320);assert.equal(run('DAY_NIGHT_PHASE_SECONDS'),330);
+assert.equal(run('ACTIVE_MATCH_SECONDS'),1320);assert.deepEqual(JSON.parse(run('JSON.stringify(DAY_NIGHT_PHASE_ENDS)')),[360,720,1020,1320]);
 // Exact millisecond edges; preparation never consumes the first day.
-for(const [seconds,phase,index,remaining] of [[0,'preparation',-1,30],[29.999,'preparation',-1,1],[30,'day',0,330],[359.999,'day',0,1],[360,'night',1,330],[689.999,'night',1,1],[690,'day',2,330],[1019.999,'day',2,1],[1020,'night',3,330],[1349.999,'night',3,1],[1350,'night',3,0],[2000,'night',3,0]]){
+for(const [seconds,phase,index,remaining] of [[0,'preparation',-1,30],[29.999,'preparation',-1,1],[30,'day',0,360],[389.999,'day',0,1],[390,'night',1,360],[749.999,'night',1,1],[750,'day',2,300],[1049.999,'day',2,1],[1050,'night',3,300],[1349.999,'night',3,1],[1350,'night',3,0],[2000,'night',3,0]]){
  const v=run(`dayNightAt(matchClock.startedAt+${seconds}*1000)`);assert.equal(v.phase,phase);assert.equal(v.index,index);assert.equal(v.remaining,remaining);assert.equal(v.isNight,phase==='night');
 }
 // Rendering follows the same clock and leaves the preparation/section clock independent.
-h.setNow(1360000);run('renderMatchStatus()');assert.equal(run("$('dayNightLabel').textContent"),'🌙 夜1');assert.equal(run("$('dayNightClock').textContent"),'昼まで 05:30');assert.equal(run("$('game').classList.contains('bp-night')"),true);
-h.setNow(1690000);run('renderMatchStatus()');assert.equal(run("$('dayNightLabel').textContent"),'☀️ 昼2');assert.equal(run("$('game').classList.contains('bp-night')"),false);
+h.setNow(1390000);run('renderMatchStatus()');assert.equal(run("$('dayNightLabel').textContent"),'🌙 夜1');assert.equal(run("$('dayNightClock').textContent"),'昼まで 06:00');assert.equal(run("$('game').classList.contains('bp-night')"),true);
+h.setNow(1750000);run('renderMatchStatus()');assert.equal(run("$('dayNightLabel').textContent"),'☀️ 昼2');assert.equal(run("$('game').classList.contains('bp-night')"),false);
 // Skills resolving a historical action must see its phase, even when returning at a later time.
-h.setNow(2100000);assert.equal(run('isNightAt(matchClock.startedAt+360000)'),true);assert.equal(run('isNightAt(matchClock.startedAt+690000)'),false);
+h.setNow(2100000);assert.equal(run('isNightAt(matchClock.startedAt+390000)'),true);assert.equal(run('isNightAt(matchClock.startedAt+750000)'),false);
 // Early victory freezes its actual phase and remaining clock; a new match clears it.
-run('matchClock.ended=true;matchClock.finishedAt=matchClock.startedAt+500000;renderMatchStatus()');assert.equal(run("$('dayNightLabel').textContent"),'🌙 夜1');assert.equal(run("$('dayNightClock').textContent"),'演習終了');assert.equal(run('dayNightAt().remaining'),190);
+run('matchClock.ended=true;matchClock.finishedAt=matchClock.startedAt+500000;renderMatchStatus()');assert.equal(run("$('dayNightLabel').textContent"),'🌙 夜1');assert.equal(run("$('dayNightClock').textContent"),'演習終了');assert.equal(run('dayNightAt().remaining'),250);
 run('initializeMatch();renderMatchStatus()');assert.equal(run("$('dayNightLabel').textContent"),'準備中');assert.equal(run("$('game').classList.contains('bp-night')"),false);
 assert.equal(run('comActors[5].name'),'ノクス');
-console.log('PASS: four equal phases, preparation offset, millisecond boundaries, UI, historical skill query, early-finish freeze and reset, Nox name');
+console.log('PASS: four section-aligned phases, preparation offset, millisecond boundaries, UI, historical skill query, early-finish freeze and reset, Nox name');
+
+// Every section start belongs to its declared phase, with no mid-section switches.
+let elapsed=30;
+for(let section=1;section<=9;section++){
+ const expected=section<3?0:section<5?1:section<7?2:3;
+ assert.equal(run(`dayNightAt(matchClock.startedAt+${elapsed}*1000).index`),expected);
+ const duration=run(`SECTION_RULES[${section}].seconds`);
+ assert.equal(run(`dayNightAt(matchClock.startedAt+${elapsed+duration}*1000-1).index`),expected);
+ elapsed+=duration;
+}
+assert.equal(elapsed,1350);
