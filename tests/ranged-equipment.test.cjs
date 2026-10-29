@@ -53,7 +53,7 @@ reset();run(`receive('rubber',1);receive('fur',1);for(const id of ['stone','wood
 reset();run(`receive('rubber',2);receive('fur',2);for(const id of ['stone','wood','wire','cloth'])receive(id,1);craft('rubbery_hide')`);eq('S.inventory.rubbery_hide||0',0);eq('S.inventory.rubber',2);
 // An attack uses its last round even when guarded; the next attack is an unarmed attack with fist mastery.
 for(const [id,type,ammo] of [['handgun','gun','bullets'],['japanese_bow','bow','arrows']]){
- reset();run(`receive('${id}',1,{ammo:1});equip('${id}');S.enemy=true;S.ehp=10000;Math.random=()=>0.999;attackDiscoveredDrone()`);h.tick();eq('weaponAmmo()',0);eq(`S.masteryAttacks.${type}`,1);eq('S.ehp',type==='gun'?9989:9992);
+ reset();run(`receive('${id}',1,{ammo:1});equip('${id}');S.enemy=true;S.ehp=10000;Math.random=()=>0.999;attackDiscoveredDrone()`);h.tick();eq('weaponAmmo()',0);eq(`S.masteryAttacks.${type}`,1);eq('S.ehp',type==='gun'?9991:9993);
  run(`S.enemy=true;attackDiscoveredDrone()`);h.tick();eq('S.masteryAttacks.fist',2);eq(`S.masteryAttacks.${type}`,1);eq('S.equipment.weapon',id);
  run(`receive('${ammo}',20);reloadWeapon('${ammo}')`);eq('weaponType()',type);
 }

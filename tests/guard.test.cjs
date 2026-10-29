@@ -26,7 +26,7 @@ fresh();run("S.equipment.weapon='japanese_bow';S.equipment.accessory='optical_si
 // Guard cannot roll critical, even if crit would otherwise be forced.
 fresh();run("rollCritical=()=>{throw Error('guard must not roll critical')};Math.random=()=>.999;var result=actorAttack(S,a,Date.now())");eq('result.critical',false);
 // Total damage includes the eruption before halving; ammo/attack counters/mastery still advance once.
-fresh();run("S.equipment.weapon='magma_blaster';S.equipmentAmmo.weapon=8;equipmentState(S,'weapon').attacks=2;Math.random=()=>.999;var result=actorAttack(S,a,Date.now())");eq('result.effect.fixedDamage',15);eq('result.damage',31);eq('S.equipmentAmmo.weapon',7);eq('S.masteryAttacks.gun',1);eq('equipmentState(S,"weapon").attacks',0);
+fresh();run("S.equipment.weapon='magma_blaster';S.equipmentAmmo.weapon=8;equipmentState(S,'weapon').attacks=2;Math.random=()=>.999;var result=actorAttack(S,a,Date.now())");eq('result.effect.fixedDamage',15);eq('result.damage',21);eq('S.equipmentAmmo.weapon',7);eq('S.masteryAttacks.gun',1);eq('equipmentState(S,"weapon").attacks',0);
 // Minimum one damage after armor, never zero.
 fresh();run("S.equipment={};a.level=15;a.equipment={head:'steampunk_goggles',arm:'obsidian_armguard',body:'charged_suit',legs:'diamond_boots',accessory:'mythic_telescope'};Math.random=()=>.999;var result=actorAttack(S,a,Date.now())");eq('result.damage',1);
 // Contact effects and active skills continue on a guard; lifesteal uses actual reduced HP loss.
@@ -35,7 +35,7 @@ fresh();run("S.equipment.weapon='assassin_knife';Math.random=()=>.999;var result
 fresh();run("S.equipment.weapon='eros_bow';S.equipmentAmmo.weapon=16;S.hp=100;Math.random=()=>.999;var result=actorAttack(S,a,Date.now())");eq('result.healing',Math.ceil(run('result.dealt')*.05));
 fresh();run("S.character='kaito';Math.random=()=>.999;var result=actorAttack(S,a,Date.now(),false,'step_break')");eq('result.characterSkill.applied',true);eq('a.slowUntil',1005000);
 // A guarded drone strike also damages, consumes ammo, and gives a normal single counterattack.
-fresh();run("S.equipment.weapon='handgun';S.equipmentAmmo.weapon=1;var d=drones.bird;Object.assign(d,{spawned:true,hp:10000,area:S.place});Math.random=()=>.999;var result=strikeDrone(S,d,Date.now())");eq('result.guarded',true);eq('result.damage',10);eq('S.equipmentAmmo.weapon',0);eq('result.counter',18);eq('S.matchStats.droneAttacks',1);
+fresh();run("S.equipment.weapon='handgun';S.equipmentAmmo.weapon=1;var d=drones.bird;Object.assign(d,{spawned:true,hp:10000,area:S.place});Math.random=()=>.999;var result=strikeDrone(S,d,Date.now())");eq('result.guarded',true);eq('result.damage',8);eq('S.equipmentAmmo.weapon',0);eq('result.counter',18);eq('S.matchStats.droneAttacks',1);
 // COM attacks and incoming notification use the same guard result and real damage.
 fresh();run("a.equipment.weapon='practice_bow';a.equipmentAmmo.weapon=20;Math.random=()=>.999;var result=actorAttack(a,S,Date.now());showIncomingDamage(a,result,Date.now());logPlayerAttack(a,S,result,Date.now())");eq('result.guarded',true);assert(run("$('incomingText').textContent.includes('ガード')"));assert(run('a.history.at(-1).text.includes("ガード")'));
 // COM estimates no longer treat guards as zero; forecasting consumes no randomness.

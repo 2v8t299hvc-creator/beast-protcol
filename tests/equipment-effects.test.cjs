@@ -30,11 +30,11 @@ fresh();run(`receive('laser_rifle',1);globalThis.serialized=JSON.stringify(a.bag
 eq('weaponAmmo()',Infinity);eq('a.inventory.bullets',12);eq('actorWeaponType(a)','gun');eq('a.masteryAttacks.fist',0);eq('reloadActor(a)',0);eq('a.equipmentAmmo.weapon',undefined);eq('serialized.includes("null")',false);eq('ammoLabel("laser_rifle",0)','〔∞〕');run('showEquipment()');eq('$("modalBody").innerHTML.includes("弾薬・リロード不要")',true);
 // Eruption counts guarded attacks, its damage is fixed, and an empty gun's fist attack cannot advance it.
 fresh();run(`receive('magma_blaster',1);equip('magma_blaster');Math.random=()=>0.999;globalThis.r1=strikeDrone(a,d,Date.now());globalThis.r2=strikeDrone(a,d,Date.now());globalThis.r3=strikeDrone(a,d,Date.now())`);
-eq('r1.damage',24);eq('r2.damage',25);eq('r3.hit',true);eq('r3.guarded',true);eq('r3.damage',34);eq('d.hp',9917);eq('a.equipmentAmmo.weapon',5);run('a.equipmentAmmo.weapon=0;strikeDrone(a,d,Date.now())');eq('equipmentState(a,"weapon").attacks',0);
+eq('r1.damage',14);eq('r2.damage',15);eq('r3.hit',true);eq('r3.guarded',true);eq('r3.damage',24);eq('d.hp',9947);eq('a.equipmentAmmo.weapon',5);run('a.equipmentAmmo.weapon=0;strikeDrone(a,d,Date.now())');eq('equipmentState(a,"weapon").attacks',0);
 // Love Arrow heals ceil(actual HP loss * 5%), not requested/overkill damage, and caps at max HP.
 fresh();run(`receive('eros_bow',1);equip('eros_bow');d.hp=21;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.dealt',21);eq('r.healing',2);eq('a.hp',127);eq('a.level',2);eq('a.matchStats.killXp',30);
 fresh();run(`receive('eros_bow',1);equip('eros_bow');a.hp=maxHp()-1;d.hp=10000;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',1);eq('a.hp',163); // healed to 180 then countered for 17
-fresh();run(`receive('eros_bow',1);equip('eros_bow');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',2);
+fresh();run(`receive('eros_bow',1);equip('eros_bow');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.healing',1);
 // Blizzard: first eligible contact procs automatically; guards spend the 45-second cooldown.
 fresh();run(`receive('blizzard_cannon',1);equip('blizzard_cannon');Math.random=()=>0.999;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.guarded',true);eq('r.effect.frozen',true);eq('equipmentState(a,"weapon").readyAt',1045000);
 run(`Math.random=()=>0;globalThis.r=strikeDrone(a,d,Date.now())`);eq('r.effect.frozen',false);eq('d.frozenUntil',1004000);eq('equipmentState(a,"weapon").readyAt',1045000);
