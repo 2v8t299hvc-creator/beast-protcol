@@ -1609,7 +1609,9 @@ function updatePvpTimeline(now){
   S.ehp=target.hp;S.encounterSnapshot=captureEncounter(target);S.busy=true;S.pvpFeedback={until:pending.dueAt+COMBAT_FEEDBACK_MS,corpseId:result.corpse?.id||null};setTimeout(tickMatchClock,COMBAT_FEEDBACK_MS);
  }
  if(S.pvpFeedback&&S.pvpFeedback.until<=now){
-  const corpseId=S.pvpFeedback.corpseId;clearPlayerEncounter();if(corpseId)openCorpse(corpseId);
+  const corpseId=S.pvpFeedback.corpseId;
+  if(corpseId){clearPlayerEncounter();openCorpse(corpseId)}
+  else{S.pvpFeedback=null;S.busy=false;S.contactExpiresAt=now+5000;} // Keep the last confirmed sighting after a hit; movement stays hidden.
  }
  if(S.enemyPlayerId&&!S.pvpPending&&!S.pvpFeedback&&now>=(S.contactExpiresAt||0))clearPlayerEncounter(); // Last sighting expires on time, never on hidden movement.
 }
