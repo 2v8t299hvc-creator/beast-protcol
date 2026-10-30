@@ -1613,7 +1613,8 @@ function updatePvpTimeline(now){
   if(corpseId){clearPlayerEncounter();openCorpse(corpseId)}
   else{S.pvpFeedback=null;S.busy=false;S.contactExpiresAt=now+5000;} // Keep the last confirmed sighting after a hit; movement stays hidden.
  }
- if(S.enemyPlayerId&&!S.pvpPending&&!S.pvpFeedback&&now>=(S.contactExpiresAt||0))clearPlayerEncounter(); // Last sighting expires on time, never on hidden movement.
+ // Keep the last confirmed sighting until an explicit attack, escape or player movement.
+ // Neither elapsed time nor hidden enemy movement ends an encounter.
 }
 // COM awareness is earned by its own paid search, independently of the player's discovery.
 function observeOpponent(actor,target,now){
