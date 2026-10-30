@@ -466,7 +466,7 @@ function whiteMantleDamage(damage,target){return Math.max(1,damage-(target.diamo
 function finalCharacterDamage(base,actor,target,skill,now,guarded){
  let full=injuryDamage(postureDamage(characterSkillDamage(base,skill),actor,target,now),target)+(actor.rubyMantle?2:0);
  if(target.kind&&dismantlerDamageBonus(actor))full=Math.max(1,Math.floor(full*(1+dismantlerDamageBonus(actor))));
- return whiteMantleDamage(guarded?guardDamage(full):full,target);
+ return endureDamage(target,whiteMantleDamage(guarded?guardDamage(full):full,target),now);
 }
 function canDanse(actor){const def=equipmentDef(actor.equipment?.weapon);return !!def&&['bow','gun'].includes(def.weaponType)&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)>0}
 function executeDanse(actor,target,now,drone=false,preserve=false){
@@ -628,20 +628,20 @@ const DRONE_DEFS={"bird":{"name":"鳥型ドローン","hp":50,"attack":18,"defen
 for(const [kind,level] of Object.entries({bird:3,fish:3,dog:6,humanoid:6,scorpion:10,octopus:10}))DRONE_DEFS[kind].level=level;
 function equipped(slot){return S.equipment[slot]||null}
 function equipmentDef(id){return EQUIPMENT_DEFS[id]||null}
-function weaponAmmo(id=equipped('weapon'),ammo=S.equipmentAmmo.weapon||0){const def=equipmentDef(id);if(def?.unlimitedAmmo)return Infinity;return def?.ammoType?Math.max(0,Math.min(def.capacity,Number(ammo)||0)):0}
+function weaponAmmo(id=equipped('weapon'),ammo=S.equipmentAmmo.weapon||0){const def=equipmentDef(id);if(def?.unlimitedAmmo)return Infinity;return def?.ammoType?Math.max(0,Number(ammo)||0):0}
 function weaponType(){const def=equipmentDef(equipped('weapon'));return def?.ammoType&&!weaponAmmo()?'fist':def?.weaponType||'fist'}
-function ammoLabel(id,ammo){const def=equipmentDef(id);if(def?.unlimitedAmmo)return '〔∞〕';return def?.ammoType?'〔'+weaponAmmo(id,ammo)+'/'+def.capacity+'〕':''}
+function ammoLabel(id,ammo,actor=S){const def=equipmentDef(id);if(def?.unlimitedAmmo)return '〔∞〕';return def?.ammoType?'〔'+weaponAmmo(id,ammo)+'/'+weaponCapacity(id,actor)+'〕':''}
 function reloadWeapon(ammoId){
  if(!allowMatchAction())return;
  if(S.busy||S.pendingFound)return toast('ほかの行動中です');
  const id=equipped('weapon'),def=equipmentDef(id);
  if(def?.unlimitedAmmo)return toast('この武器は弾薬・リロード不要です');
  if(!def?.ammoType||def.ammoType!==ammoId)return toast('対応する武器を装備してください');
- const amount=Math.min(def.capacity-weaponAmmo(),S.inventory[ammoId]||0);
- if(!amount)return toast(weaponAmmo()>=def.capacity?'装填済みです':'弾薬がありません');
+ const amount=Math.min(weaponCapacity(id,S)-weaponAmmo(),S.inventory[ammoId]||0);
+ if(!amount)return toast(weaponAmmo()>=weaponCapacity(id,S)?'装填済みです':'弾薬がありません');
  if(!reloadActor(S))return;
  addLog(names[id]+'に'+names[ammoId]+'を'+amount+'装填した');
- toast('装填 '+weaponAmmo()+'/'+def.capacity);refresh();showEquipment();
+ toast('装填 '+weaponAmmo()+'/'+weaponCapacity(id,S));refresh();showEquipment();
 }
 function masteryCount(type,actor=S){return actor.masteryAttacks[type]||0}
 function masteryProgress(type){const rank=masteryRank(type),total=masteryCount(type);if(rank>=MASTERY_RANKS.length-1)return 'MAX／攻＋'+ssAttackBonus(S,type)+' ('+((S.ssAttackCounts?.[type]||0)%3)+'/3)';return (total-MASTERY_THRESHOLDS[rank])+'/'+(MASTERY_THRESHOLDS[rank+1]-MASTERY_THRESHOLDS[rank])}
@@ -825,6 +825,37 @@ function renderCombat(){
  const id=equipped('weapon');
  $('combatWeapon').textContent='自分の武器：'+(id?names[id]+ammoLabel(id,S.equipmentAmmo.weapon):'素手')+(fighting&&equipmentDef(id)?.ammoType&&!weaponAmmo()?' → 弾切れ・素手で攻撃':'');
 }
+
+const NEW_ACCESSORIES=[["quiver","矢筒","uncommon",12,{"bamboo_pole":1,"fur":1},{"bowCapacity":8},"弓装備時、装填可能数＋8"],["sturdy_quiver","丈夫な矢筒","rare",18,{"quiver":1,"fish_scale":1},{"bowCapacity":12},"弓装備時、装填可能数＋12"],["snakeskin_quiver","ヘビ皮の矢筒","rare",26,{"sturdy_quiver":1,"rubbery_hide":1},{"bowCapacity":18},"弓装備時、装填可能数＋18"],["magic_quiver","魔法の矢筒","rare",12,{"quiver":1,"wonderore":1},{"arrowSaveChance":0.5},"弓攻撃時、50%の確率で矢を消費しない"],["artemis_quiver","アルテミスの矢筒","epic",18,{"magic_quiver":1,"sapphire":1},{"arrowSaveChance":0.9},"弓攻撃時、90%の確率で矢を消費しない"],["apollo_quiver","アポロンの矢筒","epic",18,{"magic_quiver":1,"laurel":1},{"arrowSaveChance":1},"弓攻撃時、矢を消費しない"],["simple_magazine","簡易マガジン","uncommon",8,{"gunpowder":1,"scrap":1},{"gunCapacity":20},"銃装備時、装填可能数＋20"],["auto_magazine","オートマガジン","epic",20,{"simple_magazine":1,"double_gear":1},{"gunCapacity":99},"銃装備時、装填可能数＋99"],["life_death_scales","生と死の天秤","epic",20,{"poison_potion":1,"advanced_healing_potion":1},{"deadlyBalance":true},"デッドリィバランス：現在HPを超えるダメージを受けるとHP1で耐える。CT300秒"]];
+for(const [id,name,rarity,defense,need,effect,description] of NEW_ACCESSORIES){
+ names[id]=name;RECIPE_RARITY[id]=rarity;
+ EQUIPMENT_DEFS[id]={slot:'accessory',attack:0,defense};
+ EQUIPMENT_SPECIAL_EFFECTS[id]={...effect,name:effect.deadlyBalance?'デッドリィバランス':name,description};
+ recipes.push({id,name,category:'armor',need,desc:description});
+}
+function weaponCapacity(id,actor=S){
+ const def=equipmentDef(id);if(!def?.ammoType)return 0;if(def.unlimitedAmmo)return Infinity;
+ const effect=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.accessory]||{};
+ return def.capacity+(def.weaponType==='bow'?effect.bowCapacity||0:def.weaponType==='gun'?effect.gunCapacity||0:0);
+}
+function spendAttackAmmo(actor,type){
+ const id=actor.equipment.weapon,def=equipmentDef(id);
+ if(!def?.ammoType||def.unlimitedAmmo||type==='fist')return;
+ const chance=type==='bow'?(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.accessory]?.arrowSaveChance||0):0;
+ if(chance>=1||chance>0&&Math.random()<chance)return;
+ actor.equipmentAmmo.weapon=Math.max(0,weaponAmmo(id,actor.equipmentAmmo.weapon)-1);
+}
+function endureDamage(actor,damage,now=Date.now()){
+ if(actor.hp>0&&damage>actor.hp&&EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.accessory]?.deadlyBalance&&now>=(actor.deadlyBalanceReadyAt||0)){
+  actor.deadlyBalanceReadyAt=now+300000;
+  const message='デッドリィバランス！ HP1で耐えた';
+  if(actor===S)addLog(message);else if(actor.history)comLog(actor,message,now);
+  recordMatchEvent(actor,'passive',message,now);
+  return Math.max(0,actor.hp-1);
+ }
+ return damage;
+}
+
 const FISH_ITEMS=new Set(['swordfish','minefish','porcupinefish','paradisefish']);
 // Provisional: arrows share the 99-item carried cap; reloading is immediate and costs no stamina.
 const AMMO_LIMITS={bullets:99,arrows:99};
@@ -1300,7 +1331,7 @@ function evaluateCombat(actor,target,now,kind='player'){
  if(targetDef)expected*=1+dismantlerDamageBonus(actor);
  if(actor.rubyMantle||target.diamondMantle)expected=Math.max(1,expected+(actor.rubyMantle?2:0)-(target.diamondMantle?4:0));
  const turns=Math.max(1,Math.ceil(target.hp/expected)),finite=weapon?.ammoType&&!weapon.unlimitedAmmo&&type!=='fist';
- const ammoShort=!!finite&&loaded+reserve<turns,reloadTurns=finite?Math.ceil(Math.max(0,Math.min(turns,loaded+reserve)-loaded)/weapon.capacity):0;
+ const ammoShort=!!finite&&loaded+reserve<turns,reloadTurns=finite?Math.ceil(Math.max(0,Math.min(turns,loaded+reserve)-loaded)/weaponCapacity(actor.equipment.weapon,actor)):0;
  let incoming;
  if(targetDef)incoming=(Math.max(1,Math.floor(damageAfterDefense(targetDef.attack,totalStat('defense',actor,now))))*(1+(CRITICAL_MULTIPLIER-1)*BASE_CRITICAL_RATE)+(targetDef.poison?statusStacks('purplePoison',actor)+Math.min(10,turns):0))*(1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.weapon]?.droneDamageReduction||0));
  else{
@@ -1393,7 +1424,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  updateBodyTreatment(attacker,now);updateBodyTreatment(target,now);cancelBodyTreatment(attacker);cancelBodyTreatment(target);
  const gale=shotContext||prepareCharacterAttack(attacker,target,skillId,now);
  const type=actorWeaponType(attacker),weapon=equipmentDef(attacker.equipment.weapon),ranged=weapon?.ammoType;
- if(ranged&&!weapon.unlimitedAmmo&&type!=='fist')attacker.equipmentAmmo.weapon=weaponAmmo(attacker.equipment.weapon,attacker.equipmentAmmo.weapon)-1;
+ spendAttackAmmo(attacker,type);
  attacker.recoveryMode=null;attacker.recoveryTickAt=0;attacker.restMode=null;if(!preserveTargetActivity){target.recoveryMode=null;target.recoveryTickAt=0;target.restMode=null;}
  updateStatusEffects(now,attacker);awardAttackMastery(attacker,target,type);
  const accuracy=Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,attacker)]+actorAccuracyBonus(attacker,type)-statusStacks('blackInk',attacker)));
@@ -1408,7 +1439,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  const effect=applyWeaponEffects(attacker,target,type,hit,now),damage=finalCharacterDamage(base+effect.fixedDamage,attacker,target,gale,now,guarded),dealt=Math.min(target.hp,damage);
  target.hp=Math.max(0,target.hp-damage);const bodyInjury=applyBodyAttackInjury(attacker,target,gale,now);
  const lifesteal=effect.lifesteal&&dealt?Math.ceil(dealt*effect.lifesteal):0,healing=Math.min(Math.max(0,actorMax(attacker,'hp')-attacker.hp),lifesteal);attacker.hp+=healing;
- const reflected=hit&&type==='fist'&&armor.fistCounterDamage?whiteMantleDamage(armor.fistCounterDamage,attacker):0,reflectedTaken=Math.min(attacker.hp,reflected);attacker.hp=Math.max(0,attacker.hp-reflected);
+ const reflected=hit&&type==='fist'&&armor.fistCounterDamage?endureDamage(attacker,whiteMantleDamage(armor.fistCounterDamage,attacker),now):0,reflectedTaken=Math.min(attacker.hp,reflected);attacker.hp=Math.max(0,attacker.hp-reflected);
  if(hit&&type==='gun'&&armor.gunDurabilityRetaliation){const state=equipmentState(target,'body');if(now>=(state.readyAt||0)){damageEquipmentDurability(attacker,'weapon',armor.gunDurabilityRetaliation);state.readyAt=now+armor.cooldownSeconds*1000}}
  if(hit&&type==='slash')for(const [slot,id] of Object.entries(target.equipment)){const guard=EQUIPMENT_SPECIAL_EFFECTS[id];if(!guard?.slashDurabilityRetaliation)continue;const state=equipmentState(target,slot);if(now>=(state.readyAt||0)){damageEquipmentDurability(attacker,'weapon',guard.slashDurabilityRetaliation);state.readyAt=now+guard.cooldownSeconds*1000}}
  // A lethal thorn cannot be undone by the level-up heal from the same attack.
@@ -1526,7 +1557,7 @@ function droneCounterDamage(def,actor=S,now=Date.now(),details=null){
  const drone=drones[Object.keys(DRONE_DEFS).find(kind=>DRONE_DEFS[kind]===def)],guarded=hasBodyInjury(drone||{},'head')&&Math.random()>=.9;
  const critical=!guarded&&rollCritical(),base=criticalDamage(Math.max(1,Math.floor(damageAfterDefense(def.attack*(hasBodyInjury(drone||{},'hand')?.95:1)+attackRoll(),totalStat('defense',actor,now)))),critical);
  if(details)details.critical=critical;
- const damage=injuryDamage(Math.max(1,Math.floor((base+(def.poison?statusStacks('purplePoison',actor):0))*(1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.droneDamageReduction||0)))),actor);const finalDamage=whiteMantleDamage(guarded?guardDamage(damage):damage,actor);if(actor.hp>finalDamage&&!mineralInjuryImmune(actor)&&rollBodyInjury())inflictBodyInjury(actor,drone,now);return finalDamage;
+ const damage=injuryDamage(Math.max(1,Math.floor((base+(def.poison?statusStacks('purplePoison',actor):0))*(1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.droneDamageReduction||0)))),actor);const finalDamage=whiteMantleDamage(guarded?guardDamage(damage):damage,actor);if(actor.hp>finalDamage&&!mineralInjuryImmune(actor)&&rollBodyInjury())inflictBodyInjury(actor,drone,now);return endureDamage(actor,finalDamage,now);
 }
 function actorWeaponType(actor){const def=equipmentDef(actor.equipment.weapon);return def?.ammoType&&!weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)?'fist':def?.weaponType||'fist'}
 function strikeDrone(actor,d,now,skillId=null,shotContext=null){
@@ -1535,7 +1566,7 @@ function strikeDrone(actor,d,now,skillId=null,shotContext=null){
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);
  const gale=shotContext||prepareCharacterAttack(actor,d,skillId,now);
  const def=DRONE_DEFS[d.kind],type=actorWeaponType(actor),weapon=equipmentDef(actor.equipment.weapon),ranged=weapon?.ammoType;
- if(ranged&&!weapon.unlimitedAmmo&&type!=='fist')actor.equipmentAmmo.weapon=weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)-1;
+ spendAttackAmmo(actor,type);
  updateStatusEffects(now,d);awardAttackMastery(actor,d,type);
  const guarded=Math.random()*100>=droneAccuracy(def,type,actor),hit=true,bonus=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.damageBonus||0;
  const attack=totalStat('attack',actor,now)-(ranged&&type==='fist'?weaponAttackContribution(actor)*actorStatMultiplier('attack',actor,now):0)+attackRoll();
@@ -1826,7 +1857,7 @@ function rest(){toggleRecoveryMode('stamina')}
 // Shared damage entry point: future enemy-player attacks must also interrupt recovery.
 function receiveAttackDamage(amount,reason,killerId=null){
  syncMatchClock();if(matchClock.ended||matchClock.result||S.hp<=0)return;
- stopRecoveryMode();S.hp=Math.max(0,S.hp-Math.max(0,amount));
+ stopRecoveryMode();S.hp=Math.max(0,S.hp-endureDamage(S,Math.max(0,amount)));
  if(S.hp===0)eliminatePlayer(reason||'攻撃を受けて脱落しました。',killerId);
 }
 function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;hydrateItemArt();$('modalCloseBtn').textContent=S.pendingFound?'📦 残りをすべて保留':'✕ 閉じる';$('back').classList.add('on')};function closeModal(){S.corpseVisit=null;if(S.pendingFound){deferAllDiscoveries();return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
@@ -1943,6 +1974,7 @@ Object.assign(itemFallback,{"iron_sword":"🗡️","steel_sword":"🗡️","zant
 // Standalone replacement keeps the other three swords in the original atlas intact.
 itemArtSheets.hero_sword_v2='assets/icon_hero_sword_v2.webp';
 itemArt.hero_sword=['hero_sword_v2',0,'single'];
+for(const [id] of NEW_ACCESSORIES)itemFallback[id]=id.includes('quiver')?'🏹':id.includes('magazine')?'▣':'⚖️';
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
@@ -1988,7 +2020,7 @@ function showEquipment(){
   const id=equipped(slot),def=equipmentDef(id);
   const derived=id?recipes.filter(r=>Object.hasOwn(r.need,id)&&equipmentDef(r.id)):[];
   return `<div class="bp-equip-card"><b>${label}</b><div class="bp-equip-item">${id?itemIconHTML(id)+' '+names[id]+ammoLabel(id,S.equipmentAmmo[slot]):'未装備'}</div>
-  ${id?`<small>攻撃 +${(def.attack||0)+equipmentAttackBonus(S,slot)} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=def.capacity||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}${derived.length?`<button onclick="showRecipesFor('${id}',true)">🔧 派生装備（${derived.length}件）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
+  ${id?`<small>攻撃 +${(def.attack||0)+equipmentAttackBonus(S,slot)} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=weaponCapacity(id,S)||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}${derived.length?`<button onclick="showRecipesFor('${id}',true)">🔧 派生装備（${derived.length}件）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
  const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
  modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${Math.round(totalStat('attack')*10)/10}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showComStatus()">開発用：COM行動確認</button>${matchClock.ended?'<button onclick="showMatchReport()">📊 試合の記録</button>':''}`);
@@ -2321,7 +2353,7 @@ function comEquipBetter(actor,now){
 }
 function reloadActor(actor,now=Date.now()){
  const id=actor.equipment.weapon,def=equipmentDef(id);if(!def?.ammoType||def.unlimitedAmmo)return 0;
- const loaded=weaponAmmo(id,actor.equipmentAmmo.weapon),amount=Math.min(def.capacity-loaded,actor.inventory[def.ammoType]||0);
+ const loaded=weaponAmmo(id,actor.equipmentAmmo.weapon),amount=Math.min(weaponCapacity(id,actor)-loaded,actor.inventory[def.ammoType]||0);
  if(amount<=0||!takeFromBag(def.ammoType,amount,actor))return 0;
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.equipmentAmmo.weapon=loaded+amount;bumpMatchStat(actor,'reloads');recordMatchEvent(actor,'reload',names[id]+'に'+amount+'発装填',now);return amount;
 }
@@ -2429,7 +2461,7 @@ function stepCom(actor,now){
  if(actor.character==='raku'&&modifyEquippedWeapon(actor,now))return;
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
- if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=Math.floor((equipmentDef(actor.equipment.weapon)?.capacity||0)/4)&&reloadActor(actor,now)){comLog(actor,(comAmmoType(actor)==='bullets'?'銃弾':'矢')+'を補充・装填',now);return}
+ if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=Math.floor(weaponCapacity(actor.equipment.weapon,actor)/4)&&reloadActor(actor,now)){comLog(actor,(comAmmoType(actor)==='bullets'?'銃弾':'矢')+'を補充・装填',now);return}
  for(const id of plan.crafts){const r=recipes.find(x=>x.id===id);if(!craftConsumption(r,actor))continue;
   if(craftActor(actor,r,now)){actor.noProgress=0;comLog(actor,'目標のため制作：'+names[id],now);return}
   if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return;
@@ -2488,7 +2520,7 @@ function updateComActors(now){
 function showComStatus(){
  modal('開発用：COM行動確認','<p>プレイヤー＋COM9人の10人戦。選ばなかった9人がCOMとして参加します。それぞれの制作ルートで、素材・死体・ドローンを共有します。対人戦・最後の1人の勝利判定を接続済み。能力値と成長はキャラクターごとに異なります。装備の性能・特殊効果はプレイヤーと共通です。</p>'+comActors.map(a=>{
   const plan=comCurrentPlan(a),ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t,a)]).join(' ／ ');
-  return '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ Lv.'+a.level+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+'</p><p>目標：'+(a.goal?names[a.goal]:'物資・回復の確保')+'<br>不足：'+(Object.entries(plan.missing).map(([id,n])=>names[id]+' ×'+n).join('、')||'なし')+'</p><p>武器：'+(names[a.equipment.weapon]||'なし')+ammoLabel(a.equipment.weapon,a.equipmentAmmo.weapon)+'<br>'+ranks+'</p><p>装備：'+Object.values(a.equipment).filter(Boolean).map(id=>names[id]).join('、')+'<br>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-20).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('');
+  return '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ Lv.'+a.level+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+'</p><p>目標：'+(a.goal?names[a.goal]:'物資・回復の確保')+'<br>不足：'+(Object.entries(plan.missing).map(([id,n])=>names[id]+' ×'+n).join('、')||'なし')+'</p><p>武器：'+(names[a.equipment.weapon]||'なし')+ammoLabel(a.equipment.weapon,a.equipmentAmmo.weapon,a)+'<br>'+ranks+'</p><p>装備：'+Object.values(a.equipment).filter(Boolean).map(id=>names[id]).join('、')+'<br>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-20).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('');
  }).join('')+'<button onclick="showComStatus()">更新</button>');
 }
 
