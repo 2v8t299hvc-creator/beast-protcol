@@ -1639,16 +1639,22 @@ function renderCorpse(){
  const cards=Array.from({length:12},(_,i)=>{
   const item=c.items[i];if(!item)return '<div class="bp-corpse-item empty"><span>—</span><small>空き枠</small></div>';
   const room=canReceive(item.id,S.bag,item.count);
-  return `<button class="bp-corpse-item" onclick="takeCorpseItem(${i},${visit.token})" ${room?'':'disabled'}>${itemIconHTML(item.id)}<strong>${names[item.id]||item.id}</strong><small>×${item.count} ${ammoLabel(item.id,item.ammo||0)}</small>${room?'':`<small class="bp-corpse-full">全量を収納できません</small>`}</button>`;
+  return `<button class="bp-corpse-item" onclick="takeCorpseItem(${i},${visit.token})" >${itemIconHTML(item.id)}<strong>${names[item.id]||item.id}</strong><small>×${item.count} ${ammoLabel(item.id,item.ammo||0)}</small>${room?'':`<small class="bp-corpse-full">📦 区域のストックへ置く</small>`}</button>`;
  }).join('');
- modal('死体：'+c.name,`<div class="bp-corpse-panel"><p>この発見で取得できるのは<strong>1枠</strong>です。選んだスタックをまとめて取得します。</p><div id="corpseLifetime" class="small">${c.kind==='drone'?'消滅まで '+formatTime(Math.max(0,Math.ceil((c.expiresAt-Date.now())/1000))):'試合終了まで残ります'}</div><div class="bp-corpse-grid">${cards}</div><button onclick="showBag()">🎒 所持品を整理する</button><p class="small">残った品は、この区画で死体を再発見すると取得できます。</p></div>`);
+ modal('死体：'+c.name,`<div class="bp-corpse-panel"><p>この発見で取得できるのは<strong>1枠</strong>です。選んだスタックをまとめて取得します。バッグに入らない品は、この区域のストックへ置きます。</p><div id="corpseLifetime" class="small">${c.kind==='drone'?'消滅まで '+formatTime(Math.max(0,Math.ceil((c.expiresAt-Date.now())/1000))):'試合終了まで残ります'}</div><div class="bp-corpse-grid">${cards}</div><p class="small">残った品は、この区画で死体を再発見すると取得できます。</p></div>`);
 }
 function takeCorpseItem(index,token){
  if(!allowCorpseAction()||S.busy||S.enemy||!S.corpseVisit||S.corpseVisit.token!==token)return;
  const c=findCorpse(S.corpseVisit.id);if(!c||c.area!==S.place)return;
  const item=c.items[index];if(!item)return;
  const packed=addToStacks(S.bag,item.id,item.count,item);
- if(!packed){toast('所持品に全量入りません。所持品を整理してください');return}
+ if(!packed){
+  const pile={...item,uid:S.place+':corpse-drop:'+(++droppedSerial),area:S.place,taken:false,dropped:true,...(item.effects?{effects:{...item.effects}}:{})};
+  (regionObjects[S.place]||(regionObjects[S.place]=[])).push(pile);regionSeen[S.place]?.clear();pushStock(pile);
+  c.items.splice(index,1);S.corpseVisit=null;
+  addLog(c.name+'の死体から'+names[item.id]+' ×'+item.count+'を区域のストックへ置いた');
+  closeModal();refresh();toast('ストックへ：'+names[item.id]+' ×'+item.count);return;
+ }
  S.bag=packed;syncInventory();c.items.splice(index,1);S.corpseVisit=null;
  addLog(c.name+'の死体から'+names[item.id]+' ×'+item.count+'を取得した');closeModal();refresh();toast('取得：'+names[item.id]+' ×'+item.count);
 }
