@@ -1975,6 +1975,15 @@ Object.assign(itemFallback,{"iron_sword":"🗡️","steel_sword":"🗡️","zant
 itemArtSheets.hero_sword_v2='assets/icon_hero_sword_v2.webp';
 itemArt.hero_sword=['hero_sword_v2',0,'single'];
 for(const [id] of NEW_ACCESSORIES)itemFallback[id]=id.includes('quiver')?'🏹':id.includes('magazine')?'▣':'⚖️';
+itemArtSheets.acc_quiver='assets/accessories/quiver.webp';itemArt.quiver=['acc_quiver',0,'single'];
+itemArtSheets.acc_sturdy_quiver='assets/accessories/sturdy_quiver.webp';itemArt.sturdy_quiver=['acc_sturdy_quiver',0,'single'];
+itemArtSheets.acc_snakeskin_quiver='assets/accessories/snakeskin_quiver.webp';itemArt.snakeskin_quiver=['acc_snakeskin_quiver',0,'single'];
+itemArtSheets.acc_magic_quiver='assets/accessories/magic_quiver.webp';itemArt.magic_quiver=['acc_magic_quiver',0,'single'];
+itemArtSheets.acc_artemis_quiver='assets/accessories/artemis_quiver.webp';itemArt.artemis_quiver=['acc_artemis_quiver',0,'single'];
+itemArtSheets.acc_apollo_quiver='assets/accessories/apollo_quiver.webp';itemArt.apollo_quiver=['acc_apollo_quiver',0,'single'];
+itemArtSheets.acc_simple_magazine='assets/accessories/simple_magazine.webp';itemArt.simple_magazine=['acc_simple_magazine',0,'single'];
+itemArtSheets.acc_auto_magazine='assets/accessories/auto_magazine.webp';itemArt.auto_magazine=['acc_auto_magazine',0,'single'];
+itemArtSheets.acc_life_death_scales='assets/accessories/life_death_scales.webp';itemArt.life_death_scales=['acc_life_death_scales',0,'single'];
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
