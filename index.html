@@ -744,7 +744,7 @@ function renderOpponentEquipment(opponent){
  panel.innerHTML=Object.entries(EQUIPMENT_SLOTS).map(([slot,label])=>{const id=opponent.equipment[slot];return id?`<button class="bp-enemy-slot" onclick="showOpponentEquipment('${slot}')" aria-label="${escapeCorpseText(label+'：'+names[id])}"><small>${label}</small>${itemIconHTML(id)}<b>${escapeCorpseText(names[id])}</b></button>`:`<div class="bp-enemy-slot empty"><small>${label}</small><span>—</span><b>なし</b></div>`}).join('');hydrateItemArt();
 }
 function showOpponentEquipment(slot){
- const opponent=S.enemy&&S.enemyPlayerId&&findActor(S.enemyPlayerId),id=opponent?.equipment?.[slot];if(!id)return;
+ const opponent=S.enemy&&S.enemyPlayerId&&S.encounterSnapshot,id=opponent?.equipment?.[slot];if(!id)return;
  const def=equipmentDef(id),effect=EQUIPMENT_SPECIAL_EFFECTS[id];
  modal('相手の装備：'+EQUIPMENT_SLOTS[slot],'<div class="bp-opponent-detail">'+itemIconHTML(id)+'<h3>'+escapeCorpseText(names[id])+'</h3><p>攻撃 '+((def.attack||0)+equipmentAttackBonus(opponent,slot))+' ／ 防御 '+(def.defense||0)+'</p>'+(effect?'<p>'+escapeCorpseText(effect.name+'：'+effect.description)+'</p>':'')+'</div>');
 }
@@ -772,7 +772,7 @@ function renderDeathNotices(){
 function renderCombat(){
  const fighting=!!S.enemy;
  $('game').classList.toggle('in-combat',fighting);$('enemy').classList.toggle('on',fighting);
- const opponent=S.enemyPlayerId&&findActor(S.enemyPlayerId);
+ const opponent=S.enemyPlayerId&&S.encounterSnapshot;
  const def=opponent?{name:actorName(opponent),hp:actorMax(opponent,'hp'),art:actorArt(opponent)}:DRONE_DEFS[S.enemyKind];
  $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?(opponent.character==='raku'?'🦝':opponent.character==='kankan'?'🐼':opponent.character==='zakuro'?'🦎':opponent.character==='bat'?'🦇':opponent.character==='jerk'?'🐋':opponent.character==='flugel'?'🦊':opponent.character==='bjorn'?'🐰':opponent.character==='snow_leopard'?'🐆':opponent.character==='kaito'?'🐕':'🦅'):'🛰️';
  if(def&&$('enemyArt').getAttribute('src')!==def.art){$('enemyArt').hidden=false;$('enemyFallback').hidden=true;$('enemyArt').src=def.art;$('enemyArt').alt=def.name;}
@@ -1340,7 +1340,8 @@ function enemyDiscoveryBonus(actor){return Object.values(actor.equipment||{}).re
 function droneDiscoveryRate(actor=S){return Math.min(1,DRONE_DISCOVERY_RATE+enemyDiscoveryBonus(actor))}
 function chooseLocalOpponent(actor){const local=localOpponents(actor);return local.length===1?local[0]:local.length?local[rand(local.length)]:null}
 function actorDiscoveryRate(target,searcher=S,now=Date.now()){return Math.max(0,Math.min(1,PLAYER_DISCOVERY_RATE-(target.character==='bat'&&isNightAt(now)?.07:0)+enemyDiscoveryBonus(searcher)+Object.values(target.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.discoveryRateBonus||0),0)))}
-function clearPlayerEncounter(){S.enemy=false;S.enemyPlayerId=null;S.pvpPending=null;S.pvpFeedback=null;S.busy=false;S.actionToken=(S.actionToken||0)+1}
+function captureEncounter(target){return JSON.parse(JSON.stringify(target))}
+function clearPlayerEncounter(){S.encounterSnapshot=null;S.contactExpiresAt=0;S.enemy=false;S.enemyPlayerId=null;S.pvpPending=null;S.pvpFeedback=null;S.busy=false;S.actionToken=(S.actionToken||0)+1}
 function interruptForPlayerEncounter(){
  stopRecoveryMode();S.actionToken=(S.actionToken||0)+1;S.busy=false;S.corpseVisit=null;
  if(S.pendingFound){pushStock(S.pendingFound);S.pendingFound=null}for(const obj of S.discoveryQueue||[])if(!obj.taken)pushStock(obj);S.discoveryQueue=[];
@@ -1349,7 +1350,7 @@ function interruptForPlayerEncounter(){
 function discoverOpponent(target,incoming=false){
  if(!pvpEnabled()||!target||target.hp<=0||target.place!==S.place||S.hp<=0)return false;
  if(!incoming&&(S.busy||S.pendingFound||S.corpseVisit||S.enemy))return false;
- interruptForPlayerEncounter();S.enemy=true;S.enemyPlayerId=target.id;S.enemyKind=null;S.ehp=target.hp;
+ interruptForPlayerEncounter();S.enemy=true;S.enemyPlayerId=target.id;S.enemyKind=null;S.ehp=target.hp;S.encounterSnapshot=captureEncounter(target);S.contactExpiresAt=Date.now()+5000;
  addLog(actorName(target)+(incoming?'から攻撃を受けた！':'を発見！ 攻撃するか逃走しよう。'));refresh();return true;
 }
 function escapeOpponent(){
@@ -1451,16 +1452,12 @@ function updatePvpTimeline(now){
   if(!target||target.hp<=0||target.place!==S.place||S.hp<=0){clearPlayerEncounter();return}
   const result=playerCombatRound(S,target,pending.dueAt,false,pending.skillId);if(matchClock.ended)return;
   if(!result){S.busy=false;return}
-  S.ehp=target.hp;S.busy=true;S.pvpFeedback={until:pending.dueAt+COMBAT_FEEDBACK_MS,corpseId:result.corpse?.id||null};setTimeout(tickMatchClock,COMBAT_FEEDBACK_MS);
+  S.ehp=target.hp;S.encounterSnapshot=captureEncounter(target);S.busy=true;S.pvpFeedback={until:pending.dueAt+COMBAT_FEEDBACK_MS,corpseId:result.corpse?.id||null};setTimeout(tickMatchClock,COMBAT_FEEDBACK_MS);
  }
  if(S.pvpFeedback&&S.pvpFeedback.until<=now){
-  const corpseId=S.pvpFeedback.corpseId;
-  S.pvpFeedback=null;S.busy=false;
-  const target=findActor(S.enemyPlayerId);
-  if(corpseId||!target||target.hp<=0||target.place!==S.place||S.hp<=0){clearPlayerEncounter();if(corpseId)openCorpse(corpseId)}
-  else S.ehp=target.hp; // Keep a living local contact visible between player attacks.
+  const corpseId=S.pvpFeedback.corpseId;clearPlayerEncounter();if(corpseId)openCorpse(corpseId);
  }
- if(S.enemyPlayerId&&!S.pvpPending&&!S.pvpFeedback){const target=findActor(S.enemyPlayerId);if(!target||target.hp<=0||target.place!==S.place)clearPlayerEncounter();else S.ehp=target.hp}
+ if(S.enemyPlayerId&&!S.pvpPending&&!S.pvpFeedback&&now>=(S.contactExpiresAt||0))clearPlayerEncounter(); // Last sighting expires on time, never on hidden movement.
 }
 // COM awareness is earned by its own paid search, independently of the player's discovery.
 function observeOpponent(actor,target,now){
