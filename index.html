@@ -558,9 +558,9 @@ function updateBodyTreatment(actor,now){
 }
 function beginBodyTreatment(actor,part,now){
  if(!hasBodyInjury(actor,part)||actor.hp<=0)return false;
- actor.bodyTreatment={part,place:actor.place,dueAt:now+10000};
+ actor.bodyTreatment={part,place:actor.place,dueAt:now+bodyTreatmentDuration(actor)};
  if(actor===S){actor.recoveryMode='injury';actor.recoveryTickAt=now}
- const text=BODY_INJURIES[part].name+'の治療開始（10秒）';if(actor===S)addLog(text);else comLog(actor,text,now);return true;
+ const text=BODY_INJURIES[part].name+'の治療開始（'+bodyTreatmentDuration(actor)/1000+'秒）';if(actor===S)addLog(text);else comLog(actor,text,now);return true;
 }
 function treatBodyInjury(part){
  if(!allowMatchAction()||S.busy||S.enemy||S.pendingFound||S.corpseVisit)return;
@@ -678,7 +678,7 @@ function actorCriticalChance(actor,type=actor?actorWeaponType(actor):null,now=Da
 function rollCritical(actor=null,type,now=Date.now()){const chance=actorCriticalChance(actor,type,now);return chance>0&&Math.random()>=1-chance}
 function guardDamage(damage){return Math.max(1,Math.floor(damage*0.5))}
 function criticalDamage(damage,critical,actor=null){return critical?Math.max(1,Math.floor(damage*(actor?EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.criticalMultiplier||CRITICAL_MULTIPLIER:CRITICAL_MULTIPLIER))):damage}
-function treatmentRate(actor=S){return RECOVERY_MODE_RATES.hp+(actor.character==='kankan'?1:0)+(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.treatmentBonus||0)}
+function treatmentRate(actor=S){const override=Math.max(0,...Object.values(actor.equipment||{}).map(id=>EQUIPMENT_SPECIAL_EFFECTS[id]?.treatmentOverride||0));if(override)return override;return RECOVERY_MODE_RATES.hp+(actor.character==='kankan'?1:0)+(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.treatmentBonus||0)}
 function attackRoll(){return rand(3)-1}
 function combatDamage(attack,defense,type,other=1,actor=S){return Math.max(1,Math.floor(damageAfterDefense(attack,defense)*MASTERY_MULTIPLIERS[masteryRank(type,actor)]*other))}
 function addMastery(type,amount,actor=S){if(!WEAPON_TYPES[type]||amount<=0)return;const before=masteryRank(type,actor);actor.masteryAttacks[type]=(actor.masteryAttacks[type]||0)+amount;const after=masteryRank(type,actor);if(after>before&&actor===S)addLog(WEAPON_TYPES[type]+'熟練度が'+MASTERY_RANKS[after]+'に上昇！')}
@@ -878,6 +878,19 @@ for(const [id,name,type,attack,base,effect,skill,description] of DRAGON_WEAPONS)
  EQUIPMENT_SPECIAL_EFFECTS[id]={...effect,name:skill,description,durabilityLossImmune:true};
  recipes.push({id,name,category:'weapon',desc:description,need:{drago_core:1,[base]:1}});
 }
+const DRAGON_ARMOR=[
+ ['dragon_suit','ドラゴンスーツ','body',100,{dragon_scale:1,suit:1},'legendary'],
+ ['dragon_sage_robe','龍賢者のローブ','body',88,{drago_core:1,apothecary_clothes:1},'legendary'],
+ ['scale_boots','鱗のブーツ','legs',15,{boots:1,fish_scale:1},'uncommon'],
+ ['dragon_scale_boots','逆鱗ブーツ','legs',40,{dragon_scale:1,scale_boots:1},'legendary']
+];
+for(const [id,name,slot,defense,need,rarity] of DRAGON_ARMOR){names[id]=name;RECIPE_RARITY[id]=rarity;EQUIPMENT_DEFS[id]={slot,attack:0,defense};recipes.push({id,name,category:'armor',desc:'防御＋'+defense,need})}
+Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{
+ dragon_sage_robe:{name:'超再生力',description:'HP治療の回復量が毎秒20になる。怪我の治療時間－9秒。',treatmentOverride:20,injuryTreatmentReduction:9000},
+ dragon_scale_boots:{name:'龍の翼',description:'探索時の消費スタミナ－1。',searchCostBonus:-1}
+});
+for(const [id,name,base,desc] of [['dragon_meat','ドラゴンミート','beast_meat','HP150回復'],['dragon_fruit','ドラゴンフルーツ','energy_fruit','スタミナ200回復']]){names[id]=name;RECIPE_RARITY[id]='epic';recipes.push({id,name,category:'item',count:4,desc,need:{dragon_scale:1,[base]:1}})}
+function bodyTreatmentDuration(actor=S){return Math.max(1000,10000-Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.injuryTreatmentReduction||0),0))}
 function recordWeaponReload(actor){if(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.weapon]?.reloadGrowth){const state=equipmentState(actor,'weapon');state.bonusAttack=(state.bonusAttack||0)+1;}}
 
 const FISH_ITEMS=new Set(['swordfish','minefish','porcupinefish','paradisefish']);
@@ -1851,7 +1864,7 @@ function skill(){
  if(S.enemy)return S.enemyPlayerId?escapeOpponent():ignoreDiscoveredDrone();
  if(S.bodyTreatment){stopRecoveryMode();refresh();return}
  const parts=Object.keys(BODY_INJURIES).filter(part=>hasBodyInjury(S,part));
- if(parts.length){if(!allowMatchAction()||S.busy||S.pendingFound||S.corpseVisit)return;modal('🩹 怪我の治療',parts.map(part=>'<p>'+BODY_INJURIES[part].name+'：'+BODY_INJURIES[part].effect+' <button onclick="treatBodyInjury(\''+part+'\')">10秒で治療</button></p>').join('')+'<button onclick="closeModal();toggleRecoveryMode(\'hp\')">HPを徐々に回復</button>');return}
+ if(parts.length){if(!allowMatchAction()||S.busy||S.pendingFound||S.corpseVisit)return;modal('🩹 怪我の治療',parts.map(part=>'<p>'+BODY_INJURIES[part].name+'：'+BODY_INJURIES[part].effect+' <button onclick="treatBodyInjury(\''+part+'\')">'+bodyTreatmentDuration(S)/1000+'秒で治療</button></p>').join('')+'<button onclick="closeModal();toggleRecoveryMode(\'hp\')">HPを徐々に回復</button>');return}
  toggleRecoveryMode('hp');
 }
 const RECOVERY_COOLDOWN_MS=3000;
@@ -1866,7 +1879,7 @@ const RECOVERY_ITEMS={
 };
 Object.assign(RECOVERY_ITEMS,{"roast_meat":{"group":"hp","amount":80},"smoked_meat":{"group":"hp","amount":60},"medium_ration":{"group":"hp","amount":40},"boiled_egg":{"group":"hp","amount":60},"rock_salt":{"group":"hp","amount":5},"seasoned_egg":{"group":"hp","amount":60},"fried_egg":{"group":"hp","amount":50},"salted_meat":{"group":"hp","amount":20},"steak":{"group":"hp","amount":150},"small_flower":{"group":"hp","amount":4},"medium_healing_potion":{"group":"hp","amount":60},"advanced_healing_potion":{"group":"hp","amount":90},"premium_ration":{"group":"hp","amount":80}});
 Object.assign(RECOVERY_ITEMS,{"energy_fruit":{"group":"stamina","amount":10},"milk":{"group":"stamina","amount":20},"hot_milk":{"group":"stamina","amount":20},"fruit_milk":{"group":"stamina","amount":50},"stamina_potion":{"group":"stamina","amount":30},"advanced_stamina_potion":{"group":"stamina","amount":80},"soda":{"group":"stamina","amount":40},"fruit_punch":{"group":"stamina","amount":60},"craft_cola":{"group":"stamina","amount":150},"drink":{"group":"stamina","amount":20},"energy_drink":{"group":"stamina","amount":50}});
-Object.assign(RECOVERY_ITEMS,{bandage:{group:'hp',amount:25}});
+Object.assign(RECOVERY_ITEMS,{dragon_meat:{group:'hp',amount:150},dragon_fruit:{group:'stamina',amount:200},bandage:{group:'hp',amount:25}});
 function recoveryWait(group,now=Date.now()){return Math.max(0,(S.recoveryReadyAt[group]||0)-now,(S.frozenUntil||0)-now)}
 function recoveryButtonHTML(id,label){
  const group=RECOVERY_ITEMS[id].group,wait=recoveryWait(group);
@@ -1977,6 +1990,7 @@ const itemArtSheets={
  water_gear_3:'assets/icon_water_gear_3.png'
 };
 Object.assign(itemArtSheets,{"guns_1":"assets/icon_guns_1.webp","guns_2":"assets/icon_guns_2.webp","bows_1":"assets/icon_bows_1.webp","bows_2":"assets/icon_bows_2.webp","bows_3":"assets/icon_bows_3.webp","optics":"assets/icon_optics.webp","hides_feathers":"assets/icon_hides_feathers.webp","ranged_materials":"assets/icon_ranged_materials.webp","ammo":"assets/icon_ammo.webp"});
+Object.assign(itemArt,{dragon_suit:['body_01',0],dragon_sage_robe:['body_02',1],scale_boots:['drone_drops_1',1],dragon_scale_boots:['dragon_dragon_scale',0,'single'],dragon_meat:['drone_drops_1',2],dragon_fruit:['stamina_01',0]});
 const itemFallback={water:'💧',hotwater:'♨️',seaweed:'🌿',seaweed_soup:'🍲',swimsuit:'🩳',bikini_pants:'🩳',passion_bikini:'🩳',rubber:'⚫',rubber_gloves:'🧤',rubber_suit:'🦺',insulated_suit:'🦺',charged_suit:'⚡',glue:'🧴',oil:'🛢️',heated_oil:'🫕',swordfish:'🐟',minefish:'🐡',porcupinefish:'🐡',paradisefish:'🐠',wood_sword:'🗡️',survival_knife:'🔪',sea_sword:'⚔️',fried_swordfish:'🍤',swordfish_sashimi:'🍣',minefish_sashimi:'🍣',needle_suit:'🦔',stinger_suit:'🦔',onyx_suit:'🛡️',paradise_sashimi:'🍣',paradise_platter:'🍱',paradise_broth:'🍵',ragglove:'🧤',glove:'🥊',reinforced:'🥊',plasma:'⚡',scrap:'🔩',cloth:'🧵',scissors:'✂️',charcoal:'⚫',core:'🔮',cell:'🔋',steel:'🔧',discharger:'⚡',armguard:'🛡️',ration:'🥪',drink:'🧃',kit:'🩹'};
 Object.assign(itemFallback,{"handgun":"🔫","hand_blaster":"🔫","magma_blaster":"🔫","rifle":"🔫","sniper_rifle":"🔫","laser_rifle":"🔫","cannon":"🔫","blizzard_cannon":"🔫","telescope":"🔭","optical_sight":"🔭","stargazing_telescope":"🔭","mythic_telescope":"🔭","japanese_bow":"🏹","strong_bow":"🏹","reinforced_wire":"➰","mighty_bow":"🏹","azusa_bow":"🏹","unerring_bow":"🏹","western_bow":"🏹","longbow":"🏹","silver_bow":"🏹","golden_bow":"🏹","angel_wing":"🪽","eros_bow":"🏹","amalgam_bow":"🏹","apollo_bow":"🏹","rubbery_hide":"🟤","gunpowder":"💥","wire":"➰","feather":"🪶","fur":"🐾","laurel":"🌿","bullets":"▥","arrows":"➶"});
 Object.assign(itemFallback,{egg:'🥚',fish_scale:'🔹',beast_meat:'🥩',premium_ration:'🥫',energy_drink:'🥤'});
@@ -2191,6 +2205,7 @@ const ITEM_CRAFT_GROUP={
 };
 Object.assign(ITEM_CRAFT_GROUP,{"roast_meat":"recovery","smoked_meat":"recovery","medium_ration":"recovery","boiled_egg":"recovery","rock_salt":"recovery","seasoned_egg":"recovery","fried_egg":"recovery","salted_meat":"recovery","steak":"recovery","small_flower":"recovery","medium_healing_potion":"recovery","advanced_healing_potion":"recovery","premium_ration":"recovery"});
 Object.assign(ITEM_CRAFT_GROUP,{"energy_fruit":"recovery","milk":"recovery","hot_milk":"recovery","fruit_milk":"recovery","stamina_potion":"recovery","advanced_stamina_potion":"recovery","soda":"recovery","fruit_punch":"recovery","craft_cola":"recovery","drink":"recovery","energy_drink":"recovery"});
+Object.assign(ITEM_CRAFT_GROUP,{dragon_meat:'recovery',dragon_fruit:'recovery'});
 let selectedCraftSubcategory=null;
 function recipeSubcategory(r){
  if(r.category==='weapon')return EQUIPMENT_DEFS[r.id]?.weaponType||'fist';
