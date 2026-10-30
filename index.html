@@ -1040,14 +1040,31 @@ function renderDayNight(now=Date.now()){
 function shuffledAreas(areas){
  const copy=[...areas];for(let i=copy.length-1;i>0;i--){const j=rand(i+1);[copy[i],copy[j]]=[copy[j],copy[i]]}return copy;
 }
+const NORMAL_DRONE_KINDS=['bird','fish','dog','humanoid','scorpion','octopus'];
 function planNextBlocked(section,blocked){
  if(section>=10)return [];
  const target=SECTION_RULES[section+1].blocked,areas=Object.keys(regionStock);
  if(!target)return [];
- // Sections 2-4 rotate; section 5 starts a fresh, disjoint permanent set of four.
  const retained=section>=5?[...blocked]:[];
- const candidates=areas.filter(area=>!blocked.includes(area));
- return retained.concat(shuffledAreas(candidates).slice(0,target-retained.length));
+ const candidates=shuffledAreas(areas.filter(area=>!blocked.includes(area))),count=target-retained.length;
+ const groups=NORMAL_DRONE_KINDS.map(kind=>DRONE_DEFS[kind].areas);
+ let best=null,bestCoverage=-1,ties=0;
+ function visit(index,picked){
+  if(picked.length===count){
+   if(groups.some(group=>group.filter(area=>picked.includes(area)).length>2))return;
+   const result=retained.concat(picked);
+   const coverage=section>=4?groups.filter(group=>group.some(area=>!result.includes(area))).length:0;
+   if(coverage>bestCoverage){bestCoverage=coverage;best=[...result];ties=1}
+   else if(coverage===bestCoverage&&Math.random()<1/(++ties))best=[...result];
+   return;
+  }
+  for(let i=index;i<=candidates.length-(count-picked.length);i++){
+   picked.push(candidates[i]);visit(i+1,picked);picked.pop();
+  }
+ }
+ visit(0,[]);
+ // Preserve the scheduled closure count if constraints are ever impossible (e.g. final closure).
+ return best||retained.concat(candidates.slice(0,count));
 }
 function initializeMatch(now=Date.now()){
  matchClock={startedAt:now,competitive:true,section:0,sectionEndsAt:now+SECTION_RULES[0].seconds*1000,blocked:[],nextBlocked:[],ended:false,result:null};
@@ -1084,6 +1101,7 @@ function syncMatchClock(now=Date.now()){
   if(matchClock.section===0&&S.place==='待機所'&&!matchClock.result)eliminatePlayer('30秒以内に待機所から出発しなかったため脱落しました。',null,boundaryAt);
   matchClock.section++;
   matchClock.blocked=[...matchClock.nextBlocked];
+  killBlockedDrones(boundaryAt);
   for(const actor of comActors)if(actor.hp>0&&(isBlocked(actor.place)||actor.place==='待機所'))eliminateCom(actor,'区域封鎖・出発期限',matchClock.sectionEndsAt);
   if(matchClock.section===10){matchClock.resolvingBoundary=false;finishMatch(boundaryAt);return}
   matchClock.sectionEndsAt+=SECTION_RULES[matchClock.section].seconds*1000;
@@ -1150,12 +1168,21 @@ const drones={};
 function initializeDrones(){
  for(const [kind,def] of Object.entries(DRONE_DEFS))drones[kind]={kind,level:def.level,hp:0,area:null,spawned:false,generation:0,respawnAt:matchClock.startedAt+SECTION_RULES.slice(0,def.section).reduce((n,r)=>n+r.seconds,0)*1000};
 }
+function killBlockedDrones(now){
+ for(const kind of NORMAL_DRONE_KINDS){
+  const d=drones[kind];if(!d?.spawned||!isBlocked(d.area))continue;
+  d.hp=0;d.spawned=false;d.area=null;d.closureDeathAt=now;d.respawnAt=now+DRONE_DEFS[kind].respawn*1000;
+  for(let i=delayedDroneCounters.length-1;i>=0;i--)if(delayedDroneCounters[i].kind===kind)delayedDroneCounters.splice(i,1);
+  if(S.enemy&&!S.enemyPlayerId&&S.enemyKind===kind){S.enemy=false;S.enemyKind=null;S.busy=false;S.actionToken++;addLog(DRONE_DEFS[kind].name+'は区域封鎖で停止した')}
+ }
+}
 function updateDrones(now=Date.now()){
  if(!matchClock||matchClock.ended)return;
+ killBlockedDrones(now);
  for(const [kind,d] of Object.entries(drones)){
   const def=DRONE_DEFS[kind];updateStatusEffects(now,d);if(matchClock.section<def.section)continue;
   const safe=def.areas.filter(a=>!isBlocked(a));
-  if(d.spawned){if(!safe.includes(d.area))d.area=safe.length?safe[rand(safe.length)]:null;}
+  if(d.spawned){continue;} // Existing normal drones die at closure, never relocate.
   else if(now>=d.respawnAt&&safe.length){d.spawned=true;d.hp=def.hp;d.frozenUntil=0;d.slowUntil=0;d.slowActionDelayMs=0;d.injuryUntil=0;d.injurySourceId=null;d.bodyInjuries={};d.postureBreaks={};d.biteUntil=0;d.biteSourceId=null;d.statusEffects={};d.area=safe[rand(safe.length)];d.generation++;}
  }
 }
