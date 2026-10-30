@@ -1391,6 +1391,10 @@ function trackActorAttack(attacker,target,result,now,kind){
  bumpMatchStat(attacker,kind==='player'?'pvpAttacks':'droneAttacks');bumpMatchStat(attacker,'hits',result.hit?1:0);bumpMatchStat(attacker,'guardedAttacks',result.guarded?1:0);if(result.guarded)bumpMatchStat(target,'guards');bumpMatchStat(attacker,'damageDealt',result.dealt||0);bumpMatchStat(attacker,'healed',result.healing||0);
  if(kind==='player'){
   bumpMatchStat(target,'damageTaken',result.dealt||0);bumpMatchStat(attacker,'damageTaken',result.reflectedTaken||0);bumpMatchStat(target,'damageDealt',result.reflectedTaken||0);
+  if(result.dealt>0&&target!==S){
+   target.restMode=null;cancelBodyTreatment(target);
+   target.recentThreat={id:attacker.id,area:target.place,seenAt:now,source:'attack',observerVisit:target.locationVersion||0,targetVisit:attacker.locationVersion||0};target.opponent={...target.recentThreat};
+  }
   if(result.hit&&result.damage>0){target.observedOpponents||={};target.observedOpponents[attacker.id]={damage:result.damage,weapon:attacker.equipment.weapon,level:attacker.level,defense:totalStat('defense',target,now),body:target.equipment.body,head:target.equipment.head,at:now}}
  }
 }
@@ -1459,10 +1463,11 @@ function handleComCombatDecision(actor,target,now,kind){
  if(kind==='player'&&!hasObservedOpponent(actor,target,now))return false;
  const decision=evaluateCombat(actor,target,now,kind);logCombatDecision(actor,target,decision,now,kind);
  if(decision.action==='retreat'&&safeComRetreat(actor,now)){
+  actor.dangerAreas||={};actor.dangerAreas[actor.place]=now+90000;
   if(kind==='drone'){actor.enemy=null;actor.leaveDanger=true;actor.retreatReason=decision.reason}
   else{
-   actor.dangerAreas||={};actor.dangerAreas[actor.place]=now+15000;
-   if(!comMove(actor,now,'対戦相手から撤退：'+decision.reason))return false;
+   actor.dangerAreas||={};actor.dangerAreas[actor.place]=now+90000;
+   if(!comMove(actor,now,'対戦相手から撤退：'+decision.reason,undefined,true))return false;
   }
   bumpMatchStat(actor,'retreats');recordMatchEvent(actor,'retreat',decision.reason,now);comLog(actor,'撤退：'+decision.reason,now);return true;
  }
@@ -1614,11 +1619,11 @@ function observeOpponent(actor,target,now){
  actor.opponent={id:target.id,area:actor.place,seenAt:now,source:'search',observerVisit:actor.locationVersion||0,targetVisit:target.locationVersion||0};recordMatchEvent(actor,'discovery',actorName(target)+'を索敵で発見',now);return true;
 }
 function hasObservedOpponent(actor,target,now){
- const ref=actor.opponent;return !!(target&&ref&&ref.source==='search'&&ref.id===target?.id&&ref.area===actor.place&&target.place===actor.place&&target.hp>0&&ref.seenAt<=now&&ref.observerVisit===(actor.locationVersion||0)&&ref.targetVisit===(target.locationVersion||0));
+ const ref=actor.opponent;return !!(target&&ref&&(ref.source==='search'||ref.source==='attack'&&now-ref.seenAt<=8000)&&ref.id===target?.id&&ref.area===actor.place&&target.place===actor.place&&target.hp>0&&ref.seenAt<=now&&ref.observerVisit===(actor.locationVersion||0)&&ref.targetVisit===(target.locationVersion||0));
 }
 function invalidateLocationSight(actor){
  resetFightingInstinct(actor);
- actor.locationVersion=(actor.locationVersion||0)+1;actor.opponent=null;
+ actor.locationVersion=(actor.locationVersion||0)+1;actor.opponent=null;actor.recentThreat=null;
  for(const other of comActors)if(other.opponent?.id===actor.id)other.opponent=null;
 }
 function comFightOpponent(actor,now){
@@ -2500,13 +2505,16 @@ function reloadActor(actor,now=Date.now()){
  if(amount<=0||!takeFromBag(def.ammoType,amount,actor))return 0;
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.equipmentAmmo.weapon=loaded+amount;recordWeaponReload(actor);bumpMatchStat(actor,'reloads');recordMatchEvent(actor,'reload',names[id]+'に'+amount+'発装填',now);return amount;
 }
-function comMove(actor,now,reason,plan=comCurrentPlan(actor)){
+function comMove(actor,now,reason,plan=comCurrentPlan(actor),retreat=false){
  if(isMovementLocked(actor,now))return false;
  cancelBodyTreatment(actor);
  const legal=Object.keys(regionStock).filter(a=>a!==actor.place&&!isBlocked(a)&&!nextClosingAreas().includes(a));
  if(!legal.length)return false;
  // Remember only areas this actor actually retreated from. A shrinking map may force a return.
  const safer=legal.filter(area=>(actor.dangerAreas?.[area]||0)<=now);
+ // Do not bounce from a safe area into the only remembered danger merely for materials.
+ const forced=retreat||actor.leaveDanger||isBlocked(actor.place)||nextClosingAreas().includes(actor.place);
+ if(!safer.length&&!forced)return false;
  const safe=safer.length?safer:legal;
  const needs=Object.keys(plan.missing);
  if(!plan.recovery&&comAmmoType(actor)&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory[comAmmoType(actor)]||0)<20)needs.push(comAmmoType(actor));
@@ -2567,7 +2575,8 @@ function stepCom(actor,now){
  if(matchClock.section===0)return;
  let plan=comCurrentPlan(actor);
  if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=COM_POLICY.warningMs){comMove(actor,now,'封鎖予告を見て退避',plan);return}
- if(pvpEnabled()&&actor.opponent){comFightOpponent(actor,now);return}
+ if(pvpEnabled()&&!actor.opponent&&actor.recentThreat){actor.opponent={...actor.recentThreat};const target=findActor(actor.opponent.id);if(!hasObservedOpponent(actor,target,now)){actor.opponent=null;actor.recentThreat=null}}
+ if(pvpEnabled()&&actor.opponent){actor.restMode=null;cancelBodyTreatment(actor);comFightOpponent(actor,now);return}
  if(actor.enemy){comFight(actor,now);return}
  if(actor.leaveDanger){comMove(actor,now,'敵から離れる',plan);return}
  if(actor.bodyTreatment){if(!updateBodyTreatment(actor,now))return}
