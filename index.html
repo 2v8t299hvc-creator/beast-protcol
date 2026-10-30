@@ -240,7 +240,7 @@ function showCharacterSelection(id=selectedCharacter){
  selectedCharacter=id;
  const skills=CHARACTER_SKILLS[id],skillNames=[skills.passive&&'パッシブ：'+skills.passive.name,skills.field&&'フィールド：'+skills.field.name,skills.active&&'アクティブ：'+skills.active.name].filter(Boolean).join(' ／ ');
  $('characterSelect').hidden=false;
- $('characterSelectContent').innerHTML='<div class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>参加キャラクターを選択 ／ 残り9人がCOMで参戦</p></div><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></div><div class="bp-character-grid">'+PLAYABLE_CHARACTERS.map(c=>'<button class="bp-character-card" onclick="showCharacterSelection(\''+c.id+'\')" aria-pressed="'+(c.id===id)+'"><img src="'+actorArt({character:c.id})+'" alt="" draggable="false"><strong>'+c.name+'</strong><small>'+c.species+' ／ '+c.mastery+'</small></button>').join('')+'</div><div class="bp-select-detail"><h2>'+character.name+' ／ '+character.mastery+'</h2><p>'+character.summary+'</p><p>'+skillNames+'</p><p class="bp-select-note">開始ボタンを押すと準備時間30秒が始まります。練習用武器を選び、待機所から出発してください。ラクの得意武器は開始時に決まります。</p></div>';
+ $('characterSelectContent').innerHTML='<div class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>参加キャラクターを選択 ／ 残り9人がCOMで参戦</p></div><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></div><div class="bp-character-grid">'+PLAYABLE_CHARACTERS.map(c=>'<button class="bp-character-card" onclick="showCharacterSelection(\''+c.id+'\')" aria-pressed="'+(c.id===id)+'"><img src="'+actorArt({character:c.id})+'" alt="" draggable="false"><strong>'+c.name+'</strong><small>'+c.species+' ／ '+c.mastery+'</small></button>').join('')+'</div><div class="bp-select-detail"><h2>'+character.name+' ／ '+character.mastery+'</h2><p>'+character.summary+'</p><p>基礎能力（Lv1 → Lv15）：'+[['attack','攻撃'],['defense','防御'],['hp','HP'],['stamina','ST']].map(([key,label])=>label+' '+baseCharacterStat({character:id},key,1)+' → '+baseCharacterStat({character:id},key,15)).join(' ／ ')+'</p><p>'+skillNames+'</p><p class="bp-select-note">開始ボタンを押すと準備時間30秒が始まります。練習用武器を選び、待機所から出発してください。ラクの得意武器は開始時に決まります。</p></div>';
 }
 function startSelectedCharacter(){
  if(matchStarted)return;
@@ -266,7 +266,13 @@ const MASTERY_THRESHOLDS=[0,2,5,9,14,20,27,34,42,50,60,72,85,102,120];
 const MASTERY_WEAPON_FACTORS=[.45,.48,.54,.60,.625,.65,.70,.75,.80,.85,.90,.94,.97,.99,1];
 const MASTERY_MULTIPLIERS=[.90,.92,.94,1,1,1,1.18,1.40,1.70,1.86,2.02,2.18,2.34,2.50,2.65];
 // Provisional per-character growth configuration; additional characters can be registered here.
-const CHARACTER_GROWTH={kaito:{baseHp:180,hpGrowth:6,baseSt:120,stGrowth:4,baseAttack:11,attackGrowth:2.5,baseDefense:0,defenseGrowth:1}};
+const CHARACTER_STAT_TARGETS={"kaito":[18,57,17,54,140,230,135,200],"hayate":[17,54,15,50,125,205,150,220],"snow_leopard":[20,60,15,50,125,210,140,205],"bjorn":[17,54,19,58,145,240,130,190],"flugel":[19,59,16,52,130,215,140,210],"jerk":[20,60,17,54,150,250,120,180],"bat":[18,56,15,50,120,200,150,220],"zakuro":[16,52,20,60,135,225,135,200],"kankan":[18,56,19,58,150,250,120,180],"raku":[15,50,18,56,135,225,145,215]};
+const CHARACTER_GROWTH=Object.fromEntries(Object.entries(CHARACTER_STAT_TARGETS).map(([id,[a,z,d,e,h,j,t,u]])=>[id,{baseAttack:a,attackGrowth:(z-a)/14,baseDefense:d,defenseGrowth:(e-d)/14,baseHp:h,hpGrowth:(j-h)/14,baseSt:t,stGrowth:(u-t)/14}]));
+function baseCharacterStat(actor,stat,level=actor.level){
+ const g=CHARACTER_GROWTH[actor.character]||CHARACTER_GROWTH.kaito;
+ const [base,growth]=({attack:['baseAttack','attackGrowth'],defense:['baseDefense','defenseGrowth'],hp:['baseHp','hpGrowth'],stamina:['baseSt','stGrowth']})[stat];
+ return Math.round(g[base]+g[growth]*(Math.max(1,Math.min(15,level))-1));
+}
 const ACTOR_STATS=CHARACTER_GROWTH.kaito;
 const LEVEL_XP_STEPS=[20,25,30,35,40,45,50,55,60,65,70,75,80,85];
 const MAX_LEVEL=15;
@@ -285,11 +291,11 @@ Object.assign(RECIPE_RARITY,{"bracelet":"common","ruby_bracelet":"epic","gold_br
 Object.assign(RECIPE_RARITY,{"boots":"common","fur_boots":"uncommon","synthetic_boots":"rare","amalgam_boots":"epic","primal_boots":"epic","wing_boots":"common","spike_boots":"rare","diamond_boots":"epic","gear_boots":"rare","automation_boots":"epic","leg_cover":"uncommon","steel_leg_cover":"rare","energy_socks":"epic","small_gear":"common","large_gear":"uncommon","energy_gear":"rare"});
 Object.assign(RECIPE_RARITY,{"suit":"uncommon","royal_suit":"epic","sailor_suit":"rare","navy_suit":"epic","lab_coat":"common","apothecary_clothes":"uncommon","holy_robe":"rare","archangel_robe":"epic","doctor_suit":"uncommon","black_doctor_gown":"rare","mad_doctor_gown":"epic","fine_cloth":"uncommon","thread":"common","gold_thread":"rare","sea_thread":"uncommon","black_thread":"uncommon","herb_oil":"uncommon","poison_potion":"rare","herb":"common","healing_potion":"common"});
 const MASTERY_ACCURACY=[85,86,87,88,89,90,91,92,93,94,95,96,97,98,99];
-function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return stat==='hp'?growth.baseHp+growth.hpGrowth*(actor.level-1):growth.baseSt+growth.stGrowth*(actor.level-1)+Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.maxStaminaBonus||0),0)}
+function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return stat==='hp'?baseCharacterStat(actor,'hp'):baseCharacterStat(actor,'stamina')+Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.maxStaminaBonus||0),0)}
 function maxHp(){return actorMax(S,'hp')}
 function maxSt(){return actorMax(S,'stamina')}
 function levelProgress(){return S.level>=MAX_LEVEL?'MAX':S.xp+'/'+LEVEL_XP_STEPS[S.level-1]}
-function gainXp(amount,actor=S){if(actor.level>=MAX_LEVEL||amount<=0)return;actor.xp=Math.round((actor.xp+amount)*1000000)/1000000;while(actor.level<MAX_LEVEL&&actor.xp>=LEVEL_XP_STEPS[actor.level-1]){actor.xp-=LEVEL_XP_STEPS[actor.level-1];actor.level++;actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+(CHARACTER_GROWTH[actor.character]||ACTOR_STATS).hpGrowth+Math.ceil(actorMax(actor,'hp')*0.1));actor.st=Math.min(actorMax(actor,'stamina'),actor.st+(CHARACTER_GROWTH[actor.character]||ACTOR_STATS).stGrowth+Math.ceil(actorMax(actor,'stamina')*0.1));if(actor===S)addLog('レベルアップ！ Lv.'+actor.level+' HP・スタミナ回復');}if(actor.level>=MAX_LEVEL)actor.xp=0}
+function gainXp(amount,actor=S){if(actor.level>=MAX_LEVEL||amount<=0)return;actor.xp=Math.round((actor.xp+amount)*1000000)/1000000;while(actor.level<MAX_LEVEL&&actor.xp>=LEVEL_XP_STEPS[actor.level-1]){actor.xp-=LEVEL_XP_STEPS[actor.level-1];const previousHp=actorMax(actor,'hp'),previousSt=actorMax(actor,'stamina');actor.level++;actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+actorMax(actor,'hp')-previousHp+Math.ceil(actorMax(actor,'hp')*0.1));actor.st=Math.min(actorMax(actor,'stamina'),actor.st+actorMax(actor,'stamina')-previousSt+Math.ceil(actorMax(actor,'stamina')*0.1));if(actor===S)addLog('レベルアップ！ Lv.'+actor.level+' HP・スタミナ回復');}if(actor.level>=MAX_LEVEL)actor.xp=0}
 const SEARCH_REWARDS={emptyXpChance:0.30,emptyXp:2,doubleChance:0.15,tripleChance:0.05,killXpPerLevel:10};
 function enemyLevel(target){return Math.max(1,Math.floor(target?.level||DRONE_DEFS[target?.kind]?.level||1))}
 function awardEmptySearchXp(actor,now){
@@ -621,12 +627,12 @@ function judgmentDamage(target){return Object.keys(EQUIPMENT_SLOTS).filter(slot=
 function weaponAttackContribution(actor,factor=null){const def=equipmentDef(actor.equipment?.weapon);return (def?.attack||0)*(factor??MASTERY_WEAPON_FACTORS[masteryRank(def?.weaponType||'fist',actor)])}
 function totalStat(stat,actor=S,now=Date.now(),weaponFactor=null){
  const atk=stat==='attack',growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;
- const value=growth[atk?'baseAttack':'baseDefense']+growth[atk?'attackGrowth':'defenseGrowth']*(actor.level-1)+Object.entries(actor.equipment).reduce((n,[slot,id])=>n+(atk&&slot==='weapon'?weaponAttackContribution(actor,weaponFactor):(equipmentDef(id)?.[stat]||0))+(atk?equipmentAttackBonus(actor,slot):0),0);
+ const value=baseCharacterStat(actor,stat)+Object.entries(actor.equipment).reduce((n,[slot,id])=>n+(atk&&slot==='weapon'?weaponAttackContribution(actor,weaponFactor):(equipmentDef(id)?.[stat]||0))+(atk?equipmentAttackBonus(actor,slot):0),0);
  return value*actorStatMultiplier(stat,actor,now)+(stat==='defense'?actor.mineralMantleStacks||0:0)
 }
 function slashDamageMultiplier(actor,type){return type==='slash'?1-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.slashDamageReduction||0),0):1}
 // Tuned against Lv1 practice/naked, Lv8 rare/full and Lv15 epic/SS/full PvP builds.
-function damageAfterDefense(attack,defense){return Math.max(1,attack)*100/(100+Math.max(0,defense)*1.5)}
+function damageAfterDefense(attack,defense){return Math.max(1,attack-3)*100/(100+Math.max(0,defense)*1.4)}
 const BASE_CRITICAL_RATE=0.03,CRITICAL_MULTIPLIER=1.3;
 function actorCriticalChance(actor,type=actor?actorWeaponType(actor):null,now=Date.now()){
  const id=actor?.equipment?.weapon,def=equipmentDef(id);
@@ -2457,7 +2463,7 @@ function updateComActors(now){
  }
 }
 function showComStatus(){
- modal('開発用：COM行動確認','<p>プレイヤー＋COM9人の10人戦。選ばなかった9人がCOMとして参加します。それぞれの制作ルートで、素材・死体・ドローンを共有します。対人戦・最後の1人の勝利判定を接続済み。能力値はカイトと同じ仮値。装備の性能・特殊効果はプレイヤーと共通です。</p>'+comActors.map(a=>{
+ modal('開発用：COM行動確認','<p>プレイヤー＋COM9人の10人戦。選ばなかった9人がCOMとして参加します。それぞれの制作ルートで、素材・死体・ドローンを共有します。対人戦・最後の1人の勝利判定を接続済み。能力値と成長はキャラクターごとに異なります。装備の性能・特殊効果はプレイヤーと共通です。</p>'+comActors.map(a=>{
   const plan=comCurrentPlan(a),ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t,a)]).join(' ／ ');
   return '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ Lv.'+a.level+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+'</p><p>目標：'+(a.goal?names[a.goal]:'物資・回復の確保')+'<br>不足：'+(Object.entries(plan.missing).map(([id,n])=>names[id]+' ×'+n).join('、')||'なし')+'</p><p>武器：'+(names[a.equipment.weapon]||'なし')+ammoLabel(a.equipment.weapon,a.equipmentAmmo.weapon)+'<br>'+ranks+'</p><p>装備：'+Object.values(a.equipment).filter(Boolean).map(id=>names[id]).join('、')+'<br>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-20).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('');
  }).join('')+'<button onclick="showComStatus()">更新</button>');
