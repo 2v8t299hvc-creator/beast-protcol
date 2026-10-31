@@ -131,15 +131,15 @@
 .bp-skill-feed{position:absolute;left:28%;top:18%;width:44%;display:flex;flex-direction:column;gap:4px;z-index:17;pointer-events:none}
 .bp-skill-announcement{padding:7px 10px;text-align:center;font-weight:800;font-size:clamp(12px,1.8vw,20px);line-height:1.25;color:#fff1b4;background:linear-gradient(100deg,#684010ed,#27201cf5);border:1px solid #ffd473;border-radius:8px;box-shadow:0 3px 12px #0009}
 
-/* Pre-match character selection; the match clock starts only on confirmation. */
-.bp-character-select{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at top,#17344a,#06101b 75%);color:#edf5ff;overflow:auto;padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-area-inset-left));box-sizing:border-box}
-.bp-character-select[hidden]{display:none}
-.bp-select-header{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1100px;margin:0 auto 12px}.bp-select-header h1{font-size:20px;margin:0 0 4px}.bp-select-header p{font-size:12px;color:#b3c8dc;margin:0}
-.bp-character-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;max-width:1100px;margin:auto}
-.bp-character-card{position:relative;min-width:0;padding:8px 4px;background:#112337;border:1px solid #38536a;border-radius:10px;text-align:center}.bp-character-card[aria-pressed="true"]{border:2px solid #60dfc1;background:#17443f;box-shadow:0 0 12px #60dfc133}.bp-character-card img{display:block;width:100%;height:92px;object-fit:contain}.bp-character-card strong{display:block;font-size:14px}.bp-character-card small{display:block;font-size:10px;color:#c0d4e5;margin-top:3px}
-.bp-select-detail{max-width:1100px;margin:12px auto 0;background:#0d1c2b;border:1px solid #38536a;border-radius:10px;padding:12px;box-sizing:border-box;font-size:12px;line-height:1.6}.bp-select-detail h2{font-size:17px;margin:0 0 4px}.bp-select-detail p{margin:4px 0}.bp-select-start{padding:12px 20px;font-weight:bold;background:#187760;border:1px solid #67e0c0;white-space:nowrap}.bp-select-note{color:#a8bfd0}
-@media(max-width:550px){.bp-character-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bp-character-card img{height:110px}.bp-select-header{align-items:flex-start}.bp-select-start{padding:10px}}
-@media(orientation:landscape) and (max-height:450px){.bp-character-select{padding-top:10px;padding-bottom:10px}.bp-character-card img{height:64px}.bp-character-card{padding:5px}.bp-select-header{margin-bottom:8px}}
+/* Scalable character gallery with independent skill and roster scrolling. */
+.bp-character-select{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at 25% 40%,#214653,#06101b 75%);color:#edf5ff;padding:12px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));box-sizing:border-box}
+.bp-character-select[hidden]{display:none}#characterSelectContent{height:100%;max-width:1200px;margin:auto;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:8px}
+.bp-select-header{display:flex;justify-content:space-between;align-items:center;gap:12px}.bp-select-header h1{font-size:18px;margin:0}.bp-select-header p{font-size:11px;color:#a8bfd0;margin:3px 0}.bp-select-start{padding:11px 20px;background:#187760;border:1px solid #67e0c0;font-weight:bold;white-space:nowrap}
+.bp-select-main{display:grid;grid-template-columns:44% minmax(0,1fr);min-height:0;gap:14px}.bp-select-stage{position:relative;min-height:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at bottom,#32616d77,transparent 70%);border-bottom:1px solid #63868c}.bp-select-stage>img{width:85%;height:100%;object-fit:contain;filter:drop-shadow(0 5px 12px #0009)}.bp-select-arrow{position:absolute;top:45%;width:38px;height:46px;font-size:24px;background:#0d1c2bbd;border:1px solid #688ca2;border-radius:8px}.bp-select-arrow.prev{left:0}.bp-select-arrow.next{right:0}.bp-select-index{position:absolute;bottom:0;left:0;padding:4px 8px;background:#06101bdd;font-size:11px;color:#b6cddd}
+.bp-select-detail{overflow:auto;min-height:0;padding:4px 10px 8px 0;font-size:12px;line-height:1.6}.bp-select-detail h2{font-size:24px;margin:0}.bp-select-detail p{margin:4px 0}.bp-select-meta{color:#67e0c0}.bp-select-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:8px 0}.bp-select-stats span{padding:5px;background:#152b3c;border-radius:5px;text-align:center;font-size:11px}.bp-select-skill{padding:7px 10px;background:#102337;border:1px solid #304f65;border-radius:7px;margin:6px 0}.bp-select-skill h3{font-size:13px;margin:0;color:#f0cf8a}.bp-select-skill small{color:#a7c3d4;font-weight:normal}.bp-select-skill p{margin:3px 0 0}
+.bp-select-dock{min-width:0;background:#091724dd;border:1px solid #38536a;border-radius:8px;padding:6px 8px}.bp-select-tabs{display:flex;gap:6px;align-items:center;margin-bottom:6px}.bp-select-tabs button{padding:5px 14px;font-size:12px}.bp-select-tabs [aria-selected="true"]{background:#235950;border:1px solid #67e0c0}.bp-select-tabs small{color:#a8bfd0;font-size:10px;margin-left:auto}.bp-character-grid{display:flex;gap:6px;overflow:auto;padding-bottom:3px}.bp-character-card{flex:0 0 76px;min-width:0;padding:4px;background:#112337;border:1px solid #38536a;border-radius:6px;text-align:center}.bp-character-card[aria-pressed="true"]{border-color:#60dfc1;background:#17443f;box-shadow:inset 0 0 0 1px #60dfc1}.bp-character-card img{display:block;width:100%;height:48px;object-fit:contain}.bp-character-card strong{display:block;font-size:10px;white-space:nowrap}.bp-skin-card{flex-basis:110px}
+@media(orientation:landscape) and (max-height:450px){.bp-character-select{padding-top:7px;padding-bottom:6px}#characterSelectContent{gap:4px}.bp-select-header h1{font-size:15px}.bp-select-header p{font-size:10px}.bp-select-start{padding:8px 14px}.bp-select-main{gap:10px}.bp-select-detail h2{font-size:21px}.bp-character-card img{height:32px}.bp-select-dock{padding:4px 7px}.bp-select-tabs{margin-bottom:3px}.bp-select-tabs button{padding:3px 12px}}
+@media(orientation:portrait){.bp-select-main{grid-template-columns:1fr;grid-template-rows:40% minmax(0,1fr)}.bp-select-header h1{font-size:14px}.bp-select-header p{max-width:180px}.bp-select-start{padding:10px}.bp-select-detail{padding-right:0}.bp-select-stage>img{width:100%}}
 
 /* Combat layout: header, art, equipment and status occupy separate grid cells. */
 #enemy.enemy{left:27%;top:18%;width:46%;height:62%;box-sizing:border-box;padding:8px;gap:6px;background:linear-gradient(145deg,#081522e8,#0b1620b8);border:1px solid #54758c;border-radius:12px;grid-template-columns:minmax(0,1fr);grid-template-rows:32px minmax(0,1fr) auto auto;align-items:stretch;justify-content:stretch;text-align:left;overflow:hidden}
@@ -263,20 +263,51 @@ const PLAYABLE_CHARACTERS=[
  {id:'kankan',name:'カンカン',species:'パンダ',weapon:'fist',mastery:'拳 D+',summary:'休憩と治療が得意。HPを攻撃力に変換する。',startArea:'公園区画'},
  {id:'raku',name:'ラク',species:'アライグマ',weapon:null,mastery:'ランダム1種 D+',summary:'ドローンを解体して強化し、武器を改造する。',startArea:'遺跡区画'}
 ];
-let selectedCharacter='kaito',matchStarted=false;
+let selectedCharacter='kaito',matchStarted=false,characterSelectionTab='characters';
+// Add skins here with a unique id, display name and transparent art URL.
+const CHARACTER_SKINS=Object.fromEntries(PLAYABLE_CHARACTERS.map(c=>[c.id,[{id:'default',name:'オリジナル',art:null}]]));
+const selectedCharacterSkins={};
+const SELECTION_SKILL_DESCRIPTIONS={
+ fighting_instinct:'同じ敵への連続攻撃で、攻撃時の熟練度獲得ボーナスが増加（最大3スタック）。',
+ spirit_breeze:'区域移動で最大4スタック、30秒持続。2スタック以上で移動消費ST－2、4スタックでさらに－2。',
+ footwork:'探索10回ごとにスタミナを10回復。',
+ efficiency:'探索でスタックを蓄積。6スタックで通常探索するとアイテムを3個発見。ストック探索では消費せず、次の通常探索へ持ち越す。',
+ marine_gang:'水辺の区域では攻撃・防御＋10%。魚型ドローン撃破時にHP150回復。',
+ night_hunter:'夜間は被発見率－7ポイント、クリティカル率＋2ポイント。',
+ qigong:'休憩・HP治療の毎秒回復量＋1。',
+ dismantler:'ドローン撃破で改造スタックを獲得（小型1／中型2／大型4／超大型10）。1スタックごとにドローン与ダメージ＋2%。7・15スタックで追加ドロップ各＋1。',
+ herb_gathering:'薬草または小さい花を、各50%の確率で1個採集する。',
+ mineral_feast:'石・鉱石系素材を1個消費し、永続の鉱物纏いを獲得。宝石からは紅玉・蒼玉・白玉の追加効果も獲得。',
+ burning_spirit:'現在HPの40%を消費。その実数と同じ%だけ、30秒間攻撃力が上昇する。',
+ weapon_modification:'改造スタックに応じて、装備武器を同じ武器種の1等級上へランダム改造。必要スタック1／5／10／45。スタック消費なし。',
+ step_break:'攻撃と同時に相手を5秒間減速。ガードされても発動する。',
+ gale_shoot:'薫風を全消費し、115＋5×消費スタック%のダメージ。4スタック消費時、実ダメージの25%のスタミナを回復。',
+ white_target:'110%ダメージ。敵の残りHP割合が高いほどクリティカル率が上昇（最大40%）。撃破時はCTが5秒になる。',
+ physics_blow:'110%ダメージ。攻撃後の敵がHP50%以下なら、ランダムな部位に永続の怪我を負わせる。',
+ une_deux:'75%ダメージ。その後6秒間、自分からのダメージ＋70%・クリティカル率＋25ポイント。',
+ outlaw_bite:'110%ダメージ（水辺では130%）。相手の区域移動を3秒間封じる。',
+ danse_macabre:'弓・銃のみ。昼は25%×6発、夜は20%×8発の連射。残弾切れ・敵撃破で終了。',
+ jewel_hunt:'105%ダメージ。敵が所持する石・鉱石系素材を1個コピーする。'
+};
+function cycleSelectedCharacter(direction){const i=PLAYABLE_CHARACTERS.findIndex(c=>c.id===selectedCharacter);showCharacterSelection(PLAYABLE_CHARACTERS[(i+direction+PLAYABLE_CHARACTERS.length)%PLAYABLE_CHARACTERS.length].id)}
+function setCharacterSelectionTab(tab){characterSelectionTab=tab==='skins'?'skins':'characters';showCharacterSelection()}
+function selectCharacterSkin(id){if(!(CHARACTER_SKINS[selectedCharacter]||[]).some(s=>s.id===id))return;selectedCharacterSkins[selectedCharacter]=id;showCharacterSelection()}
 function showCharacterSelection(id=selectedCharacter){
  if(matchStarted)return;
- const character=PLAYABLE_CHARACTERS.find(c=>c.id===id);if(!character)return;
- selectedCharacter=id;
- const skills=CHARACTER_SKILLS[id],skillNames=[skills.passive&&'パッシブ：'+skills.passive.name,skills.field&&'フィールド：'+skills.field.name,skills.active&&'アクティブ：'+skills.active.name].filter(Boolean).join(' ／ ');
+ const character=PLAYABLE_CHARACTERS.find(c=>c.id===id);if(!character)return;selectedCharacter=id;
+ const skins=CHARACTER_SKINS[id]||[],skin=skins.find(s=>s.id===selectedCharacterSkins[id])||skins[0];
+ selectedCharacterSkins[id]=skin?.id||'default';
+ const skills=Object.entries(CHARACTER_SKILLS[id]||{}).map(([kind,skill])=>'<article class="bp-select-skill"><h3><small>'+({passive:'パッシブ',field:'フィールド',active:'アクティブ'}[kind])+' ／ </small>'+skill.name+(skill.cooldownMs?'<small>　CT '+skill.cooldownMs/1000+'秒</small>':'')+'</h3><p>'+ (SELECTION_SKILL_DESCRIPTIONS[skill.id]||'')+'</p></article>').join('');
+ const roster=PLAYABLE_CHARACTERS.map(c=>'<button class="bp-character-card" onclick="showCharacterSelection(\''+c.id+'\')" aria-label="'+c.name+'を選択" aria-pressed="'+(c.id===id)+'"><img loading="lazy" src="'+actorArt({character:c.id})+'" alt="" draggable="false"><strong>'+c.name+'</strong></button>').join('');
+ const skinCards=skins.map(s=>'<button class="bp-character-card bp-skin-card" onclick="selectCharacterSkin(\''+s.id+'\')" aria-pressed="'+(s.id===skin?.id)+'"><img src="'+(s.art||actorArt({character:id}))+'" alt=""><strong>'+s.name+'</strong></button>').join('');
  $('characterSelect').hidden=false;
- $('characterSelectContent').innerHTML='<div class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>参加キャラクターを選択 ／ 残り9人がCOMで参戦</p></div><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></div><div class="bp-character-grid">'+PLAYABLE_CHARACTERS.map(c=>'<button class="bp-character-card" onclick="showCharacterSelection(\''+c.id+'\')" aria-pressed="'+(c.id===id)+'"><img src="'+actorArt({character:c.id})+'" alt="" draggable="false"><strong>'+c.name+'</strong><small>'+c.species+' ／ '+c.mastery+'</small></button>').join('')+'</div><div class="bp-select-detail"><h2>'+character.name+' ／ '+character.mastery+'</h2><p>'+character.summary+'</p><p>基礎能力（Lv1 → Lv15）：'+[['attack','攻撃'],['defense','防御'],['hp','HP'],['stamina','ST']].map(([key,label])=>label+' '+baseCharacterStat({character:id},key,1)+' → '+baseCharacterStat({character:id},key,15)).join(' ／ ')+'</p><p>'+skillNames+'</p><p class="bp-select-note">開始ボタンを押すと準備時間30秒が始まります。練習用武器を選び、待機所から出発してください。ラクの得意武器は開始時に決まります。</p></div>';
+ $('characterSelectContent').innerHTML='<header class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>キャラクター選択 ／ 選ばなかった'+(PLAYABLE_CHARACTERS.length-1)+'人がCOMで参戦</p></div><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></header><div class="bp-select-main"><div class="bp-select-stage"><img id="selectionPortrait" src="'+(skin?.art||actorArt({character:id}))+'" alt="'+character.name+' ／ '+(skin?.name||'オリジナル')+'"><button class="bp-select-arrow prev" aria-label="前のキャラクター" onclick="cycleSelectedCharacter(-1)">‹</button><button class="bp-select-arrow next" aria-label="次のキャラクター" onclick="cycleSelectedCharacter(1)">›</button><span class="bp-select-index">'+(PLAYABLE_CHARACTERS.indexOf(character)+1)+' / '+PLAYABLE_CHARACTERS.length+'　'+(skin?.name||'オリジナル')+'</span></div><section class="bp-select-detail" aria-label="キャラクターとスキルの詳細"><h2>'+character.name+'</h2><p class="bp-select-meta">'+character.species+' ／ '+character.mastery+'</p><p>'+character.summary+'</p><div class="bp-select-stats">'+[['attack','攻撃'],['defense','防御'],['hp','HP'],['stamina','ST']].map(([key,label])=>'<span>'+label+'<br>'+baseCharacterStat({character:id},key,1)+' → '+baseCharacterStat({character:id},key,15)+'</span>').join('')+'</div><p style="color:#a8bfd0;font-size:10px">能力値はLv1 → Lv15。開始後30秒以内に武器を選び、待機所から出発しよう。</p>'+skills+'</section></div><section class="bp-select-dock"><div class="bp-select-tabs" role="tablist" aria-label="選択メニュー"><button role="tab" aria-selected="'+(characterSelectionTab==='characters')+'" onclick="setCharacterSelectionTab(\'characters\')">キャラ一覧</button><button role="tab" aria-selected="'+(characterSelectionTab==='skins')+'" onclick="setCharacterSelectionTab(\'skins\')">スキン</button><small>'+ (characterSelectionTab==='characters'?'横スクロールで直接選択':'外見のみ変更 ／ '+skins.length+'種')+'</small></div><div class="bp-character-grid" role="tabpanel">'+(characterSelectionTab==='characters'?roster:skinCards)+'</div></section>';
 }
 function startSelectedCharacter(){
  if(matchStarted)return;
  const character=PLAYABLE_CHARACTERS.find(c=>c.id===selectedCharacter);if(!character)return;
  matchStarted=true;
- Object.assign(S,{id:character.id,name:character.name,character:character.id,masteryAttacks:initialMastery(character.id),preferredWeaponType:character.weapon});
+ Object.assign(S,{id:character.id,name:character.name,character:character.id,skin:selectedCharacterSkins[character.id]||'default',masteryAttacks:initialMastery(character.id),preferredWeaponType:character.weapon});
  initializeRakuMastery(S);S.hp=actorMax(S,'hp');S.st=actorMax(S,'stamina');
  initializeMatch();initializeDrones();initializeComActors();grantStartingSupplies(S);
  $('characterSelect').hidden=true;
@@ -765,14 +796,14 @@ function renderStageArt(){
    }
   });
  }
- const charId=S.character;
- if(shownCharacter!==charId){
-  shownCharacter=charId;
-  const url=stageArtRegistry.characters[charId]||actorArt(S);
+ const charId=S.character,skinArt=CHARACTER_SKINS[charId]?.find(s=>s.id===S.skin)?.art,artKey=charId+':'+(S.skin||'default');
+ if(shownCharacter!==artKey){
+  shownCharacter=artKey;
+  const url=skinArt||stageArtRegistry.characters[charId]||actorArt(S);
   kaitoArtElement.alt=S.name;
-  kaitoArtElement.src=charId==='kaito'?originalKaitoSrc:url;
+  kaitoArtElement.src=charId==='kaito'&&!skinArt?originalKaitoSrc:url;
   if(url)loadStageImage(url,ok=>{
-   if(ok&&shownCharacter===charId)kaitoArtElement.src=url;
+   if(ok&&shownCharacter===artKey)kaitoArtElement.src=url;
   });
  }
 }
@@ -1483,7 +1514,7 @@ function handleComCombatDecision(actor,target,now,kind){
 // Shared player combat. Encounters reveal only local actors; the AI never tracks a moved opponent.
 const PLAYER_DISCOVERY_RATE=0.85;
 function pvpEnabled(){return !!matchClock&&matchClock.competitive!==false&&matchClock.section>0&&!matchClock.ended}
-function actorArt(actor){return actor?.character==='raku'?'assets/characters/raku_encounter_transparent.webp':actor?.character==='kankan'?'assets/characters/kankan_encounter_transparent.webp':actor?.character==='zakuro'?'assets/characters/zakuro_encounter_transparent.webp':actor?.character==='bat'?'assets/characters/bat_encounter_transparent.webp':actor?.character==='jerk'?'assets/characters/jerk_encounter_transparent.webp':actor?.character==='flugel'?'assets/characters/flugel_encounter_transparent.webp':actor?.character==='bjorn'?'assets/characters/bjorn_encounter_transparent.webp':actor?.character==='snow_leopard'?'assets/characters/snow_leopard_encounter_transparent.webp':actor?.character==='kaito'?'assets/characters/kaito_stand.png':'assets/characters/hayate_encounter_transparent.webp'}
+function actorArt(actor){const skin=actor?.skin&&CHARACTER_SKINS[actor.character]?.find(s=>s.id===actor.skin);if(skin?.art)return skin.art;return actor?.character==='raku'?'assets/characters/raku_encounter_transparent.webp':actor?.character==='kankan'?'assets/characters/kankan_encounter_transparent.webp':actor?.character==='zakuro'?'assets/characters/zakuro_encounter_transparent.webp':actor?.character==='bat'?'assets/characters/bat_encounter_transparent.webp':actor?.character==='jerk'?'assets/characters/jerk_encounter_transparent.webp':actor?.character==='flugel'?'assets/characters/flugel_encounter_transparent.webp':actor?.character==='bjorn'?'assets/characters/bjorn_encounter_transparent.webp':actor?.character==='snow_leopard'?'assets/characters/snow_leopard_encounter_transparent.webp':actor?.character==='kaito'?'assets/characters/kaito_stand.png':'assets/characters/hayate_encounter_transparent.webp'}
 function comWantedAmmo(actor,plan){return [...new Set([comAmmoType(actor),equipmentDef(plan?.id)?.ammoType].filter(Boolean))]}
 function comAmmoType(actor){const type=actor.preferredWeaponType||'bow';return type==='gun'?'bullets':type==='bow'?'arrows':null}
 function actorName(actor){return actor?.name||(actor?.character==='kaito'?'カイト':'参加者')}
