@@ -1476,7 +1476,7 @@ function recordExploration(actor,now){
  }
 }
 // Local-only observation log. It is evidence for later analysis, never an input to COM decisions.
-const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-10-31-observations-v1';
+const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-10-31-com-search-v2';
 let playJournal=null,playRecordTimer=null,playRecordDepth=0,playRecordLastState='',playRecordLastObservation=0,playRecordStorageError=false;
 let playRecords=readPlayRecords();
 function readPlayRecords(){
@@ -1619,7 +1619,7 @@ function trackActorAttack(attacker,target,result,now,kind){
   bumpMatchStat(target,'damageTaken',result.dealt||0);bumpMatchStat(attacker,'damageTaken',result.reflectedTaken||0);bumpMatchStat(target,'damageDealt',result.reflectedTaken||0);
   if(result.dealt>0&&target!==S){
    target.restMode=null;cancelBodyTreatment(target);
-   target.recentThreat={id:attacker.id,area:target.place,seenAt:now,source:'attack',observerVisit:target.locationVersion||0,targetVisit:attacker.locationVersion||0};target.opponent={...target.recentThreat};
+   // Taking damage grants no paid-search discovery and never replaces a confirmed target.
   }
   if(result.hit&&result.damage>0){target.observedOpponents||={};target.observedOpponents[attacker.id]={damage:result.damage,weapon:attacker.equipment.weapon,level:attacker.level,defense:totalStat('defense',target,now),body:target.equipment.body,head:target.equipment.head,at:now}}
  }
@@ -1861,12 +1861,26 @@ function observeOpponent(actor,target,now){
  actor.opponent={id:target.id,area:actor.place,seenAt:now,source:'search',observerVisit:actor.locationVersion||0,targetVisit:target.locationVersion||0};recordMatchEvent(actor,'discovery',actorName(target)+'を索敵で発見',now);return true;
 }
 function hasObservedOpponent(actor,target,now){
- const ref=actor.opponent;return !!(target&&ref&&(ref.source==='search'||ref.source==='attack'&&now-ref.seenAt<=8000)&&ref.id===target?.id&&ref.area===actor.place&&target.place===actor.place&&target.hp>0&&ref.seenAt<=now&&ref.observerVisit===(actor.locationVersion||0)&&ref.targetVisit===(target.locationVersion||0));
+ const ref=actor.opponent;return !!(target&&ref&&ref.source==='search'&&ref.id===target?.id&&ref.area===actor.place&&target.place===actor.place&&target.hp>0&&ref.seenAt<=now&&ref.observerVisit===(actor.locationVersion||0)&&ref.targetVisit===(target.locationVersion||0));
 }
 function invalidateLocationSight(actor){
  resetFightingInstinct(actor);
  actor.locationVersion=(actor.locationVersion||0)+1;actor.opponent=null;actor.recentThreat=null;actor.pvpAction=null;
  for(const other of comActors)if(other.opponent?.id===actor.id)other.opponent=null;
+}
+function comFinalArea(){return Object.keys(regionStock).filter(area=>!isBlocked(area)).length===1}
+function comFinalSearch(actor,now){
+ actor.enemy=null;actor.leaveDanger=false;actor.loot=null;actor.restMode=null;cancelBodyTreatment(actor);
+ const hp=comSelectRecovery(actor,'hp',now,true),st=comSelectRecovery(actor,'stamina',now);
+ if(hp&&actorMax(actor,'hp')-actor.hp>=hp.amount*.8)recoverActor(actor,hp.id,now);
+ if(st&&actor.st<searchStaminaCost(actor))recoverActor(actor,st.id,now);
+ if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)===0&&reloadActor(actor,now)){comLog(actor,'最終区域：弾薬を装填',now);return}
+ const cost=searchStaminaCost(actor);
+ if(actor.hp<=Math.max(0,cost-actor.st)){actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+treatmentRate(actor));comLog(actor,'最終区域：次の索敵に必要な体力を治療',now);return}
+ if(!paySearchCost(actor,now))return;recordExploration(actor,now);actor.searches++;
+ const target=chooseLocalOpponent(actor);
+ if(target&&Math.random()<actorDiscoveryRate(target,actor,now)){observeOpponent(actor,target,now);comLog(actor,'最終区域：探索で'+actorName(target)+'を発見',now)}
+ else comLog(actor,'最終区域：探索したが相手を発見できなかった',now);
 }
 function comFightOpponent(actor,now){
  const target=findActor(actor.opponent?.id);
@@ -1877,11 +1891,6 @@ function comFightOpponent(actor,now){
  if(actor.pvpAction.targetId!==target.id){actor.pvpAction=null;return}
  if(actor.pvpAction.dueAt>now){actor.nextActionAt=actor.pvpAction.dueAt;return}
  actor.pvpAction=null;
- if(actor.opponent?.source==='search'){
-  const policy=comRecoveryPolicy(actor),stock=comRecoveryTotal(actor),armed=['rare','epic','legendary'].includes(RECIPE_RARITY[actor.equipment.weapon]);
-  const ready=policy.open<=3?stock>=300:policy.mid?stock>=Math.min(600,policy.hpTarget)&&armed:stock>=120;
-  if(!ready&&target.hp>evaluateCombat(actor,target,now,'player').perHit*2){actor.opponent=null;actor.avoidOptionalFightUntil=now+5000;comLog(actor,'装備と回復を準備するため戦闘を見送る',now);return;}
- }
  if(handleComCombatDecision(actor,target,now,'player'))return;
  // Incoming COM attacks apply damage without replacing the player's current action or screen.
  const result=playerCombatRound(actor,target,now,target===S,comCharacterSkill(actor,now));if(!result||matchClock.ended)return;
@@ -2767,7 +2776,7 @@ function comAdaptivePlan(actor,now=Date.now()){
    rates[id]=Math.min(rates[id]??Infinity,cost);
   }
  }
- const current=comWeaponValue(actor,actor.equipment.weapon);
+ const current=comWeaponValue(actor,actor.equipment.weapon),weaponTier=RECIPE_RARITY[actor.equipment.weapon],weakWeapon=!['rare','epic','legendary'].includes(weaponTier);
  const choices=[];
  for(const [id,def] of Object.entries(EQUIPMENT_DEFS)){
   if(actorOwned(actor,id)||(actor.place==='待機所'&&def.slot!=='weapon'))continue;
@@ -2783,13 +2792,20 @@ function comAdaptivePlan(actor,now=Date.now()){
   // Reward usable progress now; discourage long searches after repeated misses.
   if(actor.noProgress>=4&&actor.goal===id)cost*=1+Math.min(2,actor.noProgress/12);
   const sustain=def.slot==='weapon'?def.unlimitedAmmo&&!equipmentDef(actor.equipment.weapon)?.unlimitedAmmo:comAmmoSupportValue(actor,id)>comAmmoSupportValue(actor,actor.equipment[def.slot]);
-  choices.push({plan,score:gain/cost*(sustain?1.6:1)});
+  let priority=1;
+  if(def.slot==='weapon')priority=weakWeapon?4:!['epic','legendary'].includes(weaponTier)?2:1;
+  else if(weakWeapon&&def.slot==='accessory'&&comAmmoSupportValue(actor,id)>0){
+   const supported=comAmmoSupportValue(actor,actor.equipment.accessory)>0;
+   priority=supported?.12:['common','uncommon'].includes(RECIPE_RARITY[id])?1.5:.3;
+  }
+  const local=Object.keys(plan.missing).filter(item=>regionStock[actor.place]?.[item]).length;
+  choices.push({plan,score:gain/cost*(sustain?1.6:1)*priority*(1+Math.min(.3,local*.1))});
  }
  choices.sort((a,b)=>b.score-a.score);
  let best=choices[0];
  const previous=choices.find(c=>c.plan.id===actor.goal);
  // Small hysteresis avoids oscillation; materially easier routes replace the old goal.
- if(previous&&best&&previous.score>=best.score*0.85)best=previous;
+ if(previous&&best&&actor.noProgress<8&&previous.score>=best.score*0.65)best=previous;
  const plan=best?.plan||{id:null,missing:{},needed:{},crafts:[]};
  actor.adaptivePlanCache={key,plan};return plan;
 }
@@ -2856,8 +2872,9 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
  if(!plan.recovery&&comAmmoType(actor)&&!needs.includes(comAmmoType(actor))&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory[comAmmoType(actor)]||0)<20)needs.push(comAmmoType(actor));
  if(!plan.recovery&&actor.st<60)needs.push('water','drink','energy_drink');
  if(needs.length&&!forced){safe=safe.filter(area=>!actor.exhausted[area]&&needs.some(id=>regionStock[area][id]>0));if(!safe.length)return false;}
- const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100,0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5-(actor.previousArea===area&&now-(actor.lastMovedAt||0)<8000?8:0);
- const best=Math.max(...safe.map(score)),choices=safe.filter(a=>score(a)===best);
+ const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100*Math.min(3,plan.missing[id]||1),0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5-(actor.previousArea===area&&now-(actor.lastMovedAt||0)<8000?8:0);
+ const coverage=area=>needs.filter(id=>regionStock[area][id]>0).length*3+score(area);
+ const best=Math.max(...safe.map(coverage)),choices=safe.filter(a=>coverage(a)===best);
  const start=actor.place==='待機所'&&comWeaponTypes(actor).length===1&&safe.includes(actor.startArea)?actor.startArea:null;
  actor.visited[actor.place]=(actor.visited[actor.place]||0)+1;actor.previousArea=actor.place;actor.lastMovedAt=now;invalidateLocationSight(actor);actor.place=start||choices[rand(choices.length)];
  actor.moveDecisionReadyAt=now+COM_MOVE_DECISION_MS+rand(701);
@@ -2868,7 +2885,7 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
 }
 function comWants(actor,id,plan){
  if(['dragon_scale','drago_core'].includes(id))return actorOwned(actor,id)<1;
- if(plan.missing[id]>0)return true;
+ if(plan.missing[id]>0||(plan.needed?.[id]||0)>actorOwned(actor,id))return true;
  if(id==='arrows'||id==='bullets')return comWantedAmmo(actor,plan).includes(id)&&(actor.inventory[id]||0)<comAmmoReserveTarget(actor);
  const recovery=RECOVERY_ITEMS[id];if(recovery)return comWantsRecovery(actor,id,plan);
  const def=equipmentDef(id);if(def?.slot==='weapon')return comWeaponValue(actor,id)>comWeaponValue(actor,actor.equipment.weapon);if(def&&def.slot!=='weapon'){
@@ -2977,10 +2994,12 @@ function comReserveTurn(actor,gearPlan,reservePlan,gearReady,now){
  if((actor.recoveryTripUntil||0)&&now>=actor.recoveryTripUntil){
   actor.recoveryTripUntil=0;actor.recoveryBuildPauseUntil=now+(comBuildReady(actor)?20000:45000);
  }
+ const recipe=reservePlan.recipeId&&recipes.find(r=>r.id===reservePlan.recipeId),after=recipe&&craftConsumption(recipe,actor);
+ if(after&&addToStacks(after.stacks,recipe.id,craftOutputCount(actor,recipe)))return true;
  if(now<(actor.recoveryBuildPauseUntil||0)&&!emergency)return false;
  const building=!!gearPlan.id&&!comBuildReady(actor);
  if(building&&!emergency&&comRecoveryTotal(actor)>=90&&(actor.gearCraftsSinceReserve||0)<3)return false;
- if(!actor.recoveryTripUntil)actor.recoveryTripUntil=now+(building?10000:20000);
+ if(!actor.recoveryTripUntil)actor.recoveryTripUntil=now+(building?(reservePlan.expectedHeal>=120&&['rare','epic','legendary'].includes(RECIPE_RARITY[actor.equipment.weapon])?25000:10000):40000);
  return true;
 }
 function stepCom(actor,now){
@@ -2991,9 +3010,9 @@ function stepCom(actor,now){
  }
  if(matchClock.section===0)return;
  let plan=comCurrentPlan(actor,now);
- if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=COM_POLICY.warningMs){comMove(actor,now,'封鎖予告を見て退避',plan);return}
- if(pvpEnabled()&&!actor.opponent&&actor.recentThreat){actor.opponent={...actor.recentThreat};const target=findActor(actor.opponent.id);if(!hasObservedOpponent(actor,target,now)){actor.opponent=null;actor.recentThreat=null}}
+ if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=COM_POLICY.warningMs){if(comMove(actor,now,'封鎖予告を見て退避',plan))return}
  if(pvpEnabled()&&actor.opponent){actor.restMode=null;cancelBodyTreatment(actor);comFightOpponent(actor,now);return}
+ if(pvpEnabled()&&comFinalArea()){comFinalSearch(actor,now);return}
  if(actor.enemy){comFight(actor,now);return}
  if(actor.leaveDanger){comMove(actor,now,'敵から離れる',plan);return}
  if(actor.bodyTreatment){if(!updateBodyTreatment(actor,now))return}
@@ -3021,6 +3040,10 @@ function stepCom(actor,now){
  actor.restMode=null;
  const gearReady=plan.crafts.some(id=>{const r=recipes.find(r=>r.id===id),after=r&&craftConsumption(r,actor);return after&&!!addToStacks(after.stacks,r.id,craftOutputCount(actor,r))});
  const reservePriority=comReserveTurn(actor,plan,reservePlan,gearReady,now);
+ if(!reservePriority&&reservePlan){
+  const held=actor.bag.filter(x=>(reservePlan.needed[x.id]||0)>0&&!RECOVERY_ITEMS[x.id]);
+  if(held.length<=2){const needed={...plan.needed};for(const x of held)needed[x.id]=Math.max(needed[x.id]||0,reservePlan.needed[x.id]);plan={...plan,needed}}
+ }
  if(reservePriority){
   const needed={...plan.needed};for(const [id,n]of Object.entries(reservePlan.needed))needed[id]=Math.max(needed[id]||0,n);
   plan={...reservePlan,needed};actor.recoveryRoute=plan.routeKey;actor.recoveryGoal=plan.recipeId||Object.keys(plan.missing)[0];
@@ -3043,7 +3066,7 @@ function stepCom(actor,now){
  // Discover only local corpses and drones during a paid search, matching player search probabilities.
  if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;recordExploration(actor,now);
  const efficient=consumeEfficiency(actor);if(efficient)comLog(actor,'効率重視：アイテム3個を探索',now);
- const opponent=!efficient&&pvpEnabled()&&now>=(actor.avoidOptionalFightUntil||0)?chooseLocalOpponent(actor):null;
+ const opponent=!efficient&&pvpEnabled()?chooseLocalOpponent(actor):null;
  if(opponent&&Math.random()<actorDiscoveryRate(opponent,actor,now)){observeOpponent(actor,opponent,now);actor.restMode=null;comLog(actor,'探索：'+actorName(opponent)+'を発見',now);return}
  const bodies=efficient?[]:corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&c.items.length>0&&S.corpseVisit?.id!==c.id);
  const body=bodies.length?bodies[rand(bodies.length)]:null;
