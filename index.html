@@ -1621,7 +1621,7 @@ function playerCombatRound(attacker,target,now,incomingOnly=false,skillId=null){
   else eliminateCom(actor,actorName(killer)+'との戦闘',now,killer.id);
  }
  matchClock.resolvingCombat=false;
- for(const com of [attacker].filter(a=>a!==S)){com.opponent=null;com.enemy=null;applyComCombatFeedback(com,now)}
+ for(const com of [attacker].filter(a=>a!==S)){com.opponent=null;com.recentThreat=null;com.pvpAction=null;com.enemy=null;applyComCombatFeedback(com,now)}
  const victim=target.hp<=0?target:attacker.hp<=0?attacker:null;
  const corpse=victim&&corpses.find(c=>c.id===victim.corpseId);
  const looter=attacker.hp>0?attacker:target.hp>0?target:null;if(corpse&&looter&&looter!==S)looter.loot=corpse.id;
@@ -1668,14 +1668,19 @@ function hasObservedOpponent(actor,target,now){
 }
 function invalidateLocationSight(actor){
  resetFightingInstinct(actor);
- actor.locationVersion=(actor.locationVersion||0)+1;actor.opponent=null;actor.recentThreat=null;
+ actor.locationVersion=(actor.locationVersion||0)+1;actor.opponent=null;actor.recentThreat=null;actor.pvpAction=null;
  for(const other of comActors)if(other.opponent?.id===actor.id)other.opponent=null;
 }
 function comFightOpponent(actor,now){
  const target=findActor(actor.opponent?.id);
- if(!hasObservedOpponent(actor,target,now)){actor.opponent=null;comLog(actor,'相手を見失った。再び索敵する',now);return}
- if(handleComCombatDecision(actor,target,now,'player'))return;
+ if(!hasObservedOpponent(actor,target,now)){actor.opponent=null;actor.pvpAction=null;comLog(actor,'相手を見失った。再び索敵する',now);return}
  if((actor.combatReadyAt||0)>now)return;
+ // COM attacks and withdrawals have the same preparation time as a player attack.
+ if(!actor.pvpAction){actor.pvpAction={targetId:target.id,dueAt:now+COM_ACTION_MS+actionDelayMs(actor,now)};actor.nextActionAt=actor.pvpAction.dueAt;return}
+ if(actor.pvpAction.targetId!==target.id){actor.pvpAction=null;return}
+ if(actor.pvpAction.dueAt>now){actor.nextActionAt=actor.pvpAction.dueAt;return}
+ actor.pvpAction=null;
+ if(handleComCombatDecision(actor,target,now,'player'))return;
  // Incoming COM attacks apply damage without replacing the player's current action or screen.
  const result=playerCombatRound(actor,target,now,target===S,comCharacterSkill(actor,now));if(!result||matchClock.ended)return;
  if(target===S){showIncomingDamage(actor,result.first,now);if(S.enemyPlayerId===actor.id)S.ehp=actor.hp;refresh()}
