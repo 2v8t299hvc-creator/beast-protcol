@@ -1722,6 +1722,7 @@ function handleComCombatDecision(actor,target,now,kind){
  if(kind==='player'&&!hasObservedOpponent(actor,target,now))return false;
  const item=usableCombatRecovery(actor,now),missing=actorMax(actor,'hp')-actor.hp;
  if(item&&(actor.hp<actorMax(actor,'hp')*.7||missing>=item.amount*.8)&&recoverActor(actor,item.id,now))comLog(actor,'戦闘中の回復：'+names[item.id],now);
+ if(kind==='player'&&comShouldBurnSpirit(actor,now,target))burnSpirit(actor,now);
  const decision=evaluateCombat(actor,target,now,kind);logCombatDecision(actor,target,decision,now,kind);
  if(decision.action==='retreat'&&safeComRetreat(actor,now)){
   actor.dangerAreas||={};actor.dangerAreas[actor.place]=now+90000;
@@ -2802,7 +2803,7 @@ function comAmmoSupportValue(actor,id){
  if(type==='bow')return effect.arrowSaveChance?24+60*effect.arrowSaveChance:effect.bowCapacity?20+Math.min(20,effect.bowCapacity)*.8:0;
  return 0;
 }
-function comEquipmentValue(actor,id){const def=equipmentDef(id);return def?(def.attack||0)+(def.defense||0)+comAmmoSupportValue(actor,id):0}
+function comEquipmentValue(actor,id){const def=equipmentDef(id),effect=EQUIPMENT_SPECIAL_EFFECTS[id]||{};return def?(def.attack||0)+(def.defense||0)+comAmmoSupportValue(actor,id)+(comAmmoSupportValue(actor,actor.equipment?.accessory)>0?0:(effect.actionRecovery||0)*18):0}
 function comUpgradePlan(actor){
  // Finish a chosen route before re-ranking. Only public item distributions and personally observed depletion are used.
  if(actor.goal&&!(actor.goals||COM_GOALS).includes(actor.goal)&&comUpgradeValue(actor,actor.goal)>0){const plan=comPlan(actor,actor.goal);if(comPlanFeasible(actor,plan))return plan}
@@ -3035,7 +3036,7 @@ function comRecoveryPlan(actor,now=Date.now(),gearPlan={needed:{}}){
   for(const [id,n]of Object.entries(plan.missing)){if(rates[id]===undefined){feasible=false;break}cost+=n*rates[id]/itemSetCount(id)}
   if(!feasible)continue;
   const after=craftConsumption(r,actor),ready=!!after&&!!addToStacks(after.stacks,r.id,count);
-  choices.push({plan:{...plan,recovery:true,reserve:true,recipeId:r.id,routeKey:'craft:'+r.id,group:item.group,expectedHeal:amount},score:(net+amount*count*.2)*quality/cost*(ready?1.5:1)});
+  choices.push({plan:{...plan,recovery:true,reserve:true,recipeId:r.id,routeKey:'craft:'+r.id,group:item.group,expectedHeal:amount},score:(net+amount*count*.2)*quality/cost*(ready?1.5:1),ready});
  }
  // Direct supplies are a real alternative to cooking, not an omniscient read of live stock.
  for(const [id,item]of Object.entries(RECOVERY_ITEMS)){
@@ -3043,8 +3044,10 @@ function comRecoveryPlan(actor,now=Date.now(),gearPlan={needed:{}}){
   const amount=recoveryAmount(actor,id),deficit=item.group==='hp'?Math.max(1,policy.hpTarget-hp):Math.max(1,policy.stTarget-st),count=Math.min(stackLimit(id),Math.max(1,Math.ceil(deficit/amount)));
   choices.push({plan:{id:null,missing:{[id]:count},needed:{[id]:count},crafts:[],recovery:true,reserve:true,recipeId:null,routeKey:'find:'+id,group:item.group,expectedHeal:amount},score:amount*quality/(1+rates[id]/itemSetCount(id))});
  }
- choices.sort((a,b)=>b.score-a.score);
- const previous=choices.find(c=>c.plan.routeKey===actor.recoveryRoute),best=choices[0];
+ // Cook usable supplies already in the bag before chasing a remote recipe when stocks are low.
+ const immediate=choices.filter(c=>c.plan.recipeId&&!Object.keys(c.plan.missing).length&&(c.plan.group==='hp'?hp<180:st<60));
+ const ranked=immediate.length?immediate:choices;ranked.sort((a,b)=>b.score-a.score);
+ const previous=ranked.find(c=>c.plan.routeKey===actor.recoveryRoute),best=ranked[0];
  return (previous&&best&&previous.score>=best.score*.6?previous:best)?.plan||null;
 }
 function comWantsRecovery(actor,id,plan){
@@ -3076,6 +3079,13 @@ function comReserveTurn(actor,gearPlan,reservePlan,gearReady,now){
  if(!actor.recoveryTripUntil)actor.recoveryTripUntil=now+(building?(reservePlan.expectedHeal>=120&&['rare','epic','legendary'].includes(RECIPE_RARITY[actor.equipment.weapon])?25000:10000):40000);
  return true;
 }
+function comUnderFire(actor,now){const n=actor.damageNotice;return !!(n&&n.at<=now&&now-n.at<=8000&&n.area===actor.place)}
+function comShouldBurnSpirit(actor,now,target=null){
+ if(actor.character!=='kankan'||actor.hp<actorMax(actor,'hp')*.85||now<(actor.characterFieldReadyAt||0))return false;
+ if(!target&&!comUnderFire(actor,now))return false;
+ const consumed=Math.floor(actor.hp*.4),incoming=target?evaluateCombat(actor,target,now,'player').incoming:actorMax(actor,'hp')*.2;
+ return actor.hp-consumed>incoming*2&&comRecoveryTotal(actor)>=consumed&&Math.max(0,(actor.recoveryReadyAt.hp||0)-now)<=RECOVERY_COOLDOWN_MS;
+}
 function comLeaveUnderFire(actor,plan,now){
  const notice=actor.damageNotice;
  if(!notice||notice.at>now||now-notice.at>8000||notice.area!==actor.place||!safeComRetreat(actor,now))return false;
@@ -3101,6 +3111,8 @@ function stepCom(actor,now){
  if(pvpEnabled()&&actor.opponent){actor.restMode=null;cancelBodyTreatment(actor);comFightOpponent(actor,now);return}
  if(pvpEnabled()&&comFinalArea()){comFinalSearch(actor,now);return}
  if(comLeaveUnderFire(actor,plan,now))return;
+ // Damage gives urgency, never a target: pay for a fresh, random local search.
+ if(comUnderFire(actor,now)){comFinalSearch(actor,now);return}
  if(actor.enemy){comFight(actor,now);return}
  if(actor.leaveDanger){comMove(actor,now,'敵から離れる',plan);return}
  if(actor.bodyTreatment){if(!updateBodyTreatment(actor,now))return}
@@ -3115,6 +3127,11 @@ function stepCom(actor,now){
  const upgradeReady=reservePlan?.recipeId&&craftConsumption(recipes.find(r=>r.id===reservePlan.recipeId),actor);
  if(hpChoice&&(actor.hp<actorMax(actor,'hp')*.65||hpMissing>=hpChoice.amount*.8)&&(!upgradeReady||actor.hp<actorMax(actor,'hp')*.4||hpChoice.amount>=60)){
   if(recoverActor(actor,hpChoice.id,now)){actor.restMode=null;actor.recoverySeeking=false;comLog(actor,names[hpChoice.id]+'を使用',now);return}
+ }
+ // A ready meal can restore a stranded COM; do not enter treatment before cooking it.
+ if(reservePlan?.recipeId&&comRecoveryTotal(actor)<60){
+  const r=recipes.find(r=>r.id===reservePlan.recipeId),after=r&&craftConsumption(r,actor);
+  if(RECOVERY_ITEMS[r?.id]?.group==='hp'&&after&&addToStacks(after.stacks,r.id,craftOutputCount(actor,r))&&craftActor(actor,r,now)){actor.restMode=null;comLog(actor,'手持ち素材で回復を制作：'+names[r.id],now);return}
  }
  const minHp=Math.max(actorMax(actor,'hp')*.2,Math.max(0,searchStaminaCost(actor)-actor.st)+((actor.injuryUntil||0)>now?4:0)+Math.max(0,5-actor.st)+1);
  if(actor.hp<=minHp||actor.restMode==='hp'&&actor.hp<actorMax(actor,'hp')*.5){
@@ -3136,7 +3153,7 @@ function stepCom(actor,now){
   const needed={...plan.needed};for(const [id,n]of Object.entries(reservePlan.needed))needed[id]=Math.max(needed[id]||0,n);
   plan={...reservePlan,needed};actor.recoveryRoute=plan.routeKey;actor.recoveryGoal=plan.recipeId||Object.keys(plan.missing)[0];
  }else actor.recoveryGoal=null;
- if(actor.character==='kankan'&&actor.hp>=actorMax(actor,'hp')*.85&&burnSpirit(actor,now))return;
+ if(comShouldBurnSpirit(actor,now)&&burnSpirit(actor,now))return;
  if(actor.character==='raku'&&modifyEquippedWeapon(actor,now))return;
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
