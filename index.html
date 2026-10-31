@@ -266,6 +266,12 @@ const PLAYABLE_CHARACTERS=[
 let selectedCharacter='kaito',matchStarted=false,characterSelectionTab='characters';
 // Add skins here with a unique id, display name and transparent art URL.
 const CHARACTER_SKINS=Object.fromEntries(PLAYABLE_CHARACTERS.map(c=>[c.id,[{id:'default',name:'オリジナル',art:null}]]));
+CHARACTER_SKINS.kaito.push({"id": "fighter", "name": "格闘家カイト", "art": "assets/skins/kaito_fighter.webp"});
+CHARACTER_SKINS.hayate.push({"id": "hunter", "name": "狩人ハヤテ", "art": "assets/skins/hayate_hunter.webp"});
+CHARACTER_SKINS.snow_leopard.push({"id": "sniper", "name": "狙撃手ヒョウガ", "art": "assets/skins/snow_leopard_sniper.webp"});
+CHARACTER_SKINS.bjorn.push({"id": "pharmacist", "name": "薬剤師ビヨルン", "art": "assets/skins/bjorn_pharmacist.webp"});
+CHARACTER_SKINS.flugel.push({"id": "royal_guard", "name": "近衛騎士フリューゲル", "art": "assets/skins/flugel_royal_guard.webp"});
+function randomComSkin(character){const skins=(CHARACTER_SKINS[character]||[]).filter(s=>s.id!=='default');return skins.length&&Math.random()<0.25?skins[rand(skins.length)].id:'default'}
 const selectedCharacterSkins={};
 const SELECTION_SKILL_DESCRIPTIONS={
  "fighting_instinct": "同じ敵を続けて攻撃すると、攻撃時に獲得する熟練度が1ずつ増える（通常1、最大4）。相手を変えたり逃走したりするとリセットされる。",
@@ -2405,7 +2411,7 @@ function initializeComActors(count=COM_COUNT){
  const roster=PLAYABLE_CHARACTERS.filter(c=>c.id!==S.character).slice(0,count);
  for(const character of roster){
   const type=character.weapon||'bow',goals=({fist:COM_FIST_GOALS,slash:COM_SLASH_GOALS,hammer:COM_HAMMER_GOALS,bow:COM_GOALS,gun:COM_GUN_GOALS})[type];
-  comActors.push({id:'com-'+character.id,name:character.name,character:character.id,preferredWeaponType:type,startArea:character.startArea,goals:[...goals],level:1,xp:0,hp:180,st:120,
+  comActors.push({id:'com-'+character.id,name:character.name,character:character.id,skin:randomComSkin(character.id),preferredWeaponType:type,startArea:character.startArea,goals:[...goals],level:1,xp:0,hp:180,st:120,
   masteryAttacks:initialMastery(character.id),place:'待機所',starterWeapon:null,
   equipment:Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null])),equipmentAmmo:{},
   bag:[{id:'ration',count:2},{id:'drink',count:2}],inventory:{ration:2,drink:2},
