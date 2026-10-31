@@ -268,26 +268,26 @@ let selectedCharacter='kaito',matchStarted=false,characterSelectionTab='characte
 const CHARACTER_SKINS=Object.fromEntries(PLAYABLE_CHARACTERS.map(c=>[c.id,[{id:'default',name:'オリジナル',art:null}]]));
 const selectedCharacterSkins={};
 const SELECTION_SKILL_DESCRIPTIONS={
- fighting_instinct:'同じ敵への連続攻撃で、攻撃時の熟練度獲得ボーナスが増加（最大3スタック）。',
- spirit_breeze:'区域移動で最大4スタック、30秒持続。2スタック以上で移動消費ST－2、4スタックでさらに－2。',
- footwork:'探索10回ごとにスタミナを10回復。',
- efficiency:'探索でスタックを蓄積。6スタックで通常探索するとアイテムを3個発見。ストック探索では消費せず、次の通常探索へ持ち越す。',
- marine_gang:'水辺の区域では攻撃・防御＋10%。魚型ドローン撃破時にHP150回復。',
- night_hunter:'夜間は被発見率－7ポイント、クリティカル率＋2ポイント。',
- qigong:'休憩・HP治療の毎秒回復量＋1。',
- dismantler:'ドローン撃破で改造スタックを獲得（小型1／中型2／大型4／超大型10）。1スタックごとにドローン与ダメージ＋2%。7・15スタックで追加ドロップ各＋1。',
- herb_gathering:'薬草または小さい花を、各50%の確率で1個採集する。',
- mineral_feast:'石・鉱石系素材を1個消費し、永続の鉱物纏いを獲得。宝石からは紅玉・蒼玉・白玉の追加効果も獲得。',
- burning_spirit:'現在HPの40%を消費。その実数と同じ%だけ、30秒間攻撃力が上昇する。',
- weapon_modification:'改造スタックに応じて、装備武器を同じ武器種の1等級上へランダム改造。必要スタック1／5／10／45。スタック消費なし。',
- step_break:'攻撃と同時に相手を5秒間減速。ガードされても発動する。',
- gale_shoot:'薫風を全消費し、115＋5×消費スタック%のダメージ。4スタック消費時、実ダメージの25%のスタミナを回復。',
- white_target:'110%ダメージ。敵の残りHP割合が高いほどクリティカル率が上昇（最大40%）。撃破時はCTが5秒になる。',
- physics_blow:'110%ダメージ。攻撃後の敵がHP50%以下なら、ランダムな部位に永続の怪我を負わせる。',
- une_deux:'75%ダメージ。その後6秒間、自分からのダメージ＋70%・クリティカル率＋25ポイント。',
- outlaw_bite:'110%ダメージ（水辺では130%）。相手の区域移動を3秒間封じる。',
- danse_macabre:'弓・銃のみ。昼は25%×6発、夜は20%×8発の連射。残弾切れ・敵撃破で終了。',
- jewel_hunt:'105%ダメージ。敵が所持する石・鉱石系素材を1個コピーする。'
+ "fighting_instinct": "同じ敵を続けて攻撃すると、攻撃時に獲得する熟練度が1ずつ増える（通常1、最大4）。相手を変えたり逃走したりするとリセットされる。",
+ "spirit_breeze": "区域を移動するたびに薫風が1たまる（最大4）。最後の移動から30秒間持続。薫風が2〜3なら移動時の消費スタミナ－2、4なら－4。",
+ "footwork": "探索を10回行うたびに、スタミナを10回復する。",
+ "efficiency": "探索するたびにスタックが1たまる（最大6）。6の状態で通常探索すると、全スタックを消費してアイテムを3個発見する。ストック探索でもたまるが、消費はせず次の通常探索に持ち越す。",
+ "marine_gang": "水辺の区域にいる間、攻撃力と防御力がそれぞれ1.1倍になる。魚型ドローンを倒すとHPを150回復する。",
+ "night_hunter": "夜間、発見される確率から7%を差し引く（例：30%→23%）。クリティカル率には2%を加算する（例：3%→5%）。",
+ "qigong": "休憩によるスタミナ回復と、治療によるHP回復が、どちらも毎秒1増える。",
+ "dismantler": "ドローンを倒すと改造スタックがたまる（小型1、中型2、大型4、ドラゴン10）。1スタックにつきドローンへのダメージが2%増える（最大1.6倍）。7スタックで追加ドロップ＋1個、15スタックで合計＋2個。",
+ "herb_gathering": "薬草か小さい花を1個採集する。どちらが手に入るかは半々。",
+ "mineral_feast": "石・鉱石系の素材を1個食べ、防御力を永続的に上げる。上昇量は素材の等級に応じて1／2／3／5／8。合計20以上で通常攻撃による怪我を防ぐ。ルビーは与ダメージ＋2、サファイヤは消費スタミナ－1、ダイアモンドは被ダメージ－4の効果も得る。",
+ "burning_spirit": "現在HPの40%を消費し、消費したHPと同じ数値の割合だけ攻撃力を30秒間上げる。例：HP100なら40消費し、攻撃力が1.4倍になる。",
+ "weapon_modification": "装備中の武器を、同じ武器種で1等級上の武器にランダムで変える。必要な改造スタックは、コモンから順に1／5／10／45。条件を満たせば使え、スタックは消費しない。",
+ "step_break": "攻撃と同時に、相手の行動にかかる時間を5秒間、毎回0.5秒延ばす。ガードされても効果が発動する。",
+ "gale_shoot": "薫風をすべて消費して攻撃する。ダメージは通常攻撃の1.15倍から、薫風1につき0.05倍ずつ増える（4なら1.35倍）。4消費した場合、実際に与えたダメージの25%分のスタミナを回復する。",
+ "white_target": "通常攻撃の1.1倍のダメージを与える。敵の残りHPの割合が高いほどクリティカル率が上がり、HP満タンなら40%になる。この攻撃で倒すと、再使用までの時間が5秒になる。",
+ "physics_blow": "通常攻撃の1.1倍のダメージを与える。攻撃後の敵のHPが最大HPの半分以下なら、ランダムな部位に怪我を負わせる。怪我は治療するまで残る。",
+ "une_deux": "通常攻撃の0.75倍のダメージを与える。その後6秒間、自分がその敵に与えるダメージが1.7倍になり、クリティカル率に25%を加算する（例：3%→28%）。",
+ "outlaw_bite": "通常攻撃の1.1倍のダメージを与え、相手の区域移動を3秒間封じる。水辺の区域ではダメージが1.3倍になる。",
+ "danse_macabre": "弓か銃を装備しているときに使用可能。昼は通常攻撃の0.25倍で6連射、夜は0.2倍で8連射する。途中で弾切れになるか敵を倒すと終了する。",
+ "jewel_hunt": "通常攻撃の1.05倍のダメージを与え、敵の持つ石・鉱石系素材を1個コピーして入手する。"
 };
 function cycleSelectedCharacter(direction){const i=PLAYABLE_CHARACTERS.findIndex(c=>c.id===selectedCharacter);showCharacterSelection(PLAYABLE_CHARACTERS[(i+direction+PLAYABLE_CHARACTERS.length)%PLAYABLE_CHARACTERS.length].id)}
 function setCharacterSelectionTab(tab){characterSelectionTab=tab==='skins'?'skins':'characters';showCharacterSelection()}
@@ -297,11 +297,11 @@ function showCharacterSelection(id=selectedCharacter){
  const character=PLAYABLE_CHARACTERS.find(c=>c.id===id);if(!character)return;selectedCharacter=id;
  const skins=CHARACTER_SKINS[id]||[],skin=skins.find(s=>s.id===selectedCharacterSkins[id])||skins[0];
  selectedCharacterSkins[id]=skin?.id||'default';
- const skills=Object.entries(CHARACTER_SKILLS[id]||{}).map(([kind,skill])=>'<article class="bp-select-skill"><h3><small>'+({passive:'パッシブ',field:'フィールド',active:'アクティブ'}[kind])+' ／ </small>'+skill.name+(skill.cooldownMs?'<small>　CT '+skill.cooldownMs/1000+'秒</small>':'')+'</h3><p>'+ (SELECTION_SKILL_DESCRIPTIONS[skill.id]||'')+'</p></article>').join('');
+ const skills=Object.entries(CHARACTER_SKILLS[id]||{}).map(([kind,skill])=>'<article class="bp-select-skill"><h3><small>'+({passive:'パッシブ',field:'フィールド',active:'アクティブ'}[kind])+' ／ </small>'+skill.name+(skill.cooldownMs?'<small>　再使用：'+skill.cooldownMs/1000+'秒</small>':'')+'</h3><p>'+ (SELECTION_SKILL_DESCRIPTIONS[skill.id]||'')+'</p></article>').join('');
  const roster=PLAYABLE_CHARACTERS.map(c=>'<button class="bp-character-card" onclick="showCharacterSelection(\''+c.id+'\')" aria-label="'+c.name+'を選択" aria-pressed="'+(c.id===id)+'"><img loading="lazy" src="'+actorArt({character:c.id})+'" alt="" draggable="false"><strong>'+c.name+'</strong></button>').join('');
  const skinCards=skins.map(s=>'<button class="bp-character-card bp-skin-card" onclick="selectCharacterSkin(\''+s.id+'\')" aria-pressed="'+(s.id===skin?.id)+'"><img src="'+(s.art||actorArt({character:id}))+'" alt=""><strong>'+s.name+'</strong></button>').join('');
  $('characterSelect').hidden=false;
- $('characterSelectContent').innerHTML='<header class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>キャラクター選択 ／ 選ばなかった'+(PLAYABLE_CHARACTERS.length-1)+'人がCOMで参戦</p></div><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></header><div class="bp-select-main"><div class="bp-select-stage"><img id="selectionPortrait" src="'+(skin?.art||actorArt({character:id}))+'" alt="'+character.name+' ／ '+(skin?.name||'オリジナル')+'"><button class="bp-select-arrow prev" aria-label="前のキャラクター" onclick="cycleSelectedCharacter(-1)">‹</button><button class="bp-select-arrow next" aria-label="次のキャラクター" onclick="cycleSelectedCharacter(1)">›</button><span class="bp-select-index">'+(PLAYABLE_CHARACTERS.indexOf(character)+1)+' / '+PLAYABLE_CHARACTERS.length+'　'+(skin?.name||'オリジナル')+'</span></div><section class="bp-select-detail" aria-label="キャラクターとスキルの詳細"><h2>'+character.name+'</h2><p class="bp-select-meta">'+character.species+' ／ '+character.mastery+'</p><p>'+character.summary+'</p><div class="bp-select-stats">'+[['attack','攻撃'],['defense','防御'],['hp','HP'],['stamina','ST']].map(([key,label])=>'<span>'+label+'<br>'+baseCharacterStat({character:id},key,1)+' → '+baseCharacterStat({character:id},key,15)+'</span>').join('')+'</div><p style="color:#a8bfd0;font-size:10px">能力値はLv1 → Lv15。開始後30秒以内に武器を選び、待機所から出発しよう。</p>'+skills+'</section></div><section class="bp-select-dock"><div class="bp-select-tabs" role="tablist" aria-label="選択メニュー"><button role="tab" aria-selected="'+(characterSelectionTab==='characters')+'" onclick="setCharacterSelectionTab(\'characters\')">キャラ一覧</button><button role="tab" aria-selected="'+(characterSelectionTab==='skins')+'" onclick="setCharacterSelectionTab(\'skins\')">スキン</button><small>'+ (characterSelectionTab==='characters'?'横スクロールで直接選択':'外見のみ変更 ／ '+skins.length+'種')+'</small></div><div class="bp-character-grid" role="tabpanel">'+(characterSelectionTab==='characters'?roster:skinCards)+'</div></section>';
+ $('characterSelectContent').innerHTML='<header class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>キャラクター選択 ／ 選ばなかった'+(PLAYABLE_CHARACTERS.length-1)+'人がCOMで参戦</p></div><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></header><div class="bp-select-main"><div class="bp-select-stage"><img id="selectionPortrait" src="'+(skin?.art||actorArt({character:id}))+'" alt="'+character.name+' ／ '+(skin?.name||'オリジナル')+'"><button class="bp-select-arrow prev" aria-label="前のキャラクター" onclick="cycleSelectedCharacter(-1)">‹</button><button class="bp-select-arrow next" aria-label="次のキャラクター" onclick="cycleSelectedCharacter(1)">›</button><span class="bp-select-index">'+(PLAYABLE_CHARACTERS.indexOf(character)+1)+' / '+PLAYABLE_CHARACTERS.length+'　'+(skin?.name||'オリジナル')+'</span></div><section class="bp-select-detail" aria-label="キャラクターとスキルの詳細"><h2>'+character.name+'</h2><p class="bp-select-meta">'+character.species+' ／ '+character.mastery+'</p><p>'+character.summary+'</p><div class="bp-select-stats">'+[['attack','攻撃'],['defense','防御'],['hp','HP'],['stamina','スタミナ']].map(([key,label])=>'<span>'+label+'<br>'+baseCharacterStat({character:id},key,1)+' → '+baseCharacterStat({character:id},key,15)+'</span>').join('')+'</div><p style="color:#a8bfd0;font-size:10px">能力値はLv1 → Lv15。開始後30秒以内に武器を選び、待機所から出発しよう。</p>'+skills+'</section></div><section class="bp-select-dock"><div class="bp-select-tabs" role="tablist" aria-label="選択メニュー"><button role="tab" aria-selected="'+(characterSelectionTab==='characters')+'" onclick="setCharacterSelectionTab(\'characters\')">キャラ一覧</button><button role="tab" aria-selected="'+(characterSelectionTab==='skins')+'" onclick="setCharacterSelectionTab(\'skins\')">スキン</button><small>'+ (characterSelectionTab==='characters'?'横スクロールで直接選択':'外見のみ変更 ／ '+skins.length+'種')+'</small></div><div class="bp-character-grid" role="tabpanel">'+(characterSelectionTab==='characters'?roster:skinCards)+'</div></section>';
 }
 function startSelectedCharacter(){
  if(matchStarted)return;
