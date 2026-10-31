@@ -539,7 +539,7 @@ function executeDanse(actor,target,now,drone=false,preserve=false){
  if(actor.character!=='bat'||!canDanse(actor)||now<(actor.characterSkillReadyAt||0))return null;
  const type=actorWeaponType(actor),night=isNightAt(now),limit=night?8:6,multiplier=night?.2:.25,shots=[];actor.characterSkillReadyAt=now+60000;
  for(let i=0;i<limit&&actor.hp>0&&target.hp>0&&canDanse(actor);i++){
-  const shot=drone?strikeDrone(actor,target,now,null,{multiplier,deferCounter:true}):actorAttack(actor,target,now,preserve,null,{multiplier});
+  const shot=drone?strikeDrone(actor,target,now,null,{multiplier,deferCounter:true,awardMastery:i===0}):actorAttack(actor,target,now,preserve,null,{multiplier,awardMastery:i===0});
   if(!shot)break;shots.push(shot);
  }
  if(!shots.length)return null;
@@ -1477,7 +1477,7 @@ function recordExploration(actor,now){
  }
 }
 // Local-only observation log. It is evidence for later analysis, never an input to COM decisions.
-const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-10-31-reward-recovery-v3';
+const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-11-01-volley-awareness-v4';
 let playJournal=null,playRecordTimer=null,playRecordDepth=0,playRecordLastState='',playRecordLastObservation=0,playRecordStorageError=false;
 let playRecords=readPlayRecords();
 function readPlayRecords(){
@@ -1619,7 +1619,7 @@ function trackActorAttack(attacker,target,result,now,kind){
  if(kind==='player'){
   bumpMatchStat(target,'damageTaken',result.dealt||0);bumpMatchStat(attacker,'damageTaken',result.reflectedTaken||0);bumpMatchStat(target,'damageDealt',result.reflectedTaken||0);
   if(result.dealt>0&&target!==S){
-   target.restMode=null;cancelBodyTreatment(target);
+   target.restMode=null;cancelBodyTreatment(target);target.damageNotice={at:now,area:target.place};
    // Taking damage grants no paid-search discovery and never replaces a confirmed target.
   }
   if(result.hit&&result.damage>0){target.observedOpponents||={};target.observedOpponents[attacker.id]={damage:result.damage,weapon:attacker.equipment.weapon,level:attacker.level,defense:totalStat('defense',target,now),body:target.equipment.body,head:target.equipment.head,at:now}}
@@ -1757,7 +1757,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  const type=actorWeaponType(attacker),weapon=equipmentDef(attacker.equipment.weapon),ranged=weapon?.ammoType;
  spendAttackAmmo(attacker,type);
  attacker.recoveryMode=null;attacker.recoveryTickAt=0;attacker.restMode=null;if(!preserveTargetActivity){target.recoveryMode=null;target.recoveryTickAt=0;target.restMode=null;}
- updateStatusEffects(now,attacker);awardAttackMastery(attacker,target,type);
+ updateStatusEffects(now,attacker);if(!shotContext||shotContext.awardMastery)awardAttackMastery(attacker,target,type);
  const accuracy=Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,attacker)]+actorAccuracyBonus(attacker,type)-statusStacks('blackInk',attacker)));
  const guarded=Math.random()*100>=accuracy,hit=true,armor=EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]||{};
  const attack=totalStat('attack',attacker,now)-(ranged&&type==='fist'?weaponAttackContribution(attacker)*actorStatMultiplier('attack',attacker,now):0)+attackRoll();
@@ -1923,7 +1923,7 @@ function strikeDrone(actor,d,now,skillId=null,shotContext=null){
  const gale=shotContext||prepareCharacterAttack(actor,d,skillId,now);
  const def=DRONE_DEFS[d.kind],type=actorWeaponType(actor),weapon=equipmentDef(actor.equipment.weapon),ranged=weapon?.ammoType;
  spendAttackAmmo(actor,type);
- updateStatusEffects(now,d);awardAttackMastery(actor,d,type);
+ updateStatusEffects(now,d);if(!shotContext||shotContext.awardMastery)awardAttackMastery(actor,d,type);
  const guarded=Math.random()*100>=droneAccuracy(def,type,actor),hit=true,bonus=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.damageBonus||0;
  const attack=totalStat('attack',actor,now)-(ranged&&type==='fist'?weaponAttackContribution(actor)*actorStatMultiplier('attack',actor,now):0)+attackRoll();
  const critical=!guarded&&attackCritical(actor,type,gale,d,now),baseDamage=hit?criticalDamage(damageToDrone(def,type,attack,bonus,actor),critical,actor):0;
@@ -3043,6 +3043,19 @@ function comReserveTurn(actor,gearPlan,reservePlan,gearReady,now){
  if(!actor.recoveryTripUntil)actor.recoveryTripUntil=now+(building?(reservePlan.expectedHeal>=120&&['rare','epic','legendary'].includes(RECIPE_RARITY[actor.equipment.weapon])?25000:10000):40000);
  return true;
 }
+function comLeaveUnderFire(actor,plan,now){
+ const notice=actor.damageNotice;
+ if(!notice||notice.at>now||now-notice.at>8000||notice.area!==actor.place||!safeComRetreat(actor,now))return false;
+ if(actor.hp>=actorMax(actor,'hp')*.65&&!Object.keys(BODY_INJURIES).some(part=>hasBodyInjury(actor,part)))return false;
+ cancelBodyTreatment(actor);actor.restMode=null;
+ const hp=comSelectRecovery(actor,'hp',now,true);if(hp&&actorMax(actor,'hp')-actor.hp>=hp.amount*.8)recoverActor(actor,hp.id,now);
+ const st=comSelectRecovery(actor,'stamina',now);if(st&&actor.st<6)recoverActor(actor,st.id,now);
+ // Legs can raise the movement cost to six. Do not flee by paying a lethal HP cost.
+ if(actor.hp+actor.st<=6){actor.st=Math.min(actorMax(actor,'stamina'),actor.st+restRecoveryRate(actor));comLog(actor,'被弾：退避に必要なスタミナを確保',now);return true}
+ actor.dangerAreas||={};actor.dangerAreas[actor.place]=now+90000;
+ if(comMove(actor,now,'被弾したため治療を中断して退避',plan,true)){bumpMatchStat(actor,'retreats');recordMatchEvent(actor,'retreat','被弾した場所を離れて立て直す',now);return true}
+ comLog(actor,'被弾：移動可能になるのを待って退避',now);return true;
+}
 function stepCom(actor,now){
  updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
@@ -3054,6 +3067,7 @@ function stepCom(actor,now){
  if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=COM_POLICY.warningMs){if(comMove(actor,now,'封鎖予告を見て退避',plan))return}
  if(pvpEnabled()&&actor.opponent){actor.restMode=null;cancelBodyTreatment(actor);comFightOpponent(actor,now);return}
  if(pvpEnabled()&&comFinalArea()){comFinalSearch(actor,now);return}
+ if(comLeaveUnderFire(actor,plan,now))return;
  if(actor.enemy){comFight(actor,now);return}
  if(actor.leaveDanger){comMove(actor,now,'敵から離れる',plan);return}
  if(actor.bodyTreatment){if(!updateBodyTreatment(actor,now))return}
