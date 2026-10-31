@@ -1653,9 +1653,9 @@ function updatePvpTimeline(now){
  if(S.pvpFeedback&&S.pvpFeedback.until<=now){
   const corpseId=S.pvpFeedback.corpseId;
   if(corpseId){clearPlayerEncounter();openCorpse(corpseId)}
-  else{S.pvpFeedback=null;S.busy=false;S.contactExpiresAt=now+5000;} // Keep the last confirmed sighting after a hit; movement stays hidden.
+  else{clearPlayerEncounter();} // One paid search grants one attack or escape; search again after combat feedback.
  }
- // Keep the last confirmed sighting until an explicit attack, escape or player movement.
+ // Before a decision, retain the last confirmed sighting until attack, escape or player movement.
  // Neither elapsed time nor hidden enemy movement ends an encounter.
 }
 // COM awareness is earned by its own paid search, independently of the player's discovery.
