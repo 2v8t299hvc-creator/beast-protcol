@@ -478,7 +478,7 @@ function modifyEquippedWeapon(actor,now=Date.now()){
  const id=plan.candidates[rand(plan.candidates.length)],def=equipmentDef(id),ammo=weaponAmmo(plan.old,actor.equipmentAmmo.weapon);
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.equipment.weapon=id;
  if(def.ammoType&&!def.unlimitedAmmo)actor.equipmentAmmo.weapon=weaponAmmo(id,ammo);else delete actor.equipmentAmmo.weapon;
- actor.equipmentEffects||={};actor.equipmentEffects.weapon={id};actor.characterFieldReadyAt=now+90000;
+ actor.equipmentEffects||={};actor.equipmentEffects.weapon=equipmentInstanceEffects(id);actor.characterFieldReadyAt=now+90000;
  const text='改造：'+names[plan.old]+' → '+names[id]+'（スタック消費なし）';recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
 }
 const EDIBLE_MINERALS=new Set(['stone','marble','mystery','whitestone','redstone','bluestone','obsidian','meteorite','bronze','iron','steel','blackiron','silver','whitesilver','gold','wonderore','wonderjewel','ruby','sapphire','diamond']);
@@ -524,7 +524,7 @@ function finalCharacterDamage(base,actor,target,skill,now,guarded){
 function canDanse(actor){const def=equipmentDef(actor.equipment?.weapon);return !!def&&['bow','gun'].includes(def.weaponType)&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)>0}
 function executeDanse(actor,target,now,drone=false,preserve=false){
  if(actor.character!=='bat'||!canDanse(actor)||now<(actor.characterSkillReadyAt||0))return null;
- const night=isNightAt(now),limit=night?8:6,multiplier=night?.2:.25,shots=[];actor.characterSkillReadyAt=now+60000;
+ const type=actorWeaponType(actor),night=isNightAt(now),limit=night?8:6,multiplier=night?.2:.25,shots=[];actor.characterSkillReadyAt=now+60000;
  for(let i=0;i<limit&&actor.hp>0&&target.hp>0&&canDanse(actor);i++){
   const shot=drone?strikeDrone(actor,target,now,null,{multiplier,deferCounter:true}):actorAttack(actor,target,now,preserve,null,{multiplier});
   if(!shot)break;shots.push(shot);
@@ -537,6 +537,8 @@ function executeDanse(actor,target,now,drone=false,preserve=false){
   if(actionDelayMs(target,now)){scheduleDroneCounter(actor,target,now);result.counterPending=true}
   else{const details={};result.counter=droneCounterDamage(DRONE_DEFS[target.kind],actor,now,details);result.counterCritical=details.critical;bumpMatchStat(actor,'damageTaken',Math.min(actor.hp,result.counter));actor.hp=Math.max(0,actor.hp-result.counter)}
  }
+ // A volley is one attack action. Defer wear and armor retaliation until every shot resolves.
+ recordWeaponUse(actor,type,now,sum('durabilityLoss'));
  const text='ダンスマカブル：'+shots.length+'連射／合計'+result.dealt+'ダメージ';recordMatchEvent(actor,'skill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return result;
 }
 function characterBuffHTML(actor,now=Date.now()){
@@ -819,7 +821,7 @@ function renderStageArt(){
  }
 }
 
-function refresh(){$('playerName').textContent=actorName(S);$('playerLevel').textContent='Lv.'+S.level;renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/'+maxHp();$('stval').textContent=S.st+'/'+maxSt();$('hpbar').style.width=S.hp/maxHp()*100+'%';$('stbar').style.width=S.st/maxSt()*100+'%';$('levelProgress').textContent='Lv.'+S.level+' ('+levelProgress()+')';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]+ammoLabel(equipped('weapon'),S.equipmentAmmo.weapon)+(equipmentDef(equipped('weapon'))?.ammoType&&!weaponAmmo()?' →素手':''):'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');renderCombat();renderStatusEffects();renderRecoveryCooldowns();renderRecoveryMode();$('clock').textContent=formatTime(S.remaining);renderMatchStatus();renderClosureWarning();renderCharacterSkills();colorItemNames($('game'));}
+function refresh(){$('playerName').textContent=actorName(S);$('playerLevel').textContent='Lv.'+S.level;renderStageArt();renderInventory(); $('hpval').textContent=S.hp+'/'+maxHp();$('stval').textContent=S.st+'/'+maxSt();$('hpbar').style.width=S.hp/maxHp()*100+'%';$('stbar').style.width=S.st/maxSt()*100+'%';$('levelProgress').textContent='Lv.'+S.level+' ('+levelProgress()+')';$('master').textContent=MASTERY_RANKS[masteryRank(weaponType())]+' ('+masteryProgress(weaponType())+')';$('weapon').textContent=equipped('weapon')?names[equipped('weapon')]+ammoLabel(equipped('weapon'),S.equipmentAmmo.weapon)+weaponDurabilityLabel(equipped('weapon'),S.equipmentEffects?.weapon)+(equipmentDef(equipped('weapon'))?.ammoType&&!weaponAmmo()?' →素手':''):'素手';$('armor').textContent=equipped('arm')?names[equipped('arm')]:'なし';$('mainBtn').disabled=!!S.busy;$('place').textContent='📍 '+S.place;$('stockCount').textContent=Math.min(S.found.length,FIND_SLOTS)+'/3'+(S.found.length>3?' +1':'');renderCombat();renderStatusEffects();renderRecoveryCooldowns();renderRecoveryMode();$('clock').textContent=formatTime(S.remaining);renderMatchStatus();renderClosureWarning();renderCharacterSkills();colorItemNames($('game'));}
 
 let opponentEquipmentKey='';
 function renderOpponentEquipment(opponent){
@@ -877,7 +879,7 @@ function renderCombat(){$('enemy').classList.toggle('is-dragon',!!S.enemy&&S.ene
  $('skillBtn').textContent=fighting?'↩ 逃走':S.bodyTreatment?'■ 怪我の治療中':S.recoveryMode==='hp'?'■ 治療中':'🩹 治療';
  $('moveBtn').disabled=fighting||!!S.busy||isMovementLocked(S,Date.now());
  const id=equipped('weapon');
- $('combatWeapon').textContent='自分の武器：'+(id?names[id]+ammoLabel(id,S.equipmentAmmo.weapon):'素手')+(fighting&&equipmentDef(id)?.ammoType&&!weaponAmmo()?' → 弾切れ・素手で攻撃':'');
+ $('combatWeapon').textContent='自分の武器：'+(id?names[id]+ammoLabel(id,S.equipmentAmmo.weapon)+weaponDurabilityLabel(id,S.equipmentEffects?.weapon):'素手')+(fighting&&equipmentDef(id)?.ammoType&&!weaponAmmo()?' → 弾切れ・素手で攻撃':'');
 }
 
 const NEW_ACCESSORIES=[["quiver","矢筒","uncommon",12,{"bamboo_pole":1,"fur":1},{"bowCapacity":8},"弓装備時、装填可能数＋8"],["sturdy_quiver","丈夫な矢筒","rare",18,{"quiver":1,"fish_scale":1},{"bowCapacity":12},"弓装備時、装填可能数＋12"],["snakeskin_quiver","ヘビ皮の矢筒","rare",26,{"sturdy_quiver":1,"rubbery_hide":1},{"bowCapacity":18},"弓装備時、装填可能数＋18"],["magic_quiver","魔法の矢筒","rare",12,{"quiver":1,"wonderore":1},{"arrowSaveChance":0.5},"弓攻撃時、50%の確率で矢を消費しない"],["artemis_quiver","アルテミスの矢筒","epic",18,{"magic_quiver":1,"sapphire":1},{"arrowSaveChance":0.9},"弓攻撃時、90%の確率で矢を消費しない"],["apollo_quiver","アポロンの矢筒","epic",18,{"magic_quiver":1,"laurel":1},{"arrowSaveChance":1},"弓攻撃時、矢を消費しない"],["simple_magazine","簡易マガジン","uncommon",8,{"gunpowder":1,"scrap":1},{"gunCapacity":20},"銃装備時、装填可能数＋20"],["auto_magazine","オートマガジン","epic",20,{"simple_magazine":1,"double_gear":1},{"gunCapacity":99},"銃装備時、装填可能数＋99"],["life_death_scales","生と死の天秤","epic",20,{"poison_potion":1,"advanced_healing_potion":1},{"deadlyBalance":true},"デッドリィバランス：現在HPを超えるダメージを受けるとHP1で耐える。CT300秒"]];
@@ -947,7 +949,7 @@ function addToStacks(stacks,id,count,metadata=null){
  if(AMMO_LIMITS[id]&&totalIn(stacks,id)+count>AMMO_LIMITS[id])return null;
  const next=stacks.map(x=>({...x}));let left=count,lim=stackLimit(id);
  for(const x of next){if(x.id!==id||!left)continue;let n=Math.min(lim-x.count,left);x.count+=n;left-=n}
- while(left>0&&next.length<BAG_SLOTS){let n=Math.min(lim,left);next.push({id,count:n,...(equipmentDef(id)?.ammoType&&!equipmentDef(id).unlimitedAmmo?{ammo:weaponAmmo(id,metadata?.ammo??equipmentDef(id).capacity)}:{}),...(equipmentDef(id)&&metadata?.effects?{effects:{...metadata.effects}}:{})});left-=n}
+ while(left>0&&next.length<BAG_SLOTS){let n=Math.min(lim,left);next.push({id,count:n,...(equipmentDef(id)?.ammoType&&!equipmentDef(id).unlimitedAmmo?{ammo:weaponAmmo(id,metadata?.ammo??equipmentDef(id).capacity)}:{}),...(equipmentDef(id)?.slot==='weapon'||metadata?.effects?{effects:equipmentInstanceEffects(id,metadata?.effects)}:{})});left-=n}
  return left===0?next:null;
 }
 function removeFromStacks(stacks,id,count){
@@ -972,7 +974,7 @@ function showDiscovery(){
   const id=obj.id,count=obj.count||1,canTake=canReceive(id,S.bag,count),token=discoveryChoiceToken(obj);
   const warning=AMMO_LIMITS[id]&&totalIn(S.bag,id)+count>AMMO_LIMITS[id]?'弾薬の所持上限です':'バッグに空きがありません';
   return `<article class="bp-discovery-card" data-discovery-token="${token}">
-   <div class="bp-discovery-preview">${itemIconHTML(id)}</div><strong>${names[id]}</strong><small>×${count} ・ 所持 ${S.inventory[id]||0}</small>
+   <div class="bp-discovery-preview">${itemIconHTML(id)}</div><strong>${names[id]}</strong><small>×${count} ・ 所持 ${S.inventory[id]||0}</small><small>${weaponDurabilityLabel(id,obj.effects)}</small>
    <div class="bp-discovery-actions"><button type="button" class="bp-discovery-take" onclick="decideDiscoveredItem(${token},true)" ${canTake?'':'disabled'}>✓ 取得 ×${count}</button>
    <button type="button" class="bp-discovery-keep" onclick="decideDiscoveredItem(${token},false)">📦 保留</button></div>
    ${canTake?'':'<span class="bp-discovery-warning">'+warning+'。保留できます</span>'}
@@ -1029,7 +1031,7 @@ function showStock(){
   return `<div class="bp-stock-card">
    <div class="bp-stock-picture">${itemIconHTML(id)}</div>
    <strong class="bp-stock-name">${names[id]}${obj.count>1?' ×'+obj.count:''}</strong>
-   <span class="bp-stock-detail">所持 ${S.inventory[id]||0}個</span>
+   <span class="bp-stock-detail">所持 ${S.inventory[id]||0}個 ${weaponDurabilityLabel(id,obj.effects)}</span>
    <button onclick="takeFound(${i})" ${canTake?'':'disabled'}>🔎 探索する</button>
    ${reason?`<span class="bp-stock-reason">${reason}</span>`:''}
   </div>`;
@@ -1148,10 +1150,10 @@ function isBlocked(area){return !!matchClock?.blocked.includes(area)}
 function nextClosingAreas(){return matchClock?matchClock.nextBlocked.filter(area=>!matchClock.blocked.includes(area)):[]}
 function sectionSeconds(now=Date.now()){return !matchClock||matchClock.ended?0:Math.max(0,Math.ceil((matchClock.sectionEndsAt-now)/1000))}
 function formatTime(seconds){return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
-function eliminatePlayer(reason,killerId=null,now=Date.now()){
+function eliminatePlayer(reason,killerId=null,now=Date.now(),killerEquipment=null){
  stopRecoveryMode();
  if(matchClock.result)return;
- createPlayerCorpse(S,S.place,now,killerId);S.hp=0;S.busy=false;S.enemy=false;S.pendingFound=null;S.discoveryQueue=[];S.corpseVisit=null;matchClock.result='eliminated';
+ createPlayerCorpse(S,S.place,now,killerId,killerEquipment);S.hp=0;S.busy=false;S.enemy=false;S.pendingFound=null;S.discoveryQueue=[];S.corpseVisit=null;matchClock.result='eliminated';
  addLog(reason);modal('演習脱落','<p>'+reason+'</p><p>残った参加者同士の演習は続行します。セクション進行とマップは引き続き確認できます。</p><button onclick="showComStatus()">残ったCOMの状況</button><button onclick="location.reload()">新しい演習を開始</button>');checkVictory(now);
 }
 function finishMatch(now=Date.now()){
@@ -1320,18 +1322,64 @@ function renderStatusEffects(){
  $('statusEffects').innerHTML=characterBuffHTML(S)+characterDebuffHTML(S)+Object.keys(BODY_INJURIES).filter(part=>hasBodyInjury(S,part)).map(part=>'<span>'+BODY_INJURIES[part].name+'：'+BODY_INJURIES[part].effect+'（永続）</span>').join('')+((S.injuryUntil||0)>Date.now()?'<span>🩸 負傷：探索でHP－4（'+Math.ceil((S.injuryUntil-Date.now())/1000)+'秒）</span>':'')+Object.entries(STATUS_DEFS).filter(([id])=>statusStacks(id)>0).map(([id,def])=>'<span title="'+def.name+'：5秒ごとに1減少">'+def.icon+' '+def.name+' ×'+statusStacks(id)+'（'+Math.max(0,Math.ceil((S.statusEffects[id].nextDecayAt-Date.now())/1000))+'秒）</span>').join('')+((S.frozenUntil||0)>Date.now()?'<span>❄ 凍結：回復アイテム不可（'+Math.ceil((S.frozenUntil-Date.now())/1000)+'秒）</span>':'');
 }
 function droneAccuracy(def,type,actor=S){return Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,actor)]+actorAccuracyBonus(actor,type)-(def.evasion||0)-statusStacks('blackInk',actor)))}
+// Per-instance wear: ten protected uses, then increasing chance of losing 10/100.
+// No attack-count hard limit: even a heavily used weapon can survive a lucky streak.
+const WEAPON_DURABILITY={max:100,loss:10,graceAttacks:10,baseChance:.06,chancePerAttack:.004,maxBaseChance:.5,wearMultiplier:.006,maxChance:.8};
+function equipmentInstanceEffects(id,effects={}){
+ const state={...(effects?.id&&effects.id!==id?{}:effects),id};
+ if(equipmentDef(id)?.slot==='weapon'){
+  state.durability=Number.isFinite(state.durability)?Math.max(0,Math.min(WEAPON_DURABILITY.max,state.durability)):WEAPON_DURABILITY.max;
+  state.wearAttacks=Number.isFinite(state.wearAttacks)?Math.max(0,Math.floor(state.wearAttacks)):0;
+ }
+ return state;
+}
+function weaponDurabilityChance(state){
+ const c=WEAPON_DURABILITY,uses=state.wearAttacks||0;
+ if(uses<=c.graceAttacks)return 0;
+ return Math.min(c.maxChance,Math.min(c.maxBaseChance,c.baseChance+(uses-c.graceAttacks-1)*c.chancePerAttack)*(1+(c.max-state.durability)*c.wearMultiplier));
+}
+function weaponDurabilityLabel(id,effects=null){
+ if(equipmentDef(id)?.slot!=='weapon')return '';
+ if(EQUIPMENT_SPECIAL_EFFECTS[id]?.durabilityLossImmune)return '〔耐久∞〕';
+ const state=equipmentInstanceEffects(id,effects||{}),d=state.durability;
+ return '〔耐久'+d+'/'+WEAPON_DURABILITY.max+(d<=30?'・破損注意':'')+'〕';
+}
+function durabilityEvent(actor,text,now,data){
+ recordMatchEvent(actor,'durability',text,now,data);
+ if(actor===S)addLog(text);else comLog(actor,text,now);
+}
+function breakEquippedWeapon(actor,now=Date.now()){
+ const id=actor.equipment?.weapon;if(!id)return;
+ actor.equipment.weapon=null;delete actor.equipmentAmmo.weapon;delete actor.equipmentEffects.weapon;
+ actor.st=Math.min(actor.st,actorMax(actor,'stamina'));actor.adaptivePlanCache=null;
+ bumpMatchStat(actor,'weaponsBroken');
+ const text=names[id]+'が壊れた！ 素手での攻撃に切り替わった';
+ durabilityEvent(actor,text,now,{id,broken:true});if(actor===S)toast(text);
+}
+function recordWeaponUse(actor,type,now=Date.now(),externalLoss=0){
+ const id=actor.equipment?.weapon,def=equipmentDef(id);
+ if(!def||def.weaponType!==type||EQUIPMENT_SPECIAL_EFFECTS[id]?.durabilityLossImmune)return;
+ const state=equipmentState(actor,'weapon');state.wearAttacks++;
+ const chance=weaponDurabilityChance(state),loss=chance>0&&Math.random()<chance?WEAPON_DURABILITY.loss:0;
+ // Retaliation bypasses the ordinary-use grace period, but never bypasses immunity.
+ damageEquipmentDurability(actor,'weapon',loss+externalLoss,now);
+}
 function equipmentState(actor,slot){
  const id=actor.equipment?.[slot];actor.equipmentEffects||={};
- let state=actor.equipmentEffects[slot];if(!state||state.id!==id)state=actor.equipmentEffects[slot]={id};return state;
+ let state=actor.equipmentEffects[slot];if(!state||state.id!==id)state=actor.equipmentEffects[slot]=equipmentInstanceEffects(id);
+ else if(slot==='weapon'&&(!Number.isFinite(state.durability)||!Number.isFinite(state.wearAttacks)))Object.assign(state,equipmentInstanceEffects(id,state));return state;
 }
 function equipmentMetadata(actor,slot){
- const id=actor.equipment?.[slot],def=equipmentDef(id),state=actor.equipmentEffects?.[slot];
+ const id=actor.equipment?.[slot],def=equipmentDef(id),state=id?equipmentState(actor,slot):null;
  return {...(def?.ammoType&&!def.unlimitedAmmo?{ammo:weaponAmmo(id,actor.equipmentAmmo?.[slot]||0)}:{}),...(state?.id===id?{effects:{...state}}:{})};
 }
-function damageEquipmentDurability(actor,slot,amount){
+function damageEquipmentDurability(actor,slot,amount,now=Date.now()){
  const id=actor.equipment?.[slot];if(!id||EQUIPMENT_SPECIAL_EFFECTS[id]?.durabilityLossImmune)return 0;
  const state=equipmentState(actor,slot);if(!Number.isFinite(state.durability))return 0;
- const loss=Math.min(state.durability,Math.max(0,amount));state.durability-=loss;return loss;
+ const loss=Math.min(state.durability,Math.max(0,amount));if(!loss)return 0;state.durability-=loss;
+ if(state.durability<=0&&slot==='weapon')breakEquippedWeapon(actor,now);
+ else durabilityEvent(actor,names[id]+'の耐久値－'+loss+'（残り'+state.durability+'/'+WEAPON_DURABILITY.max+'）'+(state.durability<=30?' ⚠ 破損注意':''),now,{id,loss,durability:state.durability});
+ return loss;
 }
 function actorAccuracyBonus(actor,type=actorWeaponType(actor)){
  return (hasBodyInjury(actor,'head')?-10:0)+Object.entries(actor.equipment).reduce((n,[slot,id])=>n+(slot==='weapon'&&type==='fist'&&equipmentDef(id)?.ammoType?0:EQUIPMENT_SPECIAL_EFFECTS[id]?.accuracyBonus||0),0);
@@ -1399,7 +1447,7 @@ function recordMatchEvent(actor,type,text,now=Date.now(),data=null){
  if(matchClock?.ended)return;actor.matchEvents||=[];actor.matchEvents.push({at:now,type,text,...(data?{data}: {})});if(actor.matchEvents.length>200)actor.matchEvents.shift();
 }
 function snapshotMatchActor(actor){
- return {level:actor.level,place:actor.place,equipment:{...actor.equipment},equipmentAmmo:{...actor.equipmentAmmo},mastery:{...actor.masteryAttacks},bag:(actor.bag||[]).map(x=>({id:x.id,count:x.count,ammo:x.ammo}))};
+ return {level:actor.level,place:actor.place,equipment:{...actor.equipment},equipmentAmmo:{...actor.equipmentAmmo},equipmentEffects:JSON.parse(JSON.stringify(actor.equipmentEffects||{})),mastery:{...actor.masteryAttacks},bag:(actor.bag||[]).map(x=>({id:x.id,count:x.count,ammo:x.ammo,...(x.effects?{effects:{...x.effects}}:{})}))};
 }
 function sealMatchRecord(now){
  if(matchClock.record)return;matchClock.finishedAt=now;
@@ -1417,15 +1465,15 @@ function showMatchResult(){
 function showMatchReport(){
  if(!matchClock?.ended||!matchClock.record)return toast('試合終了後に確認できます');
  const record=matchClock.record,escape=escapeCorpseText;
- const rows=[['guardedAttacks','ガードされた攻撃'],['guards','ガード回数'],['emptySearchXp','探索空振り経験値'],['killXp','撃破経験値'],['multiSearches','複数発見の探索回数'],['searches','探索回数'],['moves','移動回数'],['crafts','制作回数'],['masteryBonus','闘争本能の熟練度ボーナス'],['pvpAttacks','対人攻撃回数'],['droneAttacks','ドローン攻撃回数'],['droneKills','ドローン撃破数'],['playerKills','参加者撃破数'],['damageDealt','与ダメージ'],['damageTaken','被ダメージ'],['retreats','撤退・逃走回数'],['recoveryItems','回復アイテム使用数'],['reloads','装填回数']];
+ const rows=[['guardedAttacks','ガードされた攻撃'],['guards','ガード回数'],['emptySearchXp','探索空振り経験値'],['killXp','撃破経験値'],['multiSearches','複数発見の探索回数'],['searches','探索回数'],['moves','移動回数'],['crafts','制作回数'],['masteryBonus','闘争本能の熟練度ボーナス'],['pvpAttacks','対人攻撃回数'],['droneAttacks','ドローン攻撃回数'],['droneKills','ドローン撃破数'],['playerKills','参加者撃破数'],['damageDealt','与ダメージ'],['damageTaken','被ダメージ'],['retreats','撤退・逃走回数'],['recoveryItems','回復アイテム使用数'],['reloads','装填回数'],['weaponsBroken','武器破損数']];
  let body='<button onclick="showMatchResult()">← 結果へ戻る</button><p>試合時間 '+formatTime(record.elapsed)+' ／ '+(record.result==='draw'?'引き分け':'勝者：'+escape(record.actors.find(a=>a.id===record.winnerId)?.name||'なし'))+'</p><p class="small">装備・所持品は勝敗確定時、脱落者は脱落直前の状態です。判断の履歴は直近200件の重要な行動を保持します。</p>';
  for(const actor of record.actors){
   const f=actor.final,stats=actor.stats;
   body+='<h3>'+escape(actor.name)+'（'+(actor.alive?'生存':'脱落')+'）Lv.'+f.level+'</h3><p>'+escape(f.place)+'</p>';
-  body+='<div class="bp-equip-grid">'+Object.entries(EQUIPMENT_SLOTS).map(([slot,label])=>{const id=f.equipment[slot];return '<div class="bp-equip-card"><b>'+label+'</b>'+(id?itemIconHTML(id)+escape(names[id]||id)+ammoLabel(id,f.equipmentAmmo[slot]):'未装備')+'</div>'}).join('')+'</div>';
+  body+='<div class="bp-equip-grid">'+Object.entries(EQUIPMENT_SLOTS).map(([slot,label])=>{const id=f.equipment[slot];return '<div class="bp-equip-card"><b>'+label+'</b>'+(id?itemIconHTML(id)+escape(names[id]||id)+ammoLabel(id,f.equipmentAmmo[slot])+weaponDurabilityLabel(id,f.equipmentEffects?.[slot]):'未装備')+'</div>'}).join('')+'</div>';
   body+='<p>熟練度：'+Object.keys(WEAPON_TYPES).map(type=>{const n=f.mastery[type]||0;let rank=0;for(let i=0;i<MASTERY_THRESHOLDS.length;i++)if(n>=MASTERY_THRESHOLDS[i])rank=i;return WEAPON_TYPES[type]+' '+MASTERY_RANKS[rank]}).join(' ／ ')+'</p>';
   body+='<table style="width:100%;font-size:13px;border-collapse:collapse">'+rows.map(([key,label])=>'<tr><td style="padding:3px;border-bottom:1px solid #405267">'+label+'</td><td style="text-align:right;border-bottom:1px solid #405267">'+(stats[key]||0)+'</td></tr>').join('')+'</table>';
-  body+='<p>制作した物：'+(Object.entries(stats.crafted||{}).map(([id,n])=>escape(names[id]||id)+' ×'+n).join('、')||'なし')+'</p><details><summary>最終所持品</summary><p>'+(f.bag.map(x=>escape(names[x.id]||x.id)+' ×'+x.count).join('、')||'なし')+'</p></details>';
+  body+='<p>制作した物：'+(Object.entries(stats.crafted||{}).map(([id,n])=>escape(names[id]||id)+' ×'+n).join('、')||'なし')+'</p><details><summary>最終所持品</summary><p>'+(f.bag.map(x=>escape(names[x.id]||x.id)+' ×'+x.count+weaponDurabilityLabel(x.id,x.effects)).join('、')||'なし')+'</p></details>';
   body+='<details><summary>判断・重要な行動の履歴（'+actor.events.length+'件）</summary>'+actor.events.slice().reverse().map(e=>'<p style="font-size:12px;margin:5px 0">'+formatTime(Math.max(0,Math.floor((e.at-matchClock.startedAt)/1000)))+' '+escape(e.text)+'</p>').join('')+'</details>';
  }
  modal('📊 試合の記録',body);
@@ -1577,12 +1625,14 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  target.hp=Math.max(0,target.hp-damage);const bodyInjury=applyBodyAttackInjury(attacker,target,gale,now);
  const lifesteal=effect.lifesteal&&dealt?Math.ceil(dealt*effect.lifesteal):0,healing=Math.min(Math.max(0,actorMax(attacker,'hp')-attacker.hp),lifesteal);attacker.hp+=healing;
  const reflected=hit&&type==='fist'&&armor.fistCounterDamage?endureDamage(attacker,whiteMantleDamage(armor.fistCounterDamage,attacker),now):0,reflectedTaken=Math.min(attacker.hp,reflected);attacker.hp=Math.max(0,attacker.hp-reflected);
- if(hit&&type==='gun'&&armor.gunDurabilityRetaliation){const state=equipmentState(target,'body');if(now>=(state.readyAt||0)){damageEquipmentDurability(attacker,'weapon',armor.gunDurabilityRetaliation);state.readyAt=now+armor.cooldownSeconds*1000}}
- if(hit&&type==='slash')for(const [slot,id] of Object.entries(target.equipment)){const guard=EQUIPMENT_SPECIAL_EFFECTS[id];if(!guard?.slashDurabilityRetaliation)continue;const state=equipmentState(target,slot);if(now>=(state.readyAt||0)){damageEquipmentDurability(attacker,'weapon',guard.slashDurabilityRetaliation);state.readyAt=now+guard.cooldownSeconds*1000}}
+ let durabilityLoss=0;
+ if(hit&&type==='gun'&&armor.gunDurabilityRetaliation){const state=equipmentState(target,'body');if(now>=(state.readyAt||0)){durabilityLoss+=armor.gunDurabilityRetaliation;state.readyAt=now+armor.cooldownSeconds*1000}}
+ if(hit&&type==='slash')for(const [slot,id] of Object.entries(target.equipment)){const guard=EQUIPMENT_SPECIAL_EFFECTS[id];if(!guard?.slashDurabilityRetaliation)continue;const state=equipmentState(target,slot);if(now>=(state.readyAt||0)){durabilityLoss+=guard.slashDurabilityRetaliation;state.readyAt=now+guard.cooldownSeconds*1000}}
  // A lethal thorn cannot be undone by the level-up heal from the same attack.
  if(attacker.hp>0)gainXp(1,attacker);
  const characterSkill=shotContext?null:resolveCharacterSkill(attacker,target,skillId,hit,now,gale,dealt);
- const result={hit,guarded,type,critical,damage,dealt,bodyInjury,healing,reflected,reflectedTaken,effect,characterSkill};trackActorAttack(attacker,target,result,now,'player');return result;
+ const result={hit,guarded,type,critical,damage,dealt,bodyInjury,healing,reflected,reflectedTaken,effect,characterSkill,durabilityLoss};trackActorAttack(attacker,target,result,now,'player');
+ if(!shotContext)recordWeaponUse(attacker,type,now,durabilityLoss);return result;
 }
 let incomingNoticeTimer,incomingNoticeVersion=0;
 function showIncomingDamage(attacker,result,now=Date.now()){
@@ -1613,13 +1663,14 @@ function applyComCombatFeedback(actor,now){
 }
 function playerCombatRound(attacker,target,now,incomingOnly=false,skillId=null){
  if(!pvpEnabled()||attacker.hp<=0||target.hp<=0||attacker.place!==target.place||(attacker.combatReadyAt||0)>now)return null;
+ const attackEquipment={...attacker.equipment}; // The breaking strike still grants its weapon's kill effects.
  const first=actorAttack(attacker,target,now,incomingOnly,skillId);if(!first)return null;attacker.combatReadyAt=now+1000+actionDelayMs(attacker,now);logPlayerAttack(attacker,target,first,now);
  // Participants act only on their own turns; no automatic normal-attack counter.
  const counter=null;
  matchClock.resolvingCombat=true;
  for(const [actor,killer] of [[attacker,target],[target,attacker]])if(actor.hp<=0){
-  if(actor===S)eliminatePlayer(actorName(killer)+'との戦闘で脱落しました。',killer.id,now);
-  else eliminateCom(actor,actorName(killer)+'との戦闘',now,killer.id);
+  if(actor===S)eliminatePlayer(actorName(killer)+'との戦闘で脱落しました。',killer.id,now,killer===attacker?attackEquipment:null);
+  else eliminateCom(actor,actorName(killer)+'との戦闘',now,killer.id,killer===attacker?attackEquipment:null);
  }
  matchClock.resolvingCombat=false;
  for(const com of [attacker].filter(a=>a!==S)){com.opponent=null;com.recentThreat=null;com.pvpAction=null;com.enemy=null;applyComCombatFeedback(com,now)}
@@ -1728,7 +1779,8 @@ function strikeDrone(actor,d,now,skillId=null,shotContext=null){
   body=createDroneCorpse(d.kind,actor.place,now,actorIdentity(actor));
   d.spawned=false;d.area=null;d.respawnAt=now+def.respawn*1000;if(d.kind==='dragon')announceDragonDefeat(now);awardDefeatXp(actor,d,now);marineHealing=marineKillRecovery(actor,d,now);bumpMatchStat(actor,'droneKills');recordMatchEvent(actor,'kill',def.name+'を撃破',now);
  }else if(shotContext?.deferCounter){/* A volley receives one counter after its final shot. */}else if(actionDelayMs(d,now)){scheduleDroneCounter(actor,d,now);counterPending=true;}else{counter=droneCounterDamage(def,actor,now,counterDetails);bumpMatchStat(actor,'damageTaken',Math.min(actor.hp,counter));actor.hp=Math.max(0,actor.hp-counter);}
- const result={type,hit,guarded,critical,damage,dealt,bodyInjury,healing,effect,counter,counterCritical:counterDetails.critical,counterPending,characterSkill,marineHealing,body,defeated:d.hp===0};trackActorAttack(actor,d,result,now,'drone');return result;
+ const result={type,hit,guarded,critical,damage,dealt,bodyInjury,healing,effect,counter,counterCritical:counterDetails.critical,counterPending,characterSkill,marineHealing,body,defeated:d.hp===0};trackActorAttack(actor,d,result,now,'drone');
+ if(!shotContext)recordWeaponUse(actor,type,now);return result;
 }
 function discoverDrone(kind){
  if(!allowMatchAction()||S.busy||S.pendingFound||S.corpseVisit||S.enemy)return;
@@ -1791,7 +1843,7 @@ function createCorpse(kind,name,area,entries,now=Date.now(),details={}){
  const items=entries.filter(x=>x&&x.id&&x.count>0).map(x=>({...x}));
  if(items.length>12)throw new Error('死体の所持品は最大12枠です');
  const corpse={id:'corpse-'+(++corpseSerial),kind,name,area,createdAt:now,killerId:details.killerId||null,ownerId:details.ownerId||null,expiresAt:kind==='drone'?now+(details.lifetimeMs??DRONE_CORPSE_LIFETIME):null,items};
- const killer=details.killerId&&findActor(details.killerId),gear=killer&&(killer.hp<=0?killer.finalState?.equipment||killer.equipment:killer.equipment);
+ const killer=details.killerId&&findActor(details.killerId),gear=details.killerEquipment||(killer&&(killer.hp<=0?killer.finalState?.equipment||killer.equipment:killer.equipment));
  if(gear&&Object.values(gear).some(id=>EQUIPMENT_SPECIAL_EFFECTS[id]?.corpseBonus)){const pool=corpseBonusPool();if(pool.length)corpse.items.push({id:pool[rand(pool.length)],count:1,source:'野生の本能'})}
  // Fixed Wild Hunt rewards use only free visible corpse slots; never overwrite gear or other loot.
  if(gear&&EQUIPMENT_SPECIAL_EFFECTS[gear.weapon]?.wildHunt){
@@ -1799,12 +1851,12 @@ function createCorpse(kind,name,area,entries,now=Date.now(),details={}){
  }
  corpses.push(corpse);return corpse;
 }
-function createPlayerCorpse(player,area=player.place,now=Date.now(),killerId=null){
+function createPlayerCorpse(player,area=player.place,now=Date.now(),killerId=null,killerEquipment=null){
  const existing=corpses.find(c=>c.id===player.corpseId);if(existing)return existing;resetFightingInstinct(player);
  player.finalState=snapshotMatchActor(player);recordMatchEvent(player,'defeat','脱落（'+area+'）',now);const killer=killerId&&findActor(killerId);if(killer)bumpMatchStat(killer,'playerKills');
  const entries=(player.bag||[]).map(x=>({...x,source:'所持品'}));
  for(const [slot,id] of Object.entries(player.equipment||{}))if(id)entries.push({id,count:1,source:EQUIPMENT_SLOTS[slot],...equipmentMetadata(player,slot)});
- const corpse=createCorpse('player',player.name||(player.character==='kaito'?'カイト':'プレイヤー'),area,entries,now,{killerId,ownerId:actorIdentity(player)});
+ const corpse=createCorpse('player',player.name||(player.character==='kaito'?'カイト':'プレイヤー'),area,entries,now,{killerId,ownerId:actorIdentity(player),...(killerEquipment?{killerEquipment}:{})});
  player.corpseId=corpse.id;player.bag=[];player.inventory={};player.equipment=Object.fromEntries(Object.keys(EQUIPMENT_SLOTS).map(k=>[k,null]));player.equipmentAmmo={};player.equipmentEffects={};
  if(killer&&killer!==player)awardDefeatXp(killer,player,now);
  return corpse;
@@ -1844,7 +1896,7 @@ function renderCorpse(){
  const cards=Array.from({length:12},(_,i)=>{
   const item=c.items[i];if(!item)return '<div class="bp-corpse-item empty"><span>—</span><small>空き枠</small></div>';
   const room=canReceive(item.id,S.bag,item.count);
-  return `<button class="bp-corpse-item" onclick="takeCorpseItem(${i},${visit.token})" >${itemIconHTML(item.id)}<strong>${names[item.id]||item.id}</strong><small>×${item.count} ${ammoLabel(item.id,item.ammo||0)}</small>${room?'':`<small class="bp-corpse-full">📦 区域のストックへ置く</small>`}</button>`;
+  return `<button class="bp-corpse-item" onclick="takeCorpseItem(${i},${visit.token})" >${itemIconHTML(item.id)}<strong>${names[item.id]||item.id}</strong><small>×${item.count} ${ammoLabel(item.id,item.ammo||0)} ${weaponDurabilityLabel(item.id,item.effects)}</small>${room?'':`<small class="bp-corpse-full">📦 区域のストックへ置く</small>`}</button>`;
  }).join('');
  modal('死体：'+c.name,`<div class="bp-corpse-panel"><p>この発見で取得できるのは<strong>1枠</strong>です。選んだスタックをまとめて取得します。バッグに入らない品は、この区域のストックへ置きます。</p><div id="corpseLifetime" class="small">${c.kind==='drone'?'消滅まで '+formatTime(Math.max(0,Math.ceil((c.expiresAt-Date.now())/1000))):'試合終了まで残ります'}</div><div class="bp-corpse-grid">${cards}</div><p class="small">残った品は、この区画で死体を再発見すると取得できます。</p></div>`);
 }
@@ -2204,7 +2256,7 @@ function showItemStack(index){
  related.length?`<button onclick="showRecipesFor('${id}')">製作する（${related.length}件）</button>`:'',
  `<button class="dropbtn" onclick="discardStack(${index})">このスタックを捨てる</button>`
  ].filter(Boolean).join('');
- modal('📦 '+names[id],`<p>${equipmentDef(id)?equipmentDetails(id)+'<br>':''}${ammoLabel(id,entry.ammo)} 選択スタック：${entry.count}/${stackLimit(id)}個（同種合計：${S.inventory[id]||0}個）</p><div class="rowItemActions">${controls}</div>`);
+ modal('📦 '+names[id],`<p>${equipmentDef(id)?equipmentDetails(id)+'<br>':''}${ammoLabel(id,entry.ammo)} ${weaponDurabilityLabel(id,entry.effects)} 選択スタック：${entry.count}/${stackLimit(id)}個（同種合計：${S.inventory[id]||0}個）</p><div class="rowItemActions">${controls}</div>`);
 }
 function showItem(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)showItemStack(i);else {closeModal();refresh()}}
 function showRecipesFor(id,equipmentOnly=false){
@@ -2216,18 +2268,18 @@ function showEquipment(){
  const cards=Object.entries(EQUIPMENT_SLOTS).map(([slot,label])=>{
   const id=equipped(slot),def=equipmentDef(id);
   const derived=id?recipes.filter(r=>Object.hasOwn(r.need,id)&&equipmentDef(r.id)):[];
-  return `<div class="bp-equip-card"><b>${label}</b><div class="bp-equip-item">${id?itemIconHTML(id)+' '+names[id]+ammoLabel(id,S.equipmentAmmo[slot]):'未装備'}</div>
+  return `<div class="bp-equip-card"><b>${label}</b><div class="bp-equip-item">${id?itemIconHTML(id)+' '+names[id]+ammoLabel(id,S.equipmentAmmo[slot])+weaponDurabilityLabel(id,S.equipmentEffects?.[slot]):'未装備'}</div>
   ${id?`<small>攻撃 +${(def.attack||0)+equipmentAttackBonus(S,slot)} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=weaponCapacity(id,S)||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}${derived.length?`<button onclick="showRecipesFor('${id}',true)">🔧 派生装備（${derived.length}件）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
  const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
- modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${Math.round(totalStat('attack')*10)/10}　防御 ${totalStat('defense')}<br>${ranks}</div><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showComStatus()">開発用：COM行動確認</button>${matchClock.ended?'<button onclick="showMatchReport()">📊 試合の記録</button>':''}`);
+ modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${Math.round(totalStat('attack')*10)/10}　防御 ${totalStat('defense')}<br>${ranks}</div><p class="small">武器は最初の10回の攻撃では通常劣化せず、その後は使用回数と消耗度に応じた確率で耐久値－10。0で破損し素手になります（防具の耐久減少効果は別）。連射スキルは1回の使用として計算。持ち替え・拾い直しでは消耗を引き継ぎ、製作・改造で新品になります。</p><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showComStatus()">開発用：COM行動確認</button>${matchClock.ended?'<button onclick="showMatchReport()">📊 試合の記録</button>':''}`);
 }
 function showBag(){
  const slots=orderedInventory().map(([k,v],i)=>{
   const canUse=!!RECOVERY_ITEMS[k];
   const useButton=AMMO_LIMITS[k]?`<button onclick="reloadWeapon('${k}')">装填</button>`:canUse?recoveryButtonHTML(k,'使用'):'';
   const equipButton=equipmentDef(k)?`<button onclick="equip('${k}',${i})">装備</button>`:'';
-  return `<div class="slot">${names[k]} ${ammoLabel(k,S.bag[i].ammo)} × ${v}/${stackLimit(k)}${useButton}${equipButton}<button class="dropbtn" onclick="discardStack(${i})">このスタックを捨てる</button></div>`;
+  return `<div class="slot">${names[k]} ${ammoLabel(k,S.bag[i].ammo)} ${weaponDurabilityLabel(k,S.bag[i].effects)} × ${v}/${stackLimit(k)}${useButton}${equipButton}<button class="dropbtn" onclick="discardStack(${i})">このスタックを捨てる</button></div>`;
  });
  while(slots.length<BAG_SLOTS)slots.push('<div class="slot empty">空き枠</div>');
  modal('🎒 所持品 '+occupied()+'/'+BAG_SLOTS+'枠',(S.corpseVisit?'<button onclick="renderCorpse()">← 死体へ戻る</button>':'')+'<p class="small">同じ種類も上限を超えると別枠です。</p><div class="slotgrid">'+slots.join('')+'</div>');
@@ -2352,7 +2404,7 @@ function craft(id,category){
 function practiceWeaponChoices(){return '<h3>持ち込む武器を1つ選択</h3><div style="display:flex;flex-wrap:wrap;gap:8px">'+Object.entries(PRACTICE_WEAPONS).map(([id,[name]])=>`<button style="flex:1;min-width:100px;padding:10px;${S.starterWeapon===id?'border:2px solid #ffa83c;background:#59401f':''}" onclick="selectPracticeWeapon('${id}')">${itemIconHTML(id)}${name}<br>攻撃力8${S.starterWeapon===id?' ✓':''}</button>`).join('')+'</div><p>開始時補給：基礎物資1枠＋回復物資1枠（支給済み）。バッグから確認・廃棄できます。</p><button onclick="showBag()">🎒 バッグを確認</button><p>選択後、下の開始区画を選んで出発してください。</p>';}
 function selectPracticeWeapon(id){
  if(!allowMatchAction(true)||matchClock.section!==0||S.place!=='待機所'||!PRACTICE_WEAPONS[id])return;
- S.starterWeapon=id;S.equipment.weapon=id;
+ S.starterWeapon=id;S.equipment.weapon=id;S.equipmentEffects||={};S.equipmentEffects.weapon=equipmentInstanceEffects(id);
  const def=EQUIPMENT_DEFS[id];if(def.ammoType)S.equipmentAmmo.weapon=def.capacity;else delete S.equipmentAmmo.weapon;
  refresh();showMap(false);
 }
@@ -2432,9 +2484,9 @@ function initializeComActors(count=COM_COUNT){
  }
  for(const actor of comActors){initializeRakuMastery(actor);actor.hp=actorMax(actor,'hp');actor.st=actorMax(actor,'stamina');grantStartingSupplies(actor);}
 }
-function eliminateCom(actor,reason,now,killerId=null){
+function eliminateCom(actor,reason,now,killerId=null,killerEquipment=null){
  if(actor.corpseId)return;
- createPlayerCorpse(actor,actor.place,now,killerId);actor.hp=0;actor.enemy=null;actor.opponent=null;actor.loot=null;comLog(actor,'脱落：'+reason,now);announceComDeath(actor,reason,now,killerId);
+ createPlayerCorpse(actor,actor.place,now,killerId,killerEquipment);actor.hp=0;actor.enemy=null;actor.opponent=null;actor.loot=null;comLog(actor,'脱落：'+reason,now);announceComDeath(actor,reason,now,killerId);
 }
 function actorOwned(actor,id){return totalIn(actor.bag,id)+Object.values(actor.equipment).filter(x=>x===id).length}
 function comPlan(actor,id){
@@ -2538,7 +2590,7 @@ function equipActor(actor,index,now=Date.now()){
  if(old){next=addToStacks(next,old,1,equipmentMetadata(actor,def.slot));if(!next)return false}
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.bag=next;actor.equipment[def.slot]=entry.id;
  if(def.ammoType&&!def.unlimitedAmmo)actor.equipmentAmmo[def.slot]=weaponAmmo(entry.id,entry.ammo||0);else delete actor.equipmentAmmo[def.slot];
- actor.equipmentEffects||={};actor.equipmentEffects[def.slot]={...(entry.effects||{}),id:entry.id};actor.st=Math.min(actor.st,actorMax(actor,'stamina'));syncInventory(actor);recordMatchEvent(actor,'equip',names[entry.id]+'を装備',now);return true;
+ actor.equipmentEffects||={};actor.equipmentEffects[def.slot]=equipmentInstanceEffects(entry.id,entry.effects);actor.st=Math.min(actor.st,actorMax(actor,'stamina'));syncInventory(actor);recordMatchEvent(actor,'equip',names[entry.id]+'を装備',now);return true;
 }
 function comEquipBetter(actor,now){
  const candidates=actor.bag.map((x,index)=>{
@@ -2620,7 +2672,7 @@ function comRecoveryPlan(actor){
 function stepCom(actor,now){
  updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
-  if(!actor.starterWeapon){if(comWeaponTypes(actor).length>1){const plan=comCurrentPlan(actor),type=equipmentDef(plan.id)?.weaponType;if(type)actor.preferredWeaponType=type;}actor.starterWeapon=actor.preferredWeaponType==='gun'?'practice_gun':actor.preferredWeaponType==='hammer'?'practice_hammer':actor.preferredWeaponType==='slash'?'practice_sword':actor.preferredWeaponType==='fist'?'practice_gauntlet':'practice_bow';actor.equipment.weapon=actor.starterWeapon;if(equipmentDef(actor.starterWeapon)?.ammoType)actor.equipmentAmmo.weapon=20;comLog(actor,names[actor.starterWeapon]+'を選択',now);return}
+  if(!actor.starterWeapon){if(comWeaponTypes(actor).length>1){const plan=comCurrentPlan(actor),type=equipmentDef(plan.id)?.weaponType;if(type)actor.preferredWeaponType=type;}actor.starterWeapon=actor.preferredWeaponType==='gun'?'practice_gun':actor.preferredWeaponType==='hammer'?'practice_hammer':actor.preferredWeaponType==='slash'?'practice_sword':actor.preferredWeaponType==='fist'?'practice_gauntlet':'practice_bow';actor.equipment.weapon=actor.starterWeapon;equipmentState(actor,'weapon');if(equipmentDef(actor.starterWeapon)?.ammoType)actor.equipmentAmmo.weapon=20;comLog(actor,names[actor.starterWeapon]+'を選択',now);return}
   comMove(actor,now,'待機所から出発');return;
  }
  if(matchClock.section===0)return;
@@ -2724,7 +2776,7 @@ function updateComActors(now){
 function showComStatus(){
  modal('開発用：COM行動確認','<p>プレイヤー＋COM9人の10人戦。選ばなかった9人がCOMとして参加します。それぞれの制作ルートで、素材・死体・ドローンを共有します。対人戦・最後の1人の勝利判定を接続済み。能力値と成長はキャラクターごとに異なります。装備の性能・特殊効果はプレイヤーと共通です。</p>'+comActors.map(a=>{
   const plan=comCurrentPlan(a),ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t,a)]).join(' ／ ');
-  return '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ Lv.'+a.level+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+'</p><p>目標：'+(a.goal?names[a.goal]:'物資・回復の確保')+'<br>不足：'+(Object.entries(plan.missing).map(([id,n])=>names[id]+' ×'+n).join('、')||'なし')+'</p><p>武器：'+(names[a.equipment.weapon]||'なし')+ammoLabel(a.equipment.weapon,a.equipmentAmmo.weapon,a)+'<br>'+ranks+'</p><p>装備：'+Object.values(a.equipment).filter(Boolean).map(id=>names[id]).join('、')+'<br>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-20).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('');
+  return '<h3>'+a.name+'（'+(a.hp>0?'生存':'脱落')+'）</h3><p>'+a.place+' ｜ Lv.'+a.level+' ｜ HP '+a.hp+'/'+actorMax(a,'hp')+' ｜ ST '+a.st+'/'+actorMax(a,'stamina')+'</p><p>目標：'+(a.goal?names[a.goal]:'物資・回復の確保')+'<br>不足：'+(Object.entries(plan.missing).map(([id,n])=>names[id]+' ×'+n).join('、')||'なし')+'</p><p>武器：'+(names[a.equipment.weapon]||'なし')+ammoLabel(a.equipment.weapon,a.equipmentAmmo.weapon,a)+weaponDurabilityLabel(a.equipment.weapon,a.equipmentEffects?.weapon)+'<br>'+ranks+'</p><p>装備：'+Object.values(a.equipment).filter(Boolean).map(id=>names[id]).join('、')+'<br>所持品：'+a.bag.map(x=>names[x.id]+' ×'+x.count).join('、')+'</p><p>直近の行動（新しい順）</p>'+a.history.slice(-20).reverse().map(x=>'<div>'+formatTime(Math.floor((x.at-matchClock.startedAt)/1000))+' '+x.text+'</div>').join('');
  }).join('')+'<button onclick="showComStatus()">更新</button>');
 }
 
