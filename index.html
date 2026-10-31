@@ -271,6 +271,11 @@ CHARACTER_SKINS.hayate.push({"id": "hunter", "name": "狩人ハヤテ", "art": "
 CHARACTER_SKINS.snow_leopard.push({"id": "sniper", "name": "狙撃手ヒョウガ", "art": "assets/skins/snow_leopard_sniper.webp"});
 CHARACTER_SKINS.bjorn.push({"id": "pharmacist", "name": "薬剤師ビヨルン", "art": "assets/skins/bjorn_pharmacist.webp"});
 CHARACTER_SKINS.flugel.push({"id": "royal_guard", "name": "近衛騎士フリューゲル", "art": "assets/skins/flugel_royal_guard.webp"});
+CHARACTER_SKINS.jerk.push({"id": "pirate", "name": "海賊ジャーク", "art": "assets/skins/jerk_pirate.webp"});
+CHARACTER_SKINS.bat.push({"id": "bounty_hunter", "name": "賞金稼ぎノクス", "art": "assets/skins/bat_bounty_hunter.webp"});
+CHARACTER_SKINS.zakuro.push({"id": "assassin", "name": "暗殺者ザクロ", "art": "assets/skins/zakuro_assassin.webp"});
+CHARACTER_SKINS.kankan.push({"id": "monk", "name": "修行僧カンカン", "art": "assets/skins/kankan_monk.webp"});
+CHARACTER_SKINS.raku.push({"id": "mechanic", "name": "整備士ラク", "art": "assets/skins/raku_mechanic.webp"});
 function randomComSkin(character){const skins=(CHARACTER_SKINS[character]||[]).filter(s=>s.id!=='default');return skins.length&&Math.random()<0.25?skins[rand(skins.length)].id:'default'}
 const selectedCharacterSkins={};
 const SELECTION_SKILL_DESCRIPTIONS={
