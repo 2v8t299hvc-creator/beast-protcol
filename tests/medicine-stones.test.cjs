@@ -12,7 +12,7 @@ function harness(){
  const run=s=>vm.runInContext(s,context);
  run(`matchClock.section=1;matchClock.sectionEndsAt=9000000;matchClock.blocked=[];matchClock.nextBlocked=[];
  S.place='山岳区画';S.bag=[];syncInventory();S.equipment={};S.equipmentAmmo={};S.equipmentEffects={};S.hp=100000;S.st=100;
- var target=comActors[0];target.place=S.place;target.hp=100000;target.equipment={};target.equipmentEffects={};
+ var target=comActors[0];target.place=S.place;target.hp=100000;target.equipment={};target.equipmentEffects={};target.bag=[];syncInventory(target);
  var d=drones.bird;Object.assign(d,{spawned:true,hp:100000,area:S.place,generation:1});`);
  return run;
 }

@@ -742,9 +742,10 @@ function addMastery(type,amount,actor=S){if(!WEAPON_TYPES[type]||amount<=0)retur
 function recordAttack(type){addMastery(type,1)}
 
 // HP food and potion expansion, approved 2026-10-26.
+Object.assign(EQUIPMENT_DEFS,{scissors:{slot:'weapon',weaponType:'slash',attack:8,defense:0}});
 Object.assign(names,{"roast_meat":"焼いた肉","smoked_meat":"燻製肉","medium_ration":"中級レーション","boiled_egg":"ゆで卵","rock_salt":"岩塩","seasoned_egg":"味付き卵","frying_pan":"フライパン","heated_frying_pan":"熱したフライパン","fried_egg":"目玉焼き","salted_meat":"塩漬け肉","steak":"ステーキ","small_flower":"小さな花","medium_healing_potion":"中級回復薬","advanced_healing_potion":"上級回復薬","premium_ration":"高級レーション"});
 Object.assign(RECIPE_RARITY,{"roast_meat":"uncommon","smoked_meat":"rare","medium_ration":"uncommon","boiled_egg":"common","rock_salt":"common","seasoned_egg":"uncommon","frying_pan":"common","heated_frying_pan":"uncommon","fried_egg":"uncommon","salted_meat":"uncommon","steak":"epic","small_flower":"common","medium_healing_potion":"rare","advanced_healing_potion":"rare","premium_ration":"rare"});
-Object.assign(EQUIPMENT_DEFS,{"frying_pan":{"slot":"weapon","weaponType":"hammer","attack":4,"defense":0},"heated_frying_pan":{"slot":"weapon","weaponType":"hammer","attack":16,"defense":0}});
+Object.assign(EQUIPMENT_DEFS,{"frying_pan":{"slot":"weapon","weaponType":"hammer","attack":7,"defense":0},"heated_frying_pan":{"slot":"weapon","weaponType":"hammer","attack":16,"defense":0}});
 for(let i=recipes.length-1;i>=0;i--)if(recipes[i].id==='premium_ration')recipes.splice(i,1);
 recipes.push(...[{"id":"roast_meat","name":"焼いた肉","category":"item","desc":"アンコモン・HP80回復","need":{"beast_meat":1,"lighter":1},"count":1},{"id":"smoked_meat","name":"燻製肉","category":"item","desc":"レア・HP60回復","need":{"beast_meat":1,"charcoal":1},"count":3},{"id":"medium_ration","name":"中級レーション","category":"item","desc":"アンコモン・HP40回復","need":{"ration":1,"egg":1},"count":2},{"id":"boiled_egg","name":"ゆで卵","category":"item","desc":"コモン・HP60回復","need":{"egg":1,"hotwater":1},"count":1},{"id":"seasoned_egg","name":"味付き卵","category":"item","desc":"アンコモン・HP60回復","need":{"boiled_egg":1,"rock_salt":1},"count":3},{"id":"heated_frying_pan","name":"熱したフライパン","category":"weapon","desc":"アンコモン・鈍器・攻撃16","need":{"frying_pan":1,"lighter":1},"count":1},{"id":"fried_egg","name":"目玉焼き","category":"item","desc":"アンコモン・HP50回復","need":{"egg":1,"heated_frying_pan":1},"count":2},{"id":"salted_meat","name":"塩漬け肉","category":"item","desc":"アンコモン・HP20回復","need":{"beast_meat":1,"rock_salt":1},"count":1},{"id":"steak","name":"ステーキ","category":"item","desc":"エピック・HP150回復","need":{"salted_meat":1,"heated_frying_pan":1},"count":1},{"id":"medium_healing_potion","name":"中級回復薬","category":"item","desc":"レア・HP60回復","need":{"healing_potion":1,"small_flower":1},"count":3},{"id":"advanced_healing_potion","name":"上級回復薬","category":"item","desc":"レア・HP90回復","need":{"medium_healing_potion":1,"paradisefish":1},"count":3},{"id":"premium_ration","name":"高級レーション","category":"item","desc":"レア・HP80回復","need":{"medium_ration":1,"salted_meat":1},"count":3}]);
 
@@ -1105,7 +1106,7 @@ function discard(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)discardStack(
 // Demand-based layout: common materials are concentrated in reliable supply regions.
 // Counts are physical search objects; rare regional materials and random spawns stay separate.
 const regionStock={"山岳区画":{"stone":8,"mystery":4,"pickaxe":2,"wood_sword":2,"whitestone":3,"egg":2,"rock_salt":3,"wood_mallet":3,"bamboo_pole":2,"fur":8,"boots":8,"wood":8,"feather":6},"遺跡区画":{"stone":7,"mystery":6,"pickaxe":3,"telescope":2,"gunpowder":3,"redstone":3,"wonderjewel":2,"premium_ration":1,"glass_shard":5,"large_gear":4,"marble":5,"survival_knife":6},"地下機構区画":{"mystery":4,"wire":6,"cell":5,"rubbery_hide":1,"energy_drink":2,"glass_shard":5,"core":2,"scrap":8,"rubber":6,"oil":6,"small_gear":6},"神殿区画":{"marble":10,"mystery":5,"wood_sword":2,"whitestone":4,"premium_ration":1,"bracelet":4,"small_flower":5,"herb":4,"wood":8,"feather":6},"工業区画":{"wire":5,"gunpowder":4,"cell":4,"goggles":3,"large_gear":2,"knuckle":2,"lighter":8,"scrap":8,"oil":6,"survival_knife":6,"small_gear":6},"海岸区画":{"stone":3,"seaweed":5,"swimsuit":3,"swordfish":4,"porcupinefish":6,"paradisefish":2,"fish_scale":3,"goggles":2,"rock_salt":5,"water":10,"survival_knife":6},"港湾区画":{"seaweed":2,"swimsuit":1,"swordfish":2,"porcupinefish":6,"wire":3,"bullets":3,"telescope":2,"water":10,"lighter":8,"scrap":8,"rubber":6,"oil":6,"survival_knife":6},"湖畔区画":{"stone":4,"marble":3,"seaweed":4,"swimsuit":2,"minefish":5,"paradisefish":4,"fish_scale":3,"water":10,"porcupinefish":6},"水没施設区画":{"mystery":3,"seaweed":3,"swimsuit":2,"minefish":2,"paradisefish":2,"wire":4,"cell":4,"bluestone":3,"rubbery_hide":1,"energy_drink":2,"water":10,"scrap":8,"rubber":6,"oil":6},"射撃演習区画":{"handgun":4,"rifle":4,"japanese_bow":3,"western_bow":3,"bullets":8,"arrows":8,"gunpowder":4,"wire":3,"telescope":3,"goggles":2},"戦闘演習区画":{"ragglove":4,"wood_sword":4,"pickaxe":2,"wire":3,"wood_mallet":4,"knuckle":2,"bandage":2,"fur":8,"boots":8,"cloth":8,"scrap":8,"survival_knife":6},"住宅区画":{"telescope":1,"ration":2,"scissors":6,"hat":3,"glass_shard":2,"bracelet":3,"frying_pan":2,"milk":4,"bamboo_pole":1,"bandage":2,"lighter":8,"boots":8,"cloth":8,"thread":6},"公園区画":{"stone":4,"japanese_bow":1,"arrows":2,"hat":3,"herb":6,"small_flower":10,"energy_fruit":6,"water":10,"fur":8,"boots":8,"wood":8,"feather":6},"医療区画":{"cell":5,"kit":2,"scissors":4,"lab_coat":4,"herb":5,"small_flower":5,"bandage":3,"water":10,"cloth":8,"rubber":6},"森林区画":{"japanese_bow":3,"arrows":4,"egg":3,"beast_meat":2,"herb":2,"bamboo_pole":5,"energy_fruit":4,"fur":8,"wood":8,"feather":6},"密林区画":{"western_bow":2,"arrows":3,"beast_meat":8,"premium_ration":2,"herb":4,"egg":3,"fur":8,"wood":8,"feather":6},"商業区画":{"telescope":2,"wire":3,"handgun":2,"western_bow":2,"bullets":2,"arrows":2,"ration":3,"scissors":6,"frying_pan":2,"milk":4,"knuckle":2,"lighter":8,"boots":8,"cloth":8,"thread":6},"海底研究区画":{"wire":8,"cell":7,"gunpowder":4,"telescope":3,"energy_drink":3,"core":2,"lab_coat":4,"glass_shard":3,"mystery":5,"lighter":8,"rubber":6,"oil":6}};
-// Exactly three laurels per match, each added to a distinct random region.
+// Place three laurels in distinct search regions; random supplies can yield additional laurels.
 const laurelAreas=Object.keys(regionStock);
 for(let i=laurelAreas.length-1;i>0;i--){const j=rand(i+1);[laurelAreas[i],laurelAreas[j]]=[laurelAreas[j],laurelAreas[i]];}
 laurelAreas.slice(0,3).forEach(area=>{regionStock[area].laurel=1});
@@ -1476,7 +1477,7 @@ function recordExploration(actor,now){
  }
 }
 // Local-only observation log. It is evidence for later analysis, never an input to COM decisions.
-const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-10-31-com-search-v2';
+const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-10-31-reward-recovery-v3';
 let playJournal=null,playRecordTimer=null,playRecordDepth=0,playRecordLastState='',playRecordLastObservation=0,playRecordStorageError=false;
 let playRecords=readPlayRecords();
 function readPlayRecords(){
@@ -1708,7 +1709,7 @@ function handleComCombatDecision(actor,target,now,kind){
 }
 
 // Shared player combat. Encounters reveal only local actors; the AI never tracks a moved opponent.
-const PLAYER_DISCOVERY_RATE=0.85;
+const PLAYER_DISCOVERY_RATE=0.90;
 function pvpEnabled(){return !!matchClock&&matchClock.competitive!==false&&matchClock.section>0&&!matchClock.ended}
 function actorArt(actor){const skin=actor?.skin&&CHARACTER_SKINS[actor.character]?.find(s=>s.id===actor.skin);if(skin?.art)return skin.art;return actor?.character==='raku'?'assets/characters/raku_encounter_transparent.webp':actor?.character==='kankan'?'assets/characters/kankan_encounter_transparent.webp':actor?.character==='zakuro'?'assets/characters/zakuro_encounter_transparent.webp':actor?.character==='bat'?'assets/characters/bat_encounter_transparent.webp':actor?.character==='jerk'?'assets/characters/jerk_encounter_transparent.webp':actor?.character==='flugel'?'assets/characters/flugel_encounter_transparent.webp':actor?.character==='bjorn'?'assets/characters/bjorn_encounter_transparent.webp':actor?.character==='snow_leopard'?'assets/characters/snow_leopard_encounter_transparent.webp':actor?.character==='kaito'?'assets/characters/kaito_stand.png':'assets/characters/hayate_encounter_transparent.webp'}
 function comWantedAmmo(actor,plan){const goal=equipmentDef(plan?.id);return [...new Set([comAmmoType(actor),goal?.unlimitedAmmo?null:goal?.ammoType].filter(Boolean))]}
@@ -1964,28 +1965,38 @@ function findCorpse(id){return corpses.find(c=>c.id===id&&corpseAvailable(c))}
 
 // Reusable weighted supply tables. Ordinary/recovery/jackpot weights are 70/25/5.
 // E is a dedicated recovery table. All entries refer to existing items.
+const RANDOM_OTHER_ITEMS=new Set('wood stone scrap cloth thread rubber wire oil lighter cell gunpowder glass_shard small_gear mystery marble redstone bluestone whitestone obsidian fish_scale feather fur charcoal hotwater core ration drink water seaweed_soup healing_potion bandage kit egg beast_meat herb energy_fruit energy_drink swordfish minefish porcupinefish paradisefish small_flower seaweed rock_salt boiled_egg bronze iron glue heated_oil reinforced_wire rubbery_hide monitor large_gear fine_cloth sea_thread black_thread herb_oil roast_meat medium_ration seasoned_egg fried_egg salted_meat milk hot_milk stamina_potion swordfish_sashimi minefish_sashimi paradise_sashimi paradise_broth blackiron silver wonderore steel discharger energy_gear double_gear gold_thread poison_potion premium_ration smoked_meat medium_healing_potion advanced_healing_potion fried_swordfish paradise_platter fruit_milk soda compressed_ration whitesilver gold wonderjewel ruby sapphire diamond laurel steak advanced_stamina_potion'.split(' '));
 const RANDOM_SUPPLY_TABLES={
- A:{name:'基礎物資',normal:['wood','stone','scrap','cloth','thread','rubber','hat','boots','bracelet','ragglove','knuckle'],recovery:['ration','drink','water','seaweed_soup'],jackpot:['gold_thread','monitor','steel']},
- B:{name:'生物素材',normal:['feather','fur','thread','cloth','wood','hat','boots'],recovery:['egg','beast_meat','ration','seaweed_soup'],jackpot:['gold_thread','black_thread']},
- C:{name:'機械素材',normal:['scrap','wire','rubber','cell','oil','goggles','bracelet'],recovery:['drink','energy_drink','kit'],jackpot:['monitor','steel','discharger']},
- D:{name:'鉱石素材',normal:['stone','mystery','marble','redstone','bluestone','whitestone','pickaxe'],recovery:['premium_ration','energy_drink','healing_potion'],jackpot:['ruby','sapphire','whitesilver']},
- W:{name:'水辺素材',normal:['fish_scale','rubber','sea_thread','swimsuit','feather','cloth'],recovery:['water','seaweed_soup','minefish_sashimi'],jackpot:['monitor','gold_thread']},
- E:{name:'回復物資',recovery:['ration','drink','water','seaweed_soup','healing_potion','bandage'],rareRecovery:['soda']}
+ weapon:{name:'ランダム武器',weights:{common:75,uncommon:25}},
+ armor:{name:'ランダム防具',weights:{common:75,uncommon:25}},
+ other:{name:'ランダムその他',weights:{common:60,uncommon:20,rare:15,epic:5}}
 };
-const STARTING_SUPPLY_TABLES=['A','E'];
-const DRONE_SUPPLY_TABLES={bird:['B'],fish:['W'],dog:['B','E'],humanoid:['C','E'],scorpion:['D','D','E'],octopus:['W','C','E'],dragon:['A','B','C']};
+const STARTING_SUPPLY_TABLES=['weapon','armor','other'];
+const DRONE_SUPPLY_TABLES={bird:['weapon'],fish:['armor'],dog:['weapon','other'],humanoid:['weapon','other'],octopus:['weapon','other','other'],scorpion:['armor','other','other'],dragon:['other','other','other']};
+Object.assign(DRONE_DEFS.bird,{drops:['egg','feather']});
+Object.assign(DRONE_DEFS.fish,{drops:['fish_scale','water']});
+Object.assign(DRONE_DEFS.dog,{drops:['beast_meat','fur']});
+Object.assign(DRONE_DEFS.humanoid,{drops:['ration','lighter']});
+Object.assign(DRONE_DEFS.octopus,{drops:['rubbery_hide','rock_salt']});
+Object.assign(DRONE_DEFS.scorpion,{drops:['wonderjewel','cell']});
+Object.assign(DRONE_DEFS.dragon,{drops:['dragon_scale','advanced_healing_potion','advanced_stamina_potion','diamond','ruby','sapphire']});
+function supplyCandidates(tableId){
+ if(tableId==='other')return [...RANDOM_OTHER_ITEMS].filter(id=>names[id]&&!equipmentDef(id));
+ return Object.keys(EQUIPMENT_DEFS).filter(id=>tableId==='weapon'?equipmentDef(id).slot==='weapon':tableId==='armor'&&equipmentDef(id).slot!=='weapon').filter(id=>['common','uncommon'].includes(RECIPE_RARITY[id]||'common'));
+}
+function isRandomSupplyItem(id){return Object.keys(RANDOM_SUPPLY_TABLES).some(t=>supplyCandidates(t).includes(id))}
 function supplySetCount(id){
  if(RECOVERY_ITEMS[id])return recipes.find(r=>r.id===id)?.count||itemSetCount(id);
  return itemSetCount(id);
 }
 function rollSupply(tableId,excluded=new Set()){
  const table=RANDOM_SUPPLY_TABLES[tableId];if(!table)throw new Error('Unknown supply table: '+tableId);
- const eligible=ids=>(ids||[]).filter(id=>names[id]&&!excluded.has(id));
- let groups=table.normal?[[eligible(table.normal),70],[eligible(table.recovery),25],[eligible(table.jackpot),5]]:table.rareRecovery?[[eligible(table.recovery),95],[eligible(table.rareRecovery),5]]:[[eligible(table.recovery),1]];
- groups=groups.filter(([ids])=>ids.length);if(!groups.length)return null;
- let roll=Math.random()*groups.reduce((n,[ids,w])=>n+w,0),pool=groups[groups.length-1][0];
- for(const [ids,weight] of groups){roll-=weight;if(roll<0){pool=ids;break}}
- const id=pool[rand(pool.length)];excluded.add(id);return {id,count:supplySetCount(id),source:'ランダム'+tableId};
+ const candidates=supplyCandidates(tableId).filter(id=>!excluded.has(id));
+ const groups=Object.entries(table.weights).map(([tier,weight])=>({weight,ids:candidates.filter(id=>(RECIPE_RARITY[id]||'common')===tier)})).filter(g=>g.ids.length);
+ if(!groups.length)return null;
+ let roll=Math.random()*groups.reduce((n,g)=>n+g.weight,0),pool=groups.at(-1).ids;
+ for(const group of groups){roll-=group.weight;if(roll<0){pool=group.ids;break}}
+ const id=pool[rand(pool.length)];excluded.add(id);return {id,count:supplySetCount(id),source:table.name};
 }
 function rollSupplies(tables){const excluded=new Set();return tables.map(id=>rollSupply(id,excluded)).filter(Boolean)}
 function grantStartingSupplies(actor){
@@ -2181,6 +2192,17 @@ function useItem(id){
  // Successful recovery always closes inventory/item/corpse menus, including when the stack remains.
  closeModal();refresh();
 }
+// Approved recovery/reward revision, 2026-10-31.
+Object.assign(names,{jewel_meat:'ジュエルミート',heaven_pot:'天国鍋',compressed_ration:'圧縮レーション',life_elixir:'生命の秘薬'});
+Object.assign(RECIPE_RARITY,{energy_drink:'uncommon',healing_potion:'common',stamina_potion:'common',medium_healing_potion:'uncommon',jewel_meat:'epic',heaven_pot:'epic',compressed_ration:'rare',life_elixir:'legendary'});
+Object.assign(RECOVERY_ITEMS,{medium_healing_potion:{group:'hp',amount:45},advanced_healing_potion:{group:'hp',amount:70},jewel_meat:{group:'hp',amount:140},heaven_pot:{group:'hp',amount:120},compressed_ration:{group:'hp',amount:150},life_elixir:{group:'hp',amount:220}});
+recipes.push(
+ {id:'jewel_meat',name:names.jewel_meat,category:'item',need:{beast_meat:1,wonderjewel:1},count:2,desc:'エピック・HP140回復'},
+ {id:'heaven_pot',name:names.heaven_pot,category:'item',need:{paradisefish:1,herb_oil:1},count:3,desc:'エピック・HP120回復'},
+ {id:'compressed_ration',name:names.compressed_ration,category:'item',need:{premium_ration:1,cell:1},count:1,desc:'レア・HP150回復'},
+ {id:'life_elixir',name:names.life_elixir,category:'item',need:{laurel:1,poison_potion:1},count:1,desc:'レジェンダリー・HP220回復'}
+);
+for(const [id,desc]of Object.entries({healing_potion:'コモン・HP30回復',stamina_potion:'コモン・スタミナ30回復',medium_healing_potion:'アンコモン・HP45回復',advanced_healing_potion:'レア・HP70回復',energy_drink:'アンコモン・スタミナ50回復'})){const r=recipes.find(r=>r.id===id);if(r)r.desc=desc}
 // Provisional recovery rates, in points per second. Modes share a single active state.
 const RECOVERY_MODE_RATES={stamina:5,hp:2};
 function stopRecoveryMode(){S.recoveryMode=null;S.recoveryTickAt=0;cancelBodyTreatment(S)}
@@ -2444,7 +2466,7 @@ function showBag(){
  while(slots.length<BAG_SLOTS)slots.push('<div class="slot empty">空き枠</div>');
  modal('🎒 所持品 '+occupied()+'/'+BAG_SLOTS+'枠',(S.corpseVisit?'<button onclick="renderCorpse()">← 死体へ戻る</button>':'')+'<p class="small">同じ種類も上限を超えると別枠です。</p><div class="slotgrid">'+slots.join('')+'</div>');
 }
-const POTION_CRAFT_ITEMS=new Set(['healing_potion','medium_healing_potion','advanced_healing_potion','stamina_potion','advanced_stamina_potion']);
+const POTION_CRAFT_ITEMS=new Set(['healing_potion','medium_healing_potion','advanced_healing_potion','stamina_potion','advanced_stamina_potion','life_elixir']);
 function craftOutputCount(actor,r){return (r.count||1)+(POTION_CRAFT_ITEMS.has(r.id)?Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.potionCraftBonus||0),0):0)}
 function craftExperience(actor,r){const tier=RECIPE_RARITY[r.id]||'common',base=CRAFT_XP[tier],bonus=['epic','legendary'].includes(tier)?Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.epicCraftXpBonus||0),0):0;return Math.round(base*(1+bonus)*10)/10}
 function canCraft(r){const after=craftConsumption(r);return !!after&&!!addToStacks(after.stacks,r.id,craftOutputCount(S,r))}
@@ -2461,7 +2483,7 @@ function craftTargetPlan(id=S.craftTarget){
 function craftTargetSources(id){
  const areas=['dragon_scale','drago_core'].includes(id)?[]:Object.entries(regionStock).filter(([,stock])=>stock[id]>0).map(([area])=>area);
  const drones=Object.values(DRONE_DEFS).filter(d=>d.drops.includes(id));
- const random=Object.values(RANDOM_SUPPLY_TABLES).some(t=>[...(t.normal||[]),...(t.recovery||[]),...(t.jackpot||[])].includes(id));
+ const random=isRandomSupplyItem(id);
  return {areas,drones,random};
 }
 function craftTargetSourceHTML(id){
@@ -2549,6 +2571,8 @@ function recipeSubcategory(r){
  return ITEM_CRAFT_GROUP[r.id]||'other';
 }
 let materialSourceReturn=null;
+Object.assign(ITEM_CRAFT_GROUP,{jewel_meat:'recovery',heaven_pot:'recovery',compressed_ration:'recovery',life_elixir:'recovery'});
+Object.assign(itemFallback,{jewel_meat:'🥩',heaven_pot:'🍲',compressed_ration:'🥫',life_elixir:'⚗️'});
 function showMaterialSource(id,fromRecipe){
  const modalEl=document.querySelector('.modal');
  materialSourceReturn={title:$('modalTitle').textContent,html:$('modalBody').innerHTML,scroll:modalEl?.scrollTop||0,fromRecipe,craftTarget:craftTargetView};
@@ -2557,7 +2581,7 @@ function showMaterialSource(id,fromRecipe){
  const specialSource=id==='dragon_scale'?'<p>ドラゴン型ドローンの討伐報酬。セクション5開始時にはランダムな解放区域にも1個だけ配置されます。</p>':id==='drago_core'?'<p>逆鱗＋放電装置で製作します。</p>':'';
  const areaHtml=specialSource+(areas.length?areas.map(([area,stock])=>'<div class="bp-source-place">'+area+(area===S.place?' <b>● 現在地</b>':'')+' <small>探索物体 '+stock[id]+'件</small></div>').join(''):'<p class="small">通常の区画配置にはありません。</p>');
  const makerHtml=makers.length?makers.map(r=>'<div class="bp-source-craft"><p>'+r.name+'：'+Object.entries(r.need).map(([k,n])=>names[k]+' ×'+n).join(' ＋ ')+'</p><button onclick="openMaterialRecipe(\''+r.id+'\')">🔧 このレシピへ移動</button></div>').join(''):'<p class="small">現時点では製作レシピがありません。</p>';
- modal('🔎 '+names[id]+'の入手方法','<button onclick="returnFromMaterialSource()">← 元の製作画面へ戻る</button><h3>📍 探索で入手</h3>'+areaHtml+'<h3>🤖 ドローン撃破で入手</h3>'+Object.values(DRONE_DEFS).filter(d=>d.drops.includes(id)).map(d=>'<p>'+d.name+'（セクション'+d.section+'以降・2択報酬）</p>').join('')+(id==='soda'?'<p>共通の回復物資抽選（ランダムE）で低確率入手。開始時補給と犬型・人型・サソリ型・タコ型ドローンの追加報酬が対象です。</p>':'')+'<h3>🔧 製作で入手</h3>'+makerHtml);
+ modal('🔎 '+names[id]+'の入手方法','<button onclick="returnFromMaterialSource()">← 元の製作画面へ戻る</button><h3>📍 探索で入手</h3>'+areaHtml+'<h3>🤖 ドローン撃破で入手</h3>'+Object.values(DRONE_DEFS).filter(d=>d.drops.includes(id)).map(d=>'<p>'+d.name+'（セクション'+d.section+'以降・固定報酬）</p>').join('')+(isRandomSupplyItem(id)?'<p>開始時補給・ドローンのランダム報酬候補です（武器・防具・その他の該当枠から抽選）。</p>':'')+'<h3>🔧 製作で入手</h3>'+makerHtml);
 }
 function openMaterialRecipe(id){
  const r=recipes.find(x=>x.id===id);if(!r)return;
@@ -2624,7 +2648,7 @@ function craft(id,category){
  if($('back').classList.contains('on')&&$('modalTitle').textContent.includes('製作'))refreshCraftCards();
 }
 
-function practiceWeaponChoices(){return '<h3>持ち込む武器を1つ選択</h3><div style="display:flex;flex-wrap:wrap;gap:8px">'+Object.entries(PRACTICE_WEAPONS).map(([id,[name]])=>`<button style="flex:1;min-width:100px;padding:10px;${S.starterWeapon===id?'border:2px solid #ffa83c;background:#59401f':''}" onclick="selectPracticeWeapon('${id}')">${itemIconHTML(id)}${name}<br>攻撃力8${S.starterWeapon===id?' ✓':''}</button>`).join('')+'</div><p>開始時補給：基礎物資1枠＋回復物資1枠（支給済み）。バッグから確認・廃棄できます。</p><button onclick="showBag()">🎒 バッグを確認</button><p>選択後、下の開始区画を選んで出発してください。</p>';}
+function practiceWeaponChoices(){return '<h3>持ち込む武器を1つ選択</h3><div style="display:flex;flex-wrap:wrap;gap:8px">'+Object.entries(PRACTICE_WEAPONS).map(([id,[name]])=>`<button style="flex:1;min-width:100px;padding:10px;${S.starterWeapon===id?'border:2px solid #ffa83c;background:#59401f':''}" onclick="selectPracticeWeapon('${id}')">${itemIconHTML(id)}${name}<br>攻撃力8${S.starterWeapon===id?' ✓':''}</button>`).join('')+'</div><p>開始時補給：ランダム武器・ランダム防具・ランダムその他を各1枠（支給済み）。バッグから確認・廃棄できます。</p><button onclick="showBag()">🎒 バッグを確認</button><p>選択後、下の開始区画を選んで出発してください。</p>';}
 function selectPracticeWeapon(id){
  if(!allowMatchAction(true)||matchClock.section!==0||S.place!=='待機所'||!PRACTICE_WEAPONS[id])return;
  S.starterWeapon=id;S.equipment.weapon=id;S.equipmentEffects||={};S.equipmentEffects.weapon=equipmentInstanceEffects(id);
@@ -2758,6 +2782,16 @@ function comUpgradePlan(actor){
  return choices[0]?.plan||null;
 }
 function comWeaponTypes(actor){return actor.character==='zakuro'?['slash','bow']:actor.character==='bat'?['bow','gun']:actor.character==='jerk'?['hammer','fist']:[actor.preferredWeaponType||'bow']}
+function comWeaponNeedsReplacement(actor){
+ const id=actor.equipment.weapon;
+ return !!equipmentDef(id)&&!EQUIPMENT_SPECIAL_EFFECTS[id]?.durabilityLossImmune&&equipmentState(actor,'weapon').durability<=WEAPON_DURABILITY.max/2;
+}
+function comReliableWeapon(actor){const id=actor.equipment.weapon;return !!equipmentDef(id)?.unlimitedAmmo&&!!EQUIPMENT_SPECIAL_EFFECTS[id]?.durabilityLossImmune}
+function comDiscardRedundantWeapon(actor,plan,now){
+ if(!comReliableWeapon(actor))return false;
+ const index=actor.bag.findIndex(x=>equipmentDef(x.id)?.slot==='weapon'&&!plan.needed?.[x.id]);
+ return index>=0&&comDrop(actor,index,now);
+}
 function comWeaponValue(actor,id){
  const def=equipmentDef(id);if(!def||def.slot!=='weapon'||!comWeaponTypes(actor).includes(def.weaponType))return 0;
  return (def.attack||0)*MASTERY_WEAPON_FACTORS[masteryRank(def.weaponType,actor)]*MASTERY_MULTIPLIERS[masteryRank(def.weaponType,actor)]*(0.5+0.5*MASTERY_ACCURACY[masteryRank(def.weaponType,actor)]/100)+(def.unlimitedAmmo?65:0);
@@ -2765,7 +2799,7 @@ function comWeaponValue(actor,id){
 function comAdaptivePlan(actor,now=Date.now()){
  // Cache only personal/public inputs. No live regionObjects, enemy inventory or hidden stock counts.
  const areas=comMaterialAreas(actor,now);
- const key=JSON.stringify([actor.inventory,actor.equipment,actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4)]);
+ const key=JSON.stringify([actor.inventory,actor.equipment,actor.equipmentEffects?.weapon?.durability,actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4)]);
  if(actor.adaptivePlanCache?.key===key)return actor.adaptivePlanCache.plan;
  const rates={};
  for(const area of areas){
@@ -2776,13 +2810,16 @@ function comAdaptivePlan(actor,now=Date.now()){
    rates[id]=Math.min(rates[id]??Infinity,cost);
   }
  }
- const current=comWeaponValue(actor,actor.equipment.weapon),weaponTier=RECIPE_RARITY[actor.equipment.weapon],weakWeapon=!['rare','epic','legendary'].includes(weaponTier);
+ const replacement=comWeaponNeedsReplacement(actor),current=comWeaponValue(actor,actor.equipment.weapon),weaponTier=RECIPE_RARITY[actor.equipment.weapon],weakWeapon=!['rare','epic','legendary'].includes(weaponTier);
  const choices=[];
  for(const [id,def] of Object.entries(EQUIPMENT_DEFS)){
-  if(actorOwned(actor,id)||(actor.place==='待機所'&&def.slot!=='weapon'))continue;
-  const gain=def.slot==='weapon'?comWeaponValue(actor,id)-current:comUpgradeValue(actor,id);
+  const replacing=replacement&&def.slot==='weapon'&&comWeaponValue(actor,id)>=current*.85&&recipes.some(r=>r.id===id);
+  if(actorOwned(actor,id)&&!(replacing&&id===actor.equipment.weapon&&totalIn(actor.bag,id)===0)||(actor.place==='待機所'&&def.slot!=='weapon'))continue;
+  // A reliable weapon needs no accessory crafting detour; found/corpse upgrades are still evaluated.
+  if(def.slot==='accessory'&&actor.equipment.accessory&&comReliableWeapon(actor))continue;
+  const gain=def.slot==='weapon'?Math.max(comWeaponValue(actor,id)-current,replacing?current*.7:0):comUpgradeValue(actor,id);
   if(gain<=0)continue;
-  const plan=comPlan(actor,id);
+  const plan=comPlan(actor,id,replacing?actorOwned(actor,id)+1:1);if(replacing)plan.replacement=true;
   let cost=plan.crafts.length*2+1,feasible=true;
   for(const [item,count] of Object.entries(plan.missing)){
    if(rates[item]===undefined){feasible=false;break}
@@ -2838,7 +2875,9 @@ function equipActor(actor,index,now=Date.now()){
 function comEquipBetter(actor,now){
  const candidates=actor.bag.map((x,index)=>{
   const d=equipmentDef(x.id);if(!d||(d.slot==='weapon'&&!comWeaponTypes(actor).includes(d.weaponType)))return {index,score:0};
-  return {index,score:d.slot==='weapon'?comWeaponValue(actor,x.id)-comWeaponValue(actor,actor.equipment.weapon):comEquipmentValue(actor,x.id)-comEquipmentValue(actor,actor.equipment[d.slot])};
+  const value=comWeaponValue(actor,x.id),current=comWeaponValue(actor,actor.equipment.weapon),fresh=equipmentInstanceEffects(x.id,x.effects).durability;
+  const replacement=d.slot==='weapon'&&comWeaponNeedsReplacement(actor)&&fresh>WEAPON_DURABILITY.max/2&&value>=current*.85;
+  return {index,score:d.slot==='weapon'?Math.max(value-current,replacement?current*.7:0):comEquipmentValue(actor,x.id)-comEquipmentValue(actor,actor.equipment[d.slot])};
  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
  const index=candidates[0]?.index??-1;
  if(index<0)return false;const id=actor.bag[index].id;
@@ -2888,7 +2927,7 @@ function comWants(actor,id,plan){
  if(plan.missing[id]>0||(plan.needed?.[id]||0)>actorOwned(actor,id))return true;
  if(id==='arrows'||id==='bullets')return comWantedAmmo(actor,plan).includes(id)&&(actor.inventory[id]||0)<comAmmoReserveTarget(actor);
  const recovery=RECOVERY_ITEMS[id];if(recovery)return comWantsRecovery(actor,id,plan);
- const def=equipmentDef(id);if(def?.slot==='weapon')return comWeaponValue(actor,id)>comWeaponValue(actor,actor.equipment.weapon);if(def&&def.slot!=='weapon'){
+ const def=equipmentDef(id);if(def?.slot==='weapon')return comWeaponValue(actor,id)>comWeaponValue(actor,actor.equipment.weapon)||comWeaponNeedsReplacement(actor)&&comWeaponValue(actor,id)>=comWeaponValue(actor,actor.equipment.weapon)*.85;if(def&&def.slot!=='weapon'){
   return comEquipmentValue(actor,id)>comEquipmentValue(actor,actor.equipment[def.slot]);
  }
  return false;
@@ -3052,6 +3091,7 @@ function stepCom(actor,now){
  if(actor.character==='raku'&&modifyEquippedWeapon(actor,now))return;
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
+ if(comDiscardRedundantWeapon(actor,plan,now))return;
  if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=Math.floor(weaponCapacity(actor.equipment.weapon,actor)/4)&&reloadActor(actor,now)){comLog(actor,(equipmentDef(actor.equipment.weapon)?.ammoType==='bullets'?'銃弾':'矢')+'を補充・装填',now);return}
  for(const id of plan.crafts){const r=recipes.find(x=>x.id===id);if(!craftConsumption(r,actor))continue;
   if(craftActor(actor,r,now)){actor.noProgress=0;if(plan.recovery){if(id===plan.recipeId){actor.recoveryBuildPauseUntil=now+(comBuildReady(actor)?20000:45000);actor.recoveryTripUntil=0;actor.gearCraftsSinceReserve=0}}else actor.gearCraftsSinceReserve=(actor.gearCraftsSinceReserve||0)+1;comLog(actor,(plan.recovery?'回復を備蓄するため制作：':'目標のため制作：')+names[id],now);return}
