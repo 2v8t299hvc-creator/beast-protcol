@@ -1,0 +1,62 @@
+[
+  {
+    "id": "judgment_thunder",
+    "name": "裁きの雷",
+    "equipmentId": "keraunos_hammer",
+    "path": "assets/skills/equipment/judgment_thunder.webp"
+  },
+  {
+    "id": "wild_power",
+    "name": "ワイルドパワー",
+    "equipmentId": "super_wild_hammer",
+    "path": "assets/skills/equipment/wild_power.webp"
+  },
+  {
+    "id": "eruption",
+    "name": "噴火",
+    "equipmentId": "magma_blaster",
+    "path": "assets/skills/equipment/eruption.webp"
+  },
+  {
+    "id": "happy_premonition",
+    "name": "幸福の予感",
+    "equipmentId": "bluebird_hat",
+    "path": "assets/skills/equipment/happy_premonition.webp"
+  },
+  {
+    "id": "steel_protection",
+    "name": "鋼鉄の護り",
+    "equipmentId": "steel_armguard",
+    "path": "assets/skills/equipment/steel_protection.webp"
+  },
+  {
+    "id": "electrification",
+    "name": "帯電",
+    "equipmentId": "charged_suit",
+    "path": "assets/skills/equipment/electrification.webp"
+  },
+  {
+    "id": "mad_scalpel",
+    "name": "狂ったメス",
+    "equipmentId": "mad_doctor_gown",
+    "path": "assets/skills/equipment/mad_scalpel.webp"
+  },
+  {
+    "id": "stargazer",
+    "name": "スターゲイザー",
+    "equipmentId": "stargazing_telescope",
+    "path": "assets/skills/equipment/stargazer.webp"
+  },
+  {
+    "id": "divine_blessing",
+    "name": "神の恵み",
+    "equipmentId": "mythic_telescope",
+    "path": "assets/skills/equipment/divine_blessing.webp"
+  },
+  {
+    "id": "deadly_balance",
+    "name": "デッドリィバランス",
+    "equipmentId": "life_death_scales",
+    "path": "assets/skills/equipment/deadly_balance.webp"
+  }
+]

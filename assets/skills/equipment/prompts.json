@@ -1,0 +1,56 @@
+{
+  "tool": "built-in image generation",
+  "sharedStyle": "Use case: stylized-concept. Asset type: ONE square ability icon for BEAST PROTOCOL, a dark sci-fi fantasy survival game. High-quality hand-painted fantasy game ability illustration, polished readable UI art. Full-bleed square composition on an opaque very dark navy charcoal background, subtle vignette. One dominant bold symbol, dramatic colored illumination, strong silhouette readable at 40px. Rich textured painting with crisp contours, restrained small details, not photoreal photography. Keep lower right relatively simple so a numerical UI overlay can be added later. No text, no letters, no digits, no watermark, no labels, no icon grid, no external frame, no rounded corners, no humans or characters. ",
+  "subjects": [
+    {
+      "id": "judgment_thunder",
+      "name": "裁きの雷",
+      "prompt": "A brilliant gold-white lightning bolt striking downward into the head of a massive dark steel warhammer, jagged electric arcs spreading outward like a divine verdict. Gold and amber palette with white lightning, deep navy negative space. Hammer is central and instantly recognizable."
+    },
+    {
+      "id": "wild_power",
+      "name": "ワイルドパワー",
+      "prompt": "A rugged wooden warhammer head being gripped and reinforced by glowing emerald primal energy in the abstract shape of a beast claw. The upward surge suggests accumulating strength. Dominant vivid emerald green with earthy brown wood, no literal hand, no creature body, one bold hammer silhouette."
+    },
+    {
+      "id": "eruption",
+      "name": "噴火",
+      "prompt": "A blazing miniature volcano crater erupting a thick upward burst of molten orange-red lava and a few glowing fragments, the central lava plume suggesting explosive power. Dominant vermilion, orange and molten gold against nearly black rock. Strong simple triangular volcano silhouette."
+    },
+    {
+      "id": "happy_premonition",
+      "name": "幸福の予感",
+      "prompt": "A luminous sapphire-blue feather swept upward by a curling turquoise breeze, accompanied by a small four-point golden sparkle. A graceful hopeful symbol of stamina renewal, bluebird motif without a whole bird. Dominant bright cyan and cobalt blue, soft white edge light."
+    },
+    {
+      "id": "steel_protection",
+      "name": "鋼鉄の護り",
+      "prompt": "A heavy steel armored forearm guard positioned diagonally, deflecting a sharp sword slash with a small bright shower of sparks. Thick brushed silver metal plates with deep cool-blue shadows, a decisive white defensive glint. The armored guard dominates, no person or hand visible."
+    },
+    {
+      "id": "electrification",
+      "name": "帯電",
+      "prompt": "A concentrated sphere of blue-violet electricity surrounding a dark metal armor plate, several jagged branching lightning arcs snapping outward from the plate. Cold electric blue and violet palette, high energy but clean readable silhouette. Distinct from golden hammer lightning."
+    },
+    {
+      "id": "mad_scalpel",
+      "name": "狂ったメス",
+      "prompt": "A single sharp surgical scalpel angled upward, silver blade outlined in eerie magenta-red light, trailing a narrow crimson slash and a subtle violet chemical mist. Sinister precision, dark medical fantasy equipment, no gore, no blood droplets, no bodies, no hands."
+    },
+    {
+      "id": "stargazer",
+      "name": "スターゲイザー",
+      "prompt": "An elegant brass telescope tilted toward a small luminous four-point star, with a restrained deep cobalt starfield and a fine crescent-like orbital arc behind it. Dominant midnight blue, silver starlight and warm brass. Telescope silhouette large and simple, no diagrams or glyphs."
+    },
+    {
+      "id": "divine_blessing",
+      "name": "神の恵み",
+      "prompt": "A faceted violet mineral crystal floating beneath a single shaft of warm golden heavenly light, two abstract symmetrical gold wing-like rays framing the crystal. A few distinct gold sparks, deep indigo background. Feels like a rare mineral gift descending from above, no person, no lettering."
+    },
+    {
+      "id": "deadly_balance",
+      "name": "デッドリィバランス",
+      "prompt": "An ornate antique gold balance scale in a dramatic symmetrical front view: one pan holds a small luminous emerald life flame, the other a dark crimson smoky flame. A narrow bright white glint on the central pivot suggests narrowly surviving death. Gold, emerald and deep crimson, black navy background. Clear scale silhouette, no skull, no human imagery."
+    }
+  ]
+}
