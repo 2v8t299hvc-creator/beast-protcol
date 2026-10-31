@@ -105,7 +105,7 @@
 .bp-combat-weapon{position:absolute;bottom:0;z-index:2;max-width:95%;padding:3px 9px;border:1px solid #75869c66;border-radius:5px;background:#08101bdc;font-size:clamp(10px,1.2vw,14px);color:#e4edf7;text-shadow:0 1px 3px #000}
 #game.in-combat .toast{top:72%;left:28%;width:44%;z-index:2}
 #skillBtn.escape{background:#213f53;border:2px solid #91c6dc;color:#e4f8ff}
-.modalback{z-index:4}.right,.status,.top,.notice{z-index:2}.log{z-index:1}
+.modalback{z-index:4}.modalback.bp-play-records{position:fixed;z-index:10001}.right,.status,.top,.notice{z-index:2}.log{z-index:1}
 @media(max-height:360px){.enemy{top:20%;height:60%;gap:2px}.bp-contact-label{display:none}.enemy .ebar{height:7px}.bp-combat-weapon{padding:1px 6px}}
 @media(prefers-reduced-motion:reduce){.enemy .ebar>div{transition:none}}
 .bp-status-effects{display:flex;flex-wrap:wrap;gap:4px;color:#efd1ff;font-size:clamp(9px,1.1vw,12px)}.bp-status-effects span{padding:2px 4px;border:1px solid #a380b6;border-radius:4px;background:#312143d9}.bp-drone-traits{position:absolute;right:0;top:25%;max-width:42%;display:flex;flex-direction:column;gap:4px;font-size:clamp(9px,1.1vw,12px);color:#f0d4ff}.bp-drone-traits span{background:#111827e8;padding:3px 5px;border:1px solid #9775a5;border-radius:4px}.modalback:has(.bp-corpse-panel) .modal{width:min(860px,95vw);max-height:92dvh;border-radius:12px}.bp-corpse-panel{display:flex;flex-direction:column;gap:6px}.bp-corpse-panel p{margin:2px 0;font-size:12px}.bp-corpse-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.bp-corpse-item{min-width:0;min-height:82px;padding:5px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:linear-gradient(145deg,#243649,#101a28);border:1px solid #6b829c;border-radius:8px}.bp-corpse-item .bp-item-art{width:45px;height:45px}.bp-corpse-item .itemIcon{font-size:34px}.bp-corpse-item strong{font-size:clamp(10px,1.3vw,14px);overflow-wrap:anywhere}.bp-corpse-item small{font-size:10px}.bp-corpse-item.empty{opacity:.3;border-style:dashed}.bp-corpse-full{color:#ffb095}@media(max-height:390px){.bp-corpse-item{min-height:68px;gap:1px}.bp-corpse-item .bp-item-art{width:34px;height:34px}.bp-corpse-panel{gap:4px}}
@@ -320,7 +320,7 @@ function showCharacterSelection(id=selectedCharacter){
  const roster=PLAYABLE_CHARACTERS.map(c=>'<button class="bp-character-card" onclick="showCharacterSelection(\''+c.id+'\')" aria-label="'+c.name+'を選択" aria-pressed="'+(c.id===id)+'"><img loading="lazy" src="'+actorArt({character:c.id})+'" alt="" draggable="false"><strong>'+c.name+'</strong></button>').join('');
  const skinCards=skins.map(s=>'<button class="bp-character-card bp-skin-card" onclick="selectCharacterSkin(\''+s.id+'\')" aria-pressed="'+(s.id===skin?.id)+'"><img src="'+(s.art||actorArt({character:id}))+'" alt=""><strong>'+s.name+'</strong></button>').join('');
  $('characterSelect').hidden=false;
- $('characterSelectContent').innerHTML='<header class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>キャラクター選択 ／ 選ばなかった'+(PLAYABLE_CHARACTERS.length-1)+'人がCOMで参戦</p></div><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></header><div class="bp-select-main"><div class="bp-select-stage"><img id="selectionPortrait" src="'+(skin?.art||actorArt({character:id}))+'" alt="'+character.name+' ／ '+(skin?.name||'オリジナル')+'"><button class="bp-select-arrow prev" aria-label="前のキャラクター" onclick="cycleSelectedCharacter(-1)">‹</button><button class="bp-select-arrow next" aria-label="次のキャラクター" onclick="cycleSelectedCharacter(1)">›</button><span class="bp-select-index">'+(PLAYABLE_CHARACTERS.indexOf(character)+1)+' / '+PLAYABLE_CHARACTERS.length+'　'+(skin?.name||'オリジナル')+'</span></div><section class="bp-select-detail" aria-label="キャラクターとスキルの詳細"><h2>'+character.name+'</h2><p class="bp-select-meta">'+character.species+' ／ '+character.mastery+'</p><p>'+character.summary+'</p><div class="bp-select-stats">'+[['attack','攻撃'],['defense','防御'],['hp','HP'],['stamina','スタミナ']].map(([key,label])=>'<span>'+label+'<br>'+baseCharacterStat({character:id},key,1)+' → '+baseCharacterStat({character:id},key,15)+'</span>').join('')+'</div><p style="color:#a8bfd0;font-size:10px">能力値はLv1 → Lv15。開始後30秒以内に武器を選び、待機所から出発しよう。</p>'+skills+'</section></div><section class="bp-select-dock"><div class="bp-select-tabs" role="tablist" aria-label="選択メニュー"><button role="tab" aria-selected="'+(characterSelectionTab==='characters')+'" onclick="setCharacterSelectionTab(\'characters\')">キャラ一覧</button><button role="tab" aria-selected="'+(characterSelectionTab==='skins')+'" onclick="setCharacterSelectionTab(\'skins\')">スキン</button><small>'+ (characterSelectionTab==='characters'?'横スクロールで直接選択':'外見のみ変更 ／ '+skins.length+'種')+'</small></div><div class="bp-character-grid" role="tabpanel">'+(characterSelectionTab==='characters'?roster:skinCards)+'</div></section>';
+ $('characterSelectContent').innerHTML='<header class="bp-select-header"><div><h1>BEAST PROTOCOL</h1><p>キャラクター選択 ／ 選ばなかった'+(PLAYABLE_CHARACTERS.length-1)+'人がCOMで参戦</p></div><button onclick="showPlayRecords()">📒 プレイ記録</button><button class="bp-select-start" onclick="startSelectedCharacter()">このキャラで開始</button></header><div class="bp-select-main"><div class="bp-select-stage"><img id="selectionPortrait" src="'+(skin?.art||actorArt({character:id}))+'" alt="'+character.name+' ／ '+(skin?.name||'オリジナル')+'"><button class="bp-select-arrow prev" aria-label="前のキャラクター" onclick="cycleSelectedCharacter(-1)">‹</button><button class="bp-select-arrow next" aria-label="次のキャラクター" onclick="cycleSelectedCharacter(1)">›</button><span class="bp-select-index">'+(PLAYABLE_CHARACTERS.indexOf(character)+1)+' / '+PLAYABLE_CHARACTERS.length+'　'+(skin?.name||'オリジナル')+'</span></div><section class="bp-select-detail" aria-label="キャラクターとスキルの詳細"><h2>'+character.name+'</h2><p class="bp-select-meta">'+character.species+' ／ '+character.mastery+'</p><p>'+character.summary+'</p><div class="bp-select-stats">'+[['attack','攻撃'],['defense','防御'],['hp','HP'],['stamina','スタミナ']].map(([key,label])=>'<span>'+label+'<br>'+baseCharacterStat({character:id},key,1)+' → '+baseCharacterStat({character:id},key,15)+'</span>').join('')+'</div><p style="color:#a8bfd0;font-size:10px">能力値はLv1 → Lv15。開始後30秒以内に武器を選び、待機所から出発しよう。</p>'+skills+'</section></div><section class="bp-select-dock"><div class="bp-select-tabs" role="tablist" aria-label="選択メニュー"><button role="tab" aria-selected="'+(characterSelectionTab==='characters')+'" onclick="setCharacterSelectionTab(\'characters\')">キャラ一覧</button><button role="tab" aria-selected="'+(characterSelectionTab==='skins')+'" onclick="setCharacterSelectionTab(\'skins\')">スキン</button><small>'+ (characterSelectionTab==='characters'?'横スクロールで直接選択':'外見のみ変更 ／ '+skins.length+'種')+'</small></div><div class="bp-character-grid" role="tabpanel">'+(characterSelectionTab==='characters'?roster:skinCards)+'</div></section>';
 }
 function startSelectedCharacter(){
  if(matchStarted)return;
@@ -328,7 +328,7 @@ function startSelectedCharacter(){
  matchStarted=true;
  Object.assign(S,{id:character.id,name:character.name,character:character.id,skin:selectedCharacterSkins[character.id]||'default',masteryAttacks:initialMastery(character.id),preferredWeaponType:character.weapon});
  initializeRakuMastery(S);S.hp=actorMax(S,'hp');S.st=actorMax(S,'stamina');
- initializeMatch();initializeDrones();initializeComActors();grantStartingSupplies(S);
+ initializeMatch();initializeDrones();initializeComActors();grantStartingSupplies(S);beginPlayRecord();
  $('characterSelect').hidden=true;
  addLog(S.name+'として仮想演習へログインした。');
  if(S.randomMasteryType)addLog('ラクの得意武器：'+WEAPON_TYPES[S.randomMasteryType]+' D+');
@@ -1475,10 +1475,110 @@ function recordExploration(actor,now){
   const message=effect.name+'：'+names[mineral]+'を取得';if(actor===S){addLog(message);toast(message)}else comLog(actor,message,now);
  }
 }
+// Local-only observation log. It is evidence for later analysis, never an input to COM decisions.
+const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-10-31-observations-v1';
+let playJournal=null,playRecordTimer=null,playRecordDepth=0,playRecordLastState='',playRecordLastObservation=0,playRecordStorageError=false;
+let playRecords=readPlayRecords();
+function readPlayRecords(){
+ try{const value=JSON.parse(globalThis.localStorage?.getItem(PLAY_RECORD_KEY)||'[]');return Array.isArray(value)?value.filter(r=>r?.schemaVersion===1&&typeof r.id==='string'&&Array.isArray(r.events)&&Array.isArray(r.states)).slice(-3):[]}catch{return []}
+}
+function playActorState(actor){
+ return {...snapshotMatchActor(actor),id:actor.id,character:actor.character,hp:actor.hp,st:actor.st,maxHp:actorMax(actor,'hp'),maxSt:actorMax(actor,'stamina'),xp:actor.xp,
+  attack:totalStat('attack',actor),defense:totalStat('defense',actor),recoveryReadyAt:{...actor.recoveryReadyAt},skillReadyAt:actor.characterSkillReadyAt||0,fieldReadyAt:actor.characterFieldReadyAt||0,combatReadyAt:actor.combatReadyAt||0,statusEffects:JSON.parse(JSON.stringify(actor.statusEffects||{})),
+  passives:{breezeStacks:actor.breezeStacks||0,mineralMantleStacks:actor.mineralMantleStacks||0,modificationStacks:actor.modificationStacks||0},
+  injuries:{...actor.bodyInjuries},recoveryMode:actor.recoveryMode||actor.restMode||null,goal:actor===S?actor.craftTarget||null:actor.goal||null};
+}
+function playPlayerState(){
+ const target=S.enemy?currentSkillTarget():null,corpse=S.corpseVisit&&findCorpse(S.corpseVisit.id);
+ return {...playActorState(S),section:matchClock.section,blocked:[...matchClock.blocked],nextBlocked:[...nextClosingAreas()],busy:!!S.busy,
+  discoveries:discoveryChoices().map(x=>({id:x.id,count:x.count||1})),stock:S.found.map(x=>({id:stockItemId(x),count:x.count||1})),
+  corpse:corpse?{id:corpse.id,items:corpse.items.map(x=>({id:x.id,count:x.count}))}:null,
+  encounter:target?{id:target.id||target.kind,hp:target.hp,kind:S.enemyPlayerId?'player':'drone',...(S.enemyPlayerId?{equipment:{...target.equipment}}:{})}:null};
+}
+function playStateIndex(state){
+ const key=JSON.stringify(state);if(key!==playRecordLastState){playJournal.states.push(JSON.parse(key));playRecordLastState=key}return playJournal.states.length-1;
+}
+function appendPlayEvent(kind,data={},before=null,now=Date.now()){
+ if(!playJournal||playJournal.finishedAt)return;
+ if(playJournal.events.length>=12000){playJournal.truncated=true;return}
+ const after=playStateIndex(playPlayerState());
+ playJournal.events.push({seq:playJournal.events.length,ms:Math.max(0,now-playJournal.startedAt),kind,data,...(before!==null?{before}:{}),after});
+ schedulePlayRecordSave();
+}
+function beginPlayRecord(now=Date.now()){
+ if(playJournal)flushPlayRecords();
+ playJournal={schemaVersion:1,build:PLAY_RECORD_BUILD,id:'bp-'+now+'-'+S.id,startedAt:now,character:S.character,playerId:S.id,status:'in-progress',
+  rules:{recoveryCooldownMs:RECOVERY_COOLDOWN_MS,masteryThresholds:[...MASTERY_THRESHOLDS],masteryMultipliers:[...MASTERY_MULTIPLIERS]},
+  events:[],states:[],comCheckpoints:[]};
+ playRecordLastState='';playRecordLastObservation=0;playRecords.push(playJournal);playRecords=playRecords.slice(-3);
+ appendPlayEvent('match-start',{},null,now);samplePlayCom(now);flushPlayRecords();
+}
+function samplePlayCom(now=Date.now(),force=false){
+ if(!playJournal||playJournal.finishedAt)return;
+ const last=playJournal.comCheckpoints.at(-1);if(!force&&last&&now-playJournal.startedAt-last.ms<30000)return;
+ const since=last?playJournal.startedAt+last.ms:playJournal.startedAt-1;
+ playJournal.comCheckpoints.push({ms:Math.max(0,now-playJournal.startedAt),analysisOnly:true,actors:comActors.map(a=>({...playActorState(a),alive:a.hp>0,stats:JSON.parse(JSON.stringify(matchStats(a))),recentActions:(a.history||[]).filter(e=>e.at>since&&e.at<=now).map(e=>({ms:e.at-playJournal.startedAt,text:e.text}))}))});schedulePlayRecordSave();
+}
+function observePlayState(now=Date.now()){
+ if(!playJournal||playJournal.finishedAt||playRecordDepth||now-playRecordLastObservation<1000)return;
+ playRecordLastObservation=now;
+ const state=playPlayerState();if(JSON.stringify(state)!==playRecordLastState)appendPlayEvent('state-observed',{},null,now);
+ samplePlayCom(now);
+}
+function finishPlayRecord(now=Date.now()){
+ if(!playJournal||playJournal.finishedAt)return;
+ samplePlayCom(now,true);appendPlayEvent('match-end',{result:matchClock.result,winnerId:matchClock.winnerId||null},null,now);
+ playJournal.finishedAt=now;playJournal.status='finished';playJournal.result=matchClock.result;playJournal.winnerId=matchClock.winnerId||null;playJournal.playerStats=JSON.parse(JSON.stringify(matchStats(S)));flushPlayRecords();
+}
+function schedulePlayRecordSave(){
+ if(playRecordTimer!==null)return;playRecordTimer=setTimeout(()=>{playRecordTimer=null;flushPlayRecords()},3000);
+}
+function flushPlayRecords(){
+ if(playRecordTimer!==null){clearTimeout(playRecordTimer);playRecordTimer=null}
+ let storage;try{storage=globalThis.localStorage}catch{playRecordStorageError=true;return false}
+ if(!storage){playRecordStorageError=true;return false}
+ while(playRecords.length){
+  try{storage.setItem(PLAY_RECORD_KEY,JSON.stringify(playRecords));playRecordStorageError=false;return true}catch{if(playRecords.length<=1){playRecordStorageError=true;return false}playRecords.shift()}
+ }return false;
+}
+function exportPlayRecord(index){
+ const record=playRecords[index];if(!record)return;
+ const payload={...record,exportedAt:Date.now(),dictionary:{items:names,rarities:RECIPE_RARITY,recipes:recipes.map(r=>({id:r.id,need:r.need,count:r.count||1}))},
+  formatNotes:{states:'events.before/after are indexes into states; times are milliseconds since startedAt. state-observed is an observation, not a player command.',comCheckpoints:'Analysis-only COM snapshots every 30 seconds. Never used by COM decisions.',learning:'Observation data for offline analysis; this file does not automatically train or alter COM.'}};
+ try{
+  const blob=new Blob([JSON.stringify(payload)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='BEAST_PROTOCOL_play_'+new Date(record.startedAt).toISOString().replace(/[:.]/g,'-')+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  toast('プレイ記録を書き出しました。保存したJSONをこのチャットに添付してね');
+ }catch{toast('書き出せませんでした。もう一度お試しください')}
+}
+function showPlayRecords(){
+ flushPlayRecords();
+ const escape=escapeCorpseText;
+ let body='<p>普段どおり遊ぶだけで自動記録します。保存したJSONをこのチャットに添付すると、COM改善の分析に使えます。</p><p class="small">このブラウザに直近3試合を保存します（容量不足時は古い記録から整理）。途中の記録も書き出せます。記録は端末内に保存され、自動送信されません。ゲームの途中再開用データではありません。</p>';
+ if(playRecordStorageError)body+='<p>端末への自動保存ができていません。ページを閉じる前に書き出してください。</p>';
+ body+=playRecords.length?playRecords.map((r,i)=>'<article style="padding:10px 0;border-bottom:1px solid #405267"><b>'+escape(PLAYABLE_CHARACTERS.find(c=>c.id===r.character)?.name||r.character)+'</b> ／ '+escape(new Date(r.startedAt).toLocaleString('ja-JP'))+'<br>'+ (r.status==='finished'?'試合終了':'途中までの記録')+' ／ '+r.events.length+'件'+(r.truncated?'（記録上限に到達）':'')+'<button onclick="exportPlayRecord('+i+')">📥 分析用の記録を保存</button></article>').reverse().join(''):'<p>試合を開始すると記録が残ります。</p>';
+ modal('📒 プレイ記録',body);
+}
+function installPlayRecording(){
+ // Wrap successful state changes at existing player command boundaries; leave game rules intact.
+ for(const name of ['primary','selectPracticeWeapon','move','decideDiscoveredItem','deferAllDiscoveries','takeFound','discardStack','equip','unequip','craft','setCraftTarget','clearCraftTarget','reloadWeapon','useItem','toggleRecoveryMode','treatBodyInjury','useCharacterFieldSkill','useMineralMantle','attackOpponent','attackDiscoveredDrone','escapeOpponent','ignoreDiscoveredDrone','takeCorpseItem']){
+  const original=globalThis[name];if(typeof original!=='function')continue;
+  globalThis[name]=function(...args){
+   if(!playJournal||playJournal.finishedAt||playRecordDepth)return original.apply(this,args);
+   const state=playPlayerState(),key=JSON.stringify(state),before=playStateIndex(state),now=Date.now();playRecordDepth++;
+   try{return original.apply(this,args)}finally{
+    playRecordDepth--;if(key!==JSON.stringify(playPlayerState()))appendPlayEvent('action',{action:name,args:args.filter(x=>x===null||['string','number','boolean'].includes(typeof x)),completedSynchronously:!S.busy,startedMs:Math.max(0,now-playJournal.startedAt)},before,Date.now());
+   }
+  };
+ }
+ const originalRefresh=refresh;refresh=function(...args){const result=originalRefresh.apply(this,args);observePlayState();return result};
+}
+
 // Match records are structured facts, independent of the short, rolling screen log.
 function matchStats(actor){return actor.matchStats||(actor.matchStats={})}
 function bumpMatchStat(actor,key,n=1){if(matchClock?.ended)return;const stats=matchStats(actor);stats[key]=(stats[key]||0)+n}
 function recordMatchEvent(actor,type,text,now=Date.now(),data=null){
+ if(actor===S)appendPlayEvent('event',{type,text,...(data?{details:data}:{})},null,now);
  if(matchClock?.ended)return;actor.matchEvents||=[];actor.matchEvents.push({at:now,type,text,...(data?{data}: {})});if(actor.matchEvents.length>200)actor.matchEvents.shift();
 }
 function snapshotMatchActor(actor){
@@ -1487,7 +1587,7 @@ function snapshotMatchActor(actor){
 function sealMatchRecord(now){
  if(matchClock.record)return;matchClock.finishedAt=now;
  const actors=[S,...comActors].map(a=>({id:a.id,name:actorName(a),alive:a.hp>0,hp:a.hp,final:a.finalState||snapshotMatchActor(a),stats:matchStats(a),events:a.matchEvents||[]}));
- matchClock.record=JSON.parse(JSON.stringify({endedAt:now,elapsed:Math.max(0,Math.floor((now-matchClock.startedAt)/1000)),winnerId:matchClock.winnerId||null,result:matchClock.result,actors}));
+ matchClock.record=JSON.parse(JSON.stringify({endedAt:now,elapsed:Math.max(0,Math.floor((now-matchClock.startedAt)/1000)),winnerId:matchClock.winnerId||null,result:matchClock.result,actors}));finishPlayRecord(now);
 }
 function showMatchResult(){
  if(!matchClock?.ended)return;
@@ -1495,7 +1595,7 @@ function showMatchResult(){
  const title=win?'演習終了：勝利！':draw?'演習終了：引き分け':winner?'演習終了：'+actorName(winner)+'の勝利':'演習終了：脱落';
  const text=win?'最後の生存者になりました。'+actorName(S)+'の勝利です！':draw?'生存者がいなくなりました。引き分けです。':winner?actorName(winner)+'が最後の生存者になりました。':'演習は終了しました。';
  const corpse=win?corpses.find(c=>c.kind==='player'&&c.ownerId!==S.id&&c.area===S.place&&c.items.length):null;
- modal(title,'<p>'+escapeCorpseText(text)+'</p><button onclick="showMatchReport()">📊 試合の記録</button>'+(corpse?'<button onclick="openCorpse(\''+corpse.id+'\')">戦利品を確認</button>':'')+'<button onclick="location.reload()">新しい演習を開始</button>');
+ modal(title,'<p>'+escapeCorpseText(text)+'</p><button onclick="showMatchReport()">📊 試合の記録</button><button onclick="showPlayRecords()">📒 プレイ記録を保存</button>'+(corpse?'<button onclick="openCorpse(\''+corpse.id+'\')">戦利品を確認</button>':'')+'<button onclick="location.reload()">新しい演習を開始</button>');
 }
 function showMatchReport(){
  if(!matchClock?.ended||!matchClock.record)return toast('試合終了後に確認できます');
@@ -2107,7 +2207,7 @@ function receiveAttackDamage(amount,reason,killerId=null){
  stopRecoveryMode();S.hp=Math.max(0,S.hp-endureDamage(S,Math.max(0,amount)));
  if(S.hp===0)eliminatePlayer(reason||'攻撃を受けて脱落しました。',killerId);
 }
-function modal(title,body){craftTargetView=false;$('modalTitle').textContent=title;$('modalBody').innerHTML=body;hydrateItemArt();$('modalCloseBtn').textContent=S.pendingFound?'📦 残りをすべて保留':'✕ 閉じる';$('back').classList.add('on');colorItemNames($('modalBody'));colorItemNames($('modalTitle'))};function closeModal(){craftTargetView=false;S.corpseVisit=null;if(S.pendingFound){deferAllDiscoveries();return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
+function modal(title,body){$('back').classList.toggle('bp-play-records',title==='📒 プレイ記録');craftTargetView=false;$('modalTitle').textContent=title;$('modalBody').innerHTML=body;hydrateItemArt();$('modalCloseBtn').textContent=S.pendingFound?'📦 残りをすべて保留':'✕ 閉じる';$('back').classList.add('on');colorItemNames($('modalBody'));colorItemNames($('modalTitle'))};function closeModal(){craftTargetView=false;S.corpseVisit=null;if(S.pendingFound){deferAllDiscoveries();return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
 const itemArt={
  stone:['basic',0],wood:['basic',1],mystery:['basic',2],marble:['basic',3],
  lighter:['tools',0],pickaxe:['tools',1],superpickaxe:['tools',2],greatpickaxe:['tools',3],
@@ -2323,7 +2423,7 @@ function showEquipment(){
   ${id?`<small>攻撃 +${(def.attack||0)+equipmentAttackBonus(S,slot)} / 防御 +${def.defense||0}</small>${EQUIPMENT_SPECIAL_EFFECTS[id]?`<small>【${EQUIPMENT_SPECIAL_EFFECTS[id].name}】${EQUIPMENT_SPECIAL_EFFECTS[id].description}</small>`:''}${def.ammoType&&!def.unlimitedAmmo?`<button onclick="reloadWeapon('${def.ammoType}')" ${weaponAmmo(id,S.equipmentAmmo[slot])>=weaponCapacity(id,S)||!(S.inventory[def.ammoType]>0)?'disabled':''}>${names[def.ammoType]}を装填（所持${S.inventory[def.ammoType]||0}）</button>`:''}${derived.length?`<button onclick="showRecipesFor('${id}',true)">🔧 派生装備（${derived.length}件）</button>`:''}<button onclick="unequip('${slot}')">外す</button>`:''}</div>`;
  }).join('');
  const ranks=Object.keys(WEAPON_TYPES).map(t=>WEAPON_TYPES[t]+' '+MASTERY_RANKS[masteryRank(t)]+' ('+masteryProgress(t)+')').join(' ／ ');
- modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${Math.round(totalStat('attack')*10)/10}　防御 ${totalStat('defense')}<br>${ranks}</div><p class="small">武器は最初の10回の攻撃では通常劣化せず、その後は使用回数と消耗度に応じた確率で耐久値－1。0で破損し素手になります（防具の耐久減少効果は別）。連射スキルは1回の使用として計算。持ち替え・拾い直しでは消耗を引き継ぎ、製作・改造で新品になります。</p><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showComStatus()">開発用：COM行動確認</button>${matchClock.ended?'<button onclick="showMatchReport()">📊 試合の記録</button>':''}`);
+ modal('🛡️ 装備・熟練度',`<div class="bp-equip-stats">Lv.${S.level} (${levelProgress()})　HP ${S.hp}/${maxHp()}　ST ${S.st}/${maxSt()}<br>攻撃 ${Math.round(totalStat('attack')*10)/10}　防御 ${totalStat('defense')}<br>${ranks}</div><p class="small">武器は最初の10回の攻撃では通常劣化せず、その後は使用回数と消耗度に応じた確率で耐久値－1。0で破損し素手になります（防具の耐久減少効果は別）。連射スキルは1回の使用として計算。持ち替え・拾い直しでは消耗を引き継ぎ、製作・改造で新品になります。</p><div class="bp-equip-grid">${cards}</div><button onclick="showBag()">🎒 所持品から装備</button><button onclick="showPlayRecords()">📒 プレイ記録</button><button onclick="showComStatus()">開発用：COM行動確認</button>${matchClock.ended?'<button onclick="showMatchReport()">📊 試合の記録</button><button onclick="showPlayRecords()">📒 プレイ記録を保存</button>':''}`);
 }
 function showBag(){
  const slots=orderedInventory().map(([k,v],i)=>{
@@ -2993,8 +3093,10 @@ function showComStatus(){
  }).join('')+'<button onclick="showComStatus()">更新</button>');
 }
 
+installPlayRecording();
 showCharacterSelection();
-document.addEventListener?.('visibilitychange',()=>{if(matchStarted)tickMatchClock()});
+document.addEventListener?.('visibilitychange',()=>{if(matchStarted)tickMatchClock();if(document.visibilityState==='hidden')flushPlayRecords()});
+globalThis.addEventListener?.('pagehide',flushPlayRecords);
 document.addEventListener?.('visibilitychange',()=>{if(matchStarted&&document.visibilityState==='visible')retryFailedItemArt()});
 globalThis.addEventListener?.('pageshow',()=>{if(matchStarted)tickMatchClock()});
 globalThis.addEventListener?.('pageshow',()=>{if(matchStarted)retryFailedItemArt()});
