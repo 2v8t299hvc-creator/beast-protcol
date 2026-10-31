@@ -2289,6 +2289,8 @@ const itemFallback={water:'💧',hotwater:'♨️',seaweed:'🌿',seaweed_soup:'
 Object.assign(itemFallback,{medical_stone:'💊',philosophers_stone:'🔮'});
 Object.assign(itemFallback,{"handgun":"🔫","hand_blaster":"🔫","magma_blaster":"🔫","rifle":"🔫","sniper_rifle":"🔫","laser_rifle":"🔫","cannon":"🔫","blizzard_cannon":"🔫","telescope":"🔭","optical_sight":"🔭","stargazing_telescope":"🔭","mythic_telescope":"🔭","japanese_bow":"🏹","strong_bow":"🏹","reinforced_wire":"➰","mighty_bow":"🏹","azusa_bow":"🏹","unerring_bow":"🏹","western_bow":"🏹","longbow":"🏹","silver_bow":"🏹","golden_bow":"🏹","angel_wing":"🪽","eros_bow":"🏹","amalgam_bow":"🏹","apollo_bow":"🏹","rubbery_hide":"🟤","gunpowder":"💥","wire":"➰","feather":"🪶","fur":"🐾","laurel":"🌿","bullets":"▥","arrows":"➶"});
 Object.assign(itemFallback,{egg:'🥚',fish_scale:'🔹',beast_meat:'🥩',premium_ration:'🥫',energy_drink:'🥤'});
+// Individual transparent icons for medicinal stones and late recovery.
+for(const id of ['medical_stone','philosophers_stone','jewel_meat','heaven_pot','compressed_ration','life_elixir']){itemArtSheets['item_'+id]='assets/icon_'+id+'.webp';itemArt[id]=['item_'+id,0,'single']}
 const readySheets={},loadedSheetUrls={},itemSheetStates={},itemSheetQueue=[];
 let activeItemSheetLoads=0,itemSheetPumpScheduled=false;
 const ITEM_SHEET_CONCURRENCY=4,ITEM_SHEET_MAX_ATTEMPTS=3;
