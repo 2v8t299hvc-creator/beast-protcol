@@ -2364,6 +2364,7 @@ function craftTargetBodyHTML(plan=craftTargetPlan()){
 function showCraftTarget(){
  if(S.pendingFound)return toast('発見したアイテムの取得・保留を先に選んでください');
  modal('📌 製作目標','<div id="craftTargetContent">'+craftTargetBodyHTML()+'</div>');craftTargetView=true;craftTargetRenderKey='';
+ const container=document.querySelector('.modal');if(container)container.scrollTop=0;
 }
 function renderCraftTarget(){
  const plan=craftTargetPlan(),button=$('craftTargetBtn'),summary=$('craftTargetSummary');if(!button||!summary)return;

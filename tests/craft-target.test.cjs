@@ -60,6 +60,8 @@ run(`matchClock.blocked=[stoneArea];matchClock.nextBlocked=[kitArea]`);assert(ru
 eq(`craftTargetSources('dragon_scale').areas.length`,0);assert(run(`craftTargetSourceHTML('dragon_scale').includes('ドラゴン型ドローン')`));assert(run(`craftTargetSourceHTML('dragon_scale').includes('ランダム配置')`));
 // Returning from an ingredient's source page refreshes the goal from current inventory.
 fresh();run(`setCraftTarget('medical_stone');showMaterialSource('stone','medical_stone');receive('stone',1);returnFromMaterialSource()`);eq('craftTargetView',true);assert(run(`!craftTargetBodyHTML().includes('石ころ ×1')`));
+// A newly opened target starts at the top; returning from sources restores the prior position.
+fresh();run(`var box={scrollTop:900};document.querySelector=selector=>selector==='.modal'?box:null;setCraftTarget('medical_stone')`);eq('box.scrollTop',0);run(`box.scrollTop=45;showMaterialSource('stone','medical_stone');box.scrollTop=200;returnFromMaterialSource()`);eq('box.scrollTop',45);
 // Full-bag recipes remain locked although all raw resources exist; no auto-discard or auto-craft.
 fresh();run(`S.bag=[{id:'stone',count:10},{id:'marble',count:10},...Array.from({length:4},()=>({id:'wood',count:10}))];syncInventory();setCraftTarget('whitestone')`);assert.deepEqual(plain('craftTargetPlan().missing'),{});eq('craftTargetPlan().ready.length',0);assert(run(`craftTargetBodyHTML().includes('バッグが満杯')`));
 // Inspection never hides an unresolved discovery, and unpinning returns the compact HUD to empty.
