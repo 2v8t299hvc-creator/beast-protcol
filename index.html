@@ -1085,14 +1085,15 @@ const regionSeen=Object.fromEntries(Object.keys(regionStock).map(area=>[area,new
 const SECTION_RULES=[
  {seconds:30,blocked:0},{seconds:180,blocked:0},
  {seconds:180,blocked:3},{seconds:180,blocked:3},{seconds:180,blocked:3},
- {seconds:150,blocked:4},{seconds:150,blocked:8},{seconds:120,blocked:12},
- {seconds:90,blocked:15},{seconds:90,blocked:17},{seconds:0,blocked:18}
+ {seconds:150,blocked:4},{seconds:150,blocked:6},{seconds:120,blocked:9},
+ {seconds:120,blocked:12},{seconds:90,blocked:15},{seconds:90,blocked:17},{seconds:0,blocked:18}
 ];
+const FINAL_SECTION=SECTION_RULES.length-1;
 const MATCH_DURATION=SECTION_RULES.reduce((sum,r)=>sum+r.seconds,0);
 const DAY_NIGHT_PHASES=['day','night','day','night'];
 const ACTIVE_MATCH_SECONDS=MATCH_DURATION-SECTION_RULES[0].seconds;
 const DAY_NIGHT_START_SECTIONS=[1,3,5,7];
-const DAY_NIGHT_PHASE_ENDS=DAY_NIGHT_START_SECTIONS.map((section,index)=>SECTION_RULES.slice(1,DAY_NIGHT_START_SECTIONS[index+1]??10).reduce((sum,r)=>sum+r.seconds,0));
+const DAY_NIGHT_PHASE_ENDS=DAY_NIGHT_START_SECTIONS.map((section,index)=>SECTION_RULES.slice(1,DAY_NIGHT_START_SECTIONS[index+1]??FINAL_SECTION).reduce((sum,r)=>sum+r.seconds,0));
 let matchClock=null,mapRenderKey=null;
 // Pure timestamp-based query: pass the action's own time during catch-up and skill resolution.
 function dayNightAt(now=Date.now()){
@@ -1115,10 +1116,10 @@ function shuffledAreas(areas){
 }
 const NORMAL_DRONE_KINDS=['bird','fish','dog','humanoid','scorpion','octopus'];
 function planNextBlocked(section,blocked){
- if(section>=10)return [];
+ if(section>=FINAL_SECTION)return [];
  const target=SECTION_RULES[section+1].blocked,areas=Object.keys(regionStock);
  if(!target)return [];
- const retained=section>=5?[...blocked]:[];
+ const retained=section>=6?[...blocked]:[];
  const candidates=shuffledAreas(areas.filter(area=>!blocked.includes(area))),count=target-retained.length;
  const groups=NORMAL_DRONE_KINDS.map(kind=>DRONE_DEFS[kind].areas);
  let best=null,bestCoverage=-1,ties=0;
@@ -1158,16 +1159,16 @@ function finishMatch(now=Date.now()){
  const alive=!matchClock.result&&S.hp>0;
  if(alive)createPlayerCorpse(S,S.place,now);
  matchClock.ended=true;S.corpseVisit=null;Object.values(drones).forEach(d=>d.area=null);S.remaining=0;S.busy=false;S.enemy=false;S.pendingFound=null;S.discoveryQueue=[];
- // The section-10 closure eliminates everybody simultaneously; survivors at the deadline draw.
+ // The final-section closure eliminates everybody simultaneously; survivors at the deadline draw.
  if(alive){S.hp=0;matchClock.result='draw';addLog('全区域封鎖。残存者は全員脱落、引き分け。')}
- else addLog('セクション10：全区域封鎖。演習終了。');
+ else addLog('セクション'+FINAL_SECTION+'：全区域封鎖。演習終了。');
  sealMatchRecord(now);showMatchResult();
 }
 function syncMatchClock(now=Date.now()){
  updateStatusEffects(now);
  if(!matchClock||matchClock.ended)return;
  // Process every crossed boundary, including when Safari resumes after background throttling.
- while(matchClock.section<10&&now>=matchClock.sectionEndsAt){
+ while(matchClock.section<FINAL_SECTION&&now>=matchClock.sectionEndsAt){
   const boundaryAt=matchClock.sectionEndsAt;
   updateComActors(boundaryAt-1);if(matchClock.ended)return;
   matchClock.resolvingBoundary=true;
@@ -1176,7 +1177,7 @@ function syncMatchClock(now=Date.now()){
   matchClock.blocked=[...matchClock.nextBlocked];
   killBlockedDrones(boundaryAt);advanceDragon(boundaryAt);
   for(const actor of comActors)if(actor.hp>0&&(isBlocked(actor.place)||actor.place==='待機所'))eliminateCom(actor,'区域封鎖・出発期限',matchClock.sectionEndsAt);
-  if(matchClock.section===10){matchClock.resolvingBoundary=false;finishMatch(boundaryAt);return}
+  if(matchClock.section===FINAL_SECTION){matchClock.resolvingBoundary=false;finishMatch(boundaryAt);return}
   matchClock.sectionEndsAt+=SECTION_RULES[matchClock.section].seconds*1000;
   matchClock.nextBlocked=planNextBlocked(matchClock.section,matchClock.blocked);
   addLog('セクション'+matchClock.section+'開始：'+(matchClock.blocked.length?matchClock.blocked.join('・')+'を封鎖':'全区域解放'));
@@ -1202,7 +1203,7 @@ function renderMatchStatus(){
  $('clock').textContent=formatTime(sectionSeconds());
  $('survivalStatus').textContent=matchClock.result==='win'?'勝利':matchClock.result==='draw'?'引き分け':matchClock.result?'脱落':matchClock.ended?'演習終了':'生存中';
  const next=nextClosingAreas();
- $('notice').textContent=matchClock.ended?(matchClock.section===10?'全区域封鎖：演習終了':'演習終了'+(matchClock.winnerId?' ｜ 勝者：'+actorName(findActor(matchClock.winnerId)):'：引き分け')):matchClock.section===0?'開始まで '+formatTime(sectionSeconds())+(S.place==='待機所'?' ｜ 武器を選択して出発（時間切れで脱落）':' ｜ 出発済み'):
+ $('notice').textContent=matchClock.ended?(matchClock.section===FINAL_SECTION?'全区域封鎖：演習終了':'演習終了'+(matchClock.winnerId?' ｜ 勝者：'+actorName(findActor(matchClock.winnerId)):'：引き分け')):matchClock.section===0?'開始まで '+formatTime(sectionSeconds())+(S.place==='待機所'?' ｜ 武器を選択して出発（時間切れで脱落）':' ｜ 出発済み'):
   '現在の封鎖 '+matchClock.blocked.length+'/18区画 ｜ '+(next.length?'⚠ 次の封鎖：'+next.join('・'):'次の封鎖なし');
  $('mainBtn').disabled=!!S.busy||!!(S.enemyPlayerId&&(S.combatReadyAt||0)>Date.now())||matchClock.section===0||!!matchClock.result||matchClock.ended;
  if($('back').classList.contains('on')&&$('modalTitle').textContent==='📍 エリア選択'){
@@ -1245,11 +1246,11 @@ function placeDragonMaterials(){
  if(matchClock.dragonMaterialsPlaced||matchClock.section<5)return;
  const safe=Object.keys(regionStock).filter(area=>!isBlocked(area));if(!safe.length)return;
  matchClock.dragonMaterialsPlaced=true;
- for(const id of ['dragon_scale','drago_core']){const area=safe[rand(safe.length)];regionObjects[area].push({uid:'section5:'+id,id,area,count:1,taken:false,dropped:true});regionSeen[area]?.clear();}
+ for(const id of ['dragon_scale']){const area=safe[rand(safe.length)];regionObjects[area].push({uid:'section5:'+id,id,area,count:1,taken:false,dropped:true});regionSeen[area]?.clear();}
 }
 function advanceDragon(now){
  const d=drones.dragon;if(!d||matchClock.section<5)return;
- if(matchClock.section>=10){d.area=null;d.spawned=false;return;}
+ if(matchClock.section>=FINAL_SECTION){d.area=null;d.spawned=false;return;}
  placeDragonMaterials();
  if(d.generation>0&&!d.spawned)return;
  const safe=Object.keys(regionStock).filter(area=>!isBlocked(area));if(!safe.length)return;
@@ -2278,7 +2279,7 @@ function showMaterialSource(id,fromRecipe){
  materialSourceReturn={title:$('modalTitle').textContent,html:$('modalBody').innerHTML,scroll:modalEl?.scrollTop||0,fromRecipe};
  const areas=['dragon_scale','drago_core'].includes(id)?[]:Object.entries(regionStock).filter(([area,stock])=>(stock[id]||0)>0);
  const makers=recipes.filter(r=>r.id===id);
- const specialSource=['dragon_scale','drago_core'].includes(id)?'<p>セクション5開始時、ランダムな解放区域に1個だけ配置されます。</p>':'';
+ const specialSource=id==='dragon_scale'?'<p>ドラゴン型ドローンの討伐報酬。セクション5開始時にはランダムな解放区域にも1個だけ配置されます。</p>':id==='drago_core'?'<p>逆鱗＋放電装置で製作します。</p>':'';
  const areaHtml=specialSource+(areas.length?areas.map(([area,stock])=>'<div class="bp-source-place">'+area+(area===S.place?' <b>● 現在地</b>':'')+' <small>探索物体 '+stock[id]+'件</small></div>').join(''):'<p class="small">通常の区画配置にはありません。</p>');
  const makerHtml=makers.length?makers.map(r=>'<div class="bp-source-craft"><p>'+r.name+'：'+Object.entries(r.need).map(([k,n])=>names[k]+' ×'+n).join(' ＋ ')+'</p><button onclick="openMaterialRecipe(\''+r.id+'\')">🔧 このレシピへ移動</button></div>').join(''):'<p class="small">現時点では製作レシピがありません。</p>';
  modal('🔎 '+names[id]+'の入手方法','<button onclick="returnFromMaterialSource()">← 元の製作画面へ戻る</button><h3>📍 探索で入手</h3>'+areaHtml+'<h3>🤖 ドローン撃破で入手</h3>'+Object.values(DRONE_DEFS).filter(d=>d.drops.includes(id)).map(d=>'<p>'+d.name+'（セクション'+d.section+'以降・2択報酬）</p>').join('')+(id==='soda'?'<p>共通の回復物資抽選（ランダムE）で低確率入手。開始時補給と犬型・人型・サソリ型・タコ型ドローンの追加報酬が対象です。</p>':'')+'<h3>🔧 製作で入手</h3>'+makerHtml);
