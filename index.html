@@ -2865,6 +2865,24 @@ function comWantsRecovery(actor,id,plan){
  if(actor.inventory[id]>0||slots.length<limit)return true;
  return amount>=120&&item.group==='hp'&&comRecoveryTotal(actor,'hp',120)<policy.largeTarget||amount>=2*Math.min(...slots.map(x=>recoveryAmount(actor,x.id)));
 }
+function comBuildReady(actor){
+ return ['epic','legendary'].includes(RECIPE_RARITY[actor.equipment.weapon])&&['head','arm','body','legs'].every(slot=>['rare','epic','legendary'].includes(RECIPE_RARITY[actor.equipment[slot]]));
+}
+function comReserveTurn(actor,gearPlan,reservePlan,gearReady,now){
+ if(!reservePlan)return false;
+ const emergency=actor.hp<actorMax(actor,'hp')*.35&&comRecoveryTotal(actor)<60;
+ if(gearReady&&!emergency)return false;
+ if(comAmmoResupplyPlan(actor,gearPlan,now)&&!emergency)return false;
+ // A failed food search must not take over the rest of the build, even at low stock.
+ if((actor.recoveryTripUntil||0)&&now>=actor.recoveryTripUntil){
+  actor.recoveryTripUntil=0;actor.recoveryBuildPauseUntil=now+(comBuildReady(actor)?20000:45000);
+ }
+ if(now<(actor.recoveryBuildPauseUntil||0)&&!emergency)return false;
+ const building=!!gearPlan.id&&!comBuildReady(actor);
+ if(building&&!emergency&&comRecoveryTotal(actor)>=90&&(actor.gearCraftsSinceReserve||0)<3)return false;
+ if(!actor.recoveryTripUntil)actor.recoveryTripUntil=now+(building?10000:20000);
+ return true;
+}
 function stepCom(actor,now){
  updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
@@ -2902,17 +2920,18 @@ function stepCom(actor,now){
  }
  actor.restMode=null;
  const gearReady=plan.crafts.some(id=>{const r=recipes.find(r=>r.id===id),after=r&&craftConsumption(r,actor);return after&&!!addToStacks(after.stacks,r.id,craftOutputCount(actor,r))});
- const geared=['rare','epic','legendary'].includes(RECIPE_RARITY[actor.equipment.weapon])&&['head','arm','body','legs'].filter(slot=>actor.equipment[slot]).length>=3;
- const reservePriority=reservePlan&&(!comAmmoResupplyPlan(actor,plan,now)||actor.hp<actorMax(actor,'hp')*.4)&&(!gearReady||actor.hp<actorMax(actor,'hp')*.4)&&
-  (comRecoveryTotal(actor)<90||actor.hp<actorMax(actor,'hp')*.65||!plan.id||(geared||(actor.gearCraftsSinceReserve||0)>=3)&&now>=(actor.recoveryBuildPauseUntil||0));
- if(reservePriority){plan=reservePlan;actor.recoveryRoute=plan.routeKey;actor.recoveryGoal=plan.recipeId||Object.keys(plan.missing)[0]}else actor.recoveryGoal=null;
+ const reservePriority=comReserveTurn(actor,plan,reservePlan,gearReady,now);
+ if(reservePriority){
+  const needed={...plan.needed};for(const [id,n]of Object.entries(reservePlan.needed))needed[id]=Math.max(needed[id]||0,n);
+  plan={...reservePlan,needed};actor.recoveryRoute=plan.routeKey;actor.recoveryGoal=plan.recipeId||Object.keys(plan.missing)[0];
+ }else actor.recoveryGoal=null;
  if(actor.character==='kankan'&&actor.hp>=actorMax(actor,'hp')*.85&&burnSpirit(actor,now))return;
  if(actor.character==='raku'&&modifyEquippedWeapon(actor,now))return;
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
  if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=Math.floor(weaponCapacity(actor.equipment.weapon,actor)/4)&&reloadActor(actor,now)){comLog(actor,(equipmentDef(actor.equipment.weapon)?.ammoType==='bullets'?'銃弾':'矢')+'を補充・装填',now);return}
  for(const id of plan.crafts){const r=recipes.find(x=>x.id===id);if(!craftConsumption(r,actor))continue;
-  if(craftActor(actor,r,now)){actor.noProgress=0;if(plan.recovery){actor.recoveryBuildPauseUntil=now+8000;actor.gearCraftsSinceReserve=0}else actor.gearCraftsSinceReserve=(actor.gearCraftsSinceReserve||0)+1;comLog(actor,(plan.recovery?'回復を備蓄するため制作：':'目標のため制作：')+names[id],now);return}
+  if(craftActor(actor,r,now)){actor.noProgress=0;if(plan.recovery){if(id===plan.recipeId){actor.recoveryBuildPauseUntil=now+(comBuildReady(actor)?20000:45000);actor.recoveryTripUntil=0;actor.gearCraftsSinceReserve=0}}else actor.gearCraftsSinceReserve=(actor.gearCraftsSinceReserve||0)+1;comLog(actor,(plan.recovery?'回復を備蓄するため制作：':'目標のため制作：')+names[id],now);return}
   if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return;
  }
  plan=comAmmoResupplyPlan(actor,plan,now)||plan;
