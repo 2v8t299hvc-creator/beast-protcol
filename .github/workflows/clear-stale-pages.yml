@@ -1,0 +1,16 @@
+name: Clear stale Pages deployment
+on:
+  push:
+    branches: [repair/stale-pages-20261101]
+    paths: [.github/workflows/clear-stale-pages.yml]
+permissions:
+  pages: write
+jobs:
+  clear-stale-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel only the deployment blocking publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST repos/2v8t299hvc-creator/beast-protcol/pages/deployments/794d75308e0de9f541d2af695a1498e97d00da6b/cancel
