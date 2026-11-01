@@ -74,3 +74,18 @@ test('armguard display follows its starter and crafting links carry their own ra
  assert(run("itemSheetUrl('basic',2).includes('&artRetry=2')"));
  assert.equal(run("itemSheetUrl('slash_03')"),run('itemArtSheets.slash_03'));
 });
+test('water item artwork uses alpha-enabled frame-free atlases in the shared renderer',()=>{
+ const {run}=harness(),fs=require('node:fs'),path=require('node:path');
+ const sheets=plain(run,"Object.fromEntries(Object.entries(ITEM_ART_SHEETS).filter(([key])=>/^water_(?:[1-5]|gear_[1-3])$/.test(key)))");
+ assert.equal(Object.keys(sheets).length,8);
+ for(const [sheet,url]of Object.entries(sheets)){
+  assert(url.startsWith('assets/unframed/'),sheet);
+  const bytes=fs.readFileSync(path.join(__dirname,'..',url));assert.equal(bytes.toString('ascii',0,4),'RIFF');assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  let alpha=false;for(let offset=12;offset+8<=bytes.length;){const size=bytes.readUInt32LE(offset+4),kind=bytes.toString('ascii',offset,offset+4);if(kind==='VP8X')alpha=!!(bytes[offset+8]&16);offset+=8+size+(size%2)}
+  assert(alpha,sheet+' must contain true alpha transparency');
+  run(`readySheets['${sheet}']=true`);
+ }
+ for(const id of ['onyx_suit','paradise_sashimi','paradise_platter','paradise_broth','water','rubber'])assert(run(`itemIconHTML('${id}').includes('assets/unframed/')`),id);
+ assert.equal(run("JSON.stringify(itemArt.onyx_suit)"),'["water_gear_3",2]');
+ assert.equal(run("JSON.stringify(itemArt.paradise_sashimi)"),'["water_4",3]');
+});
