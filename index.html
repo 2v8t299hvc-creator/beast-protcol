@@ -1279,7 +1279,9 @@ function renderMatchStatus(){
  const next=nextClosingAreas();
  $('notice').textContent=matchClock.ended?(matchClock.section===FINAL_SECTION?'全区域封鎖：演習終了':'演習終了'+(matchClock.winnerId?' ｜ 勝者：'+actorName(findActor(matchClock.winnerId)):'：引き分け')):matchClock.section===0?'開始まで '+formatTime(sectionSeconds())+(S.place==='待機所'?' ｜ 武器を選択して出発（時間切れで脱落）':' ｜ 出発済み'):
   '現在の封鎖 '+matchClock.blocked.length+'/18区画 ｜ '+(next.length?'⚠ 次の封鎖：'+next.join('・'):'次の封鎖なし');
- $('mainBtn').disabled=!!S.busy||!!(S.enemyPlayerId&&(S.combatReadyAt||0)>Date.now())||matchClock.section===0||!!matchClock.result||matchClock.ended;
+ const canRestart=matchClock.ended||!!matchClock.result||S.hp<=0;
+ if(canRestart)$('mainBtn').textContent='新しい演習を開始';
+ $('mainBtn').disabled=!canRestart&&(!!S.busy||!!(S.enemyPlayerId&&(S.combatReadyAt||0)>Date.now())||matchClock.section===0);
  if($('back').classList.contains('on')&&$('modalTitle').textContent==='📍 エリア選択'){
   const key=matchClock.section+':'+matchClock.result+':'+matchClock.ended;
   if(mapRenderKey!==key)showMap(false);else $('mapSectionClock').textContent=formatTime(sectionSeconds());
@@ -2150,6 +2152,7 @@ function attackDiscoveredDrone(skillId=null){
  },1000);
 }
 function primary(){
+ if(matchClock&&(matchClock.ended||matchClock.result||S.hp<=0)){location.reload();return}
  if(!allowMatchAction())return;
  stopRecoveryMode();
  if(S.enemy)return S.enemyPlayerId?attackOpponent():attackDiscoveredDrone();
