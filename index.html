@@ -3422,16 +3422,210 @@ function presentSearchBatch(items){
 
 
 const delayedDroneCounters=[];
+// Skill behavior registry. Character definitions own metadata; these entries own execution and decisions.
+const SKILL_BEHAVIORS={
+ fighting_instinct:{kind:'passive',
+  extraMastery(actor,target,definition){const key=skillTargetKey(target);let state=actor.fightingInstinct;if(!state||state.targetKey!==key)state=actor.fightingInstinct={targetKey:key,stacks:0};const bonus=state.stacks;state.stacks=Math.min(definition.maxStacks,state.stacks+1);return bonus},
+  view(actor,now,target){const state=actor.fightingInstinct,stacks=state&&(!target||state.targetKey===skillTargetKey(target))?state.stacks:0,max=CHARACTER_SKILLS[actor.character].passive.maxStacks;return {stacks,max,suffix:'（次の攻撃：熟練度＋'+(1+stacks)+'）'}}
+ },
+ spirit_breeze:{stacks(actor,now=Date.now()){
+ return hasCharacterSkill(actor,'spirit_breeze')&&(actor.breezeUntil||0)>now?actor.breezeStacks||0:0;
+},kind:'passive',
+  onMove(actor,now,stacks){if(actor.hp>0){actor.breezeStacks=Math.min(4,stacks+1);actor.breezeUntil=now+30000}},
+  view(actor,now){return {stacks:breezeStacks(actor,now),max:CHARACTER_SKILLS[actor.character].passive.maxStacks,suffix:'（残り'+Math.ceil(Math.max(0,(actor.breezeUntil||0)-now)/1000)+'秒／移動時に30秒へ更新）'}}
+ },
+ footwork:{kind:'passive',
+  onSearch(actor,now){actor.footworkSearches=(actor.footworkSearches||0)+1;if(actor.footworkSearches>=10){actor.footworkSearches=0;const restored=Math.min(10,Math.max(0,actorMax(actor,'stamina')-actor.st));actor.st+=restored;const text='フットワーク：スタミナ＋'+restored;recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now)}},
+  view(actor){return {stacks:actor.footworkSearches||0,max:10,suffix:'（探索10回ごとにスタミナ＋10）'}}
+ },
+ efficiency:{consumeSearchBatch(actor){if(!hasCharacterSkill(actor,'efficiency')||(actor.efficiencySearches||0)<6)return false;actor.efficiencySearches=0;return true},kind:'passive',
+  onSearch(actor){actor.efficiencySearches=Math.min(6,(actor.efficiencySearches||0)+1)},
+  view(actor){return {stacks:actor.efficiencySearches||0,max:6,suffix:'（6回目の探索で必ずアイテム3個発見）'}}
+ },
+ marine_gang:{afterDroneDefeat(actor,drone,now){return this.onDroneKill(actor,drone,now)},onDroneKill(actor,target,now){
+ if(!hasCharacterSkill(actor,'marine_gang')||target.kind!=='fish'||actor.hp<=0)return 0;
+ const restored=Math.min(150,Math.max(0,actorMax(actor,'hp')-actor.hp));actor.hp+=restored;
+ const text='マリンギャング：魚型ドローン撃破でHP＋'+restored;recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return restored;
+},kind:'passive',
+  statMultiplier(actor){return isWaterArea(actor.place)?1.1:1},
+  view(actor){return {stacks:Number(isWaterArea(actor.place)),max:1,suffix:'（水辺で攻防＋10%／魚型撃破でHP150回復）'}}
+ },
+ night_hunter:{kind:'passive',
+  criticalBonus(actor,now){return isNightAt(now)?.02:0},
+  discoveryPenalty(actor,now){return isNightAt(now)?.07:0},
+  view(actor,now){return {stacks:Number(isNightAt(now)),max:1,suffix:'（夜間：被発見率－7ポイント／クリティカル率＋2ポイント）'}}
+ },
+ qigong:{kind:'passive',
+  recoveryBonus(){return 1},
+  view(){return {stacks:1,max:1,count:'+1',label:'',suffix:'（休憩・HP治療の毎秒回復＋1）'}}
+ },
+ dismantler:{beforeDroneCorpse(actor,drone,now){return this.onDroneKill(actor,drone.kind,now)},onDroneKill(actor,kind,now){
+ if(!hasCharacterSkill(actor,'dismantler')||actor.hp<=0)return 0;
+ const gained=DRONE_MODIFICATION_GAINS[kind]||0;if(!gained)return 0;
+ actor.modificationStacks=(actor.modificationStacks||0)+gained;
+ const text='解体屋：改造スタック＋'+gained+'（合計'+actor.modificationStacks+'）';recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return gained;
+},extraDrops(actor){return hasCharacterSkill(actor,'dismantler')?((actor.modificationStacks||0)>=15?2:(actor.modificationStacks||0)>=7?1:0):0},droneDamageBonus(actor){return hasCharacterSkill(actor,'dismantler')?Math.min(.6,Math.max(0,actor.modificationStacks||0)*.02):0},kind:'passive',
+  gains:{bird:1,fish:1,dog:2,humanoid:2,scorpion:4,octopus:4,dragon:10},
+  view(actor){const stacks=actor.modificationStacks||0;return {stacks,max:45,count:String(stacks),label:' '+stacks+'スタック',suffix:'（ドローンへのダメージ＋'+Math.round(dismantlerDamageBonus(actor)*100)+'%／追加ドロップ'+dismantlerExtraDrops(actor)+'）',isMax:stacks>=45}}
+ },
+ herb_gathering:{execute(actor,now=Date.now()){
+ const def=CHARACTER_SKILLS[actor.character]?.field;
+ if(def?.id!=='herb_gathering'||actor.hp<=0||now<(actor.characterFieldReadyAt||0))return false;
+ const id=Math.random()<.5?'herb':'small_flower';
+ if(!receive(id,1,null,actor)){if(actor===S)toast('バッグに空きがありません');return false}
+ actor.characterFieldReadyAt=now+def.cooldownMs;
+ const text=def.name+'：'+names[id]+'を獲得';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
+},kind:'field',comPhase:'beforeRecovery',
+  tooltip:'薬草か小さい花を各50%で1個獲得。CT45秒',
+  playerUse(actor,now){if(gatherHerbs(actor,now))refresh()},
+  comUse(actor,plan,now){return (canReceive('herb',actor.bag)||canReceive('small_flower',actor.bag))&&gatherHerbs(actor,now)}
+ },
+ mineral_feast:{execute(actor,id,now=Date.now()){
+ if(!hasCharacterSkill(actor,'mineral_feast')||actor.hp<=0||!isEdibleMineral(id)||now<(actor.characterFieldReadyAt||0)||!takeFromBag(id,1,actor))return false;
+ updateBodyTreatment(actor,now);cancelBodyTreatment(actor);
+ actor.mineralMantleStacks=(actor.mineralMantleStacks||0)+mineralStacksFor(id);
+ if(id==='ruby')actor.rubyMantle=true;if(id==='sapphire')actor.sapphireMantle=true;if(id==='diamond')actor.diamondMantle=true;
+ actor.characterFieldReadyAt=now+30000;
+ const text='鉱物喰らい：'+names[id]+'を1個消費／鉱物纏い＋'+mineralStacksFor(id)+'（合計'+actor.mineralMantleStacks+'）';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
+},kind:'field',comPhase:'beforeRecovery',
+  tooltip:'石・鉱石系素材を1個選んで消費し、永続の鉱物纏いを獲得。CT30秒',
+  count(actor){return String(actor.mineralMantleStacks||0)},
+  playerUse(){showMineralMenu()},
+  comUse(actor,plan,now){const id=comMineralChoice(actor,plan);return !!(id&&consumeMineral(actor,id,now))}
+ },
+ burning_spirit:{comCombatUse(actor,target,now){return comShouldBurnSpirit(actor,now,target)&&burnSpirit(actor,now)},comShouldUse(actor,now,target=null){
+ if(!hasCharacterSkill(actor,'burning_spirit')||actor.hp<actorMax(actor,'hp')*.85||now<(actor.characterFieldReadyAt||0))return false;
+ if(!target&&!comUnderFire(actor,now))return false;
+ const consumed=Math.floor(actor.hp*.4),incoming=target?evaluateCombat(actor,target,now,'player').incoming:actorMax(actor,'hp')*.2;
+ return actor.hp-consumed>incoming*2&&comRecoveryTotal(actor)>=consumed&&Math.max(0,(actor.recoveryReadyAt.hp||0)-now)<=RECOVERY_COOLDOWN_MS;
+},execute(actor,now=Date.now()){
+ const consumed=Math.floor(actor.hp*.4);
+ if(!hasCharacterSkill(actor,'burning_spirit')||actor.hp<=0||consumed<1||now<(actor.characterFieldReadyAt||0))return false;
+ updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.hp-=consumed;
+ actor.burningSpiritPower=consumed;actor.burningSpiritUntil=now+30000;actor.characterFieldReadyAt=now+120000;
+ const text='燃える闘魂：HP－'+consumed+'／30秒間、攻撃力＋'+consumed+'%';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
+},kind:'field',comPhase:'afterRecovery',
+  tooltip:'現在HPの40%を消費し、その実数%だけ30秒間攻撃力上昇。CT120秒',
+  canUse(actor){return Math.floor(actor.hp*.4)>=1},
+  playerUse(actor,now){if(burnSpirit(actor,now))refresh();else toast('燃える闘魂を使用できません')},
+  comUse(actor,plan,now){return comShouldBurnSpirit(actor,now)&&burnSpirit(actor,now)}
+ },
+ weapon_modification:{execute(actor,now=Date.now()){
+ const plan=weaponModificationPlan(actor);if(!plan.eligible||now<(actor.characterFieldReadyAt||0))return false;
+ const id=plan.candidates[rand(plan.candidates.length)],def=equipmentDef(id),ammo=weaponAmmo(plan.old,actor.equipmentAmmo.weapon);
+ updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.equipment.weapon=id;
+ if(def.ammoType&&!def.unlimitedAmmo)actor.equipmentAmmo.weapon=weaponAmmo(id,ammo);else delete actor.equipmentAmmo.weapon;
+ actor.equipmentEffects||={};actor.equipmentEffects.weapon=equipmentInstanceEffects(id);actor.characterFieldReadyAt=now+90000;
+ const text='改造：'+names[plan.old]+' → '+names[id]+'（スタック消費なし）';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
+},kind:'field',comPhase:'afterRecovery',
+  requirements:{common:1,uncommon:5,rare:10,epic:45},
+  tooltip:'同武器種の1等級上へランダム改造。必要スタック1/5/10/45、消費なし。CT90秒',
+  canUse(actor){return weaponModificationPlan(actor).eligible},
+  playerUse(actor,now){if(modifyEquippedWeapon(actor,now)){refresh();showEquipment()}else toast('必要スタック不足、または1等級上の改造候補がありません')},
+  comUse(actor,plan,now){return modifyEquippedWeapon(actor,now)}
+ },
+ step_break:{resolveUnprepared(actor,target,skillId,hit,now){ const def=CHARACTER_SKILLS[actor.character]?.active;
+ if(!skillId||def?.id!==skillId||now<(actor.characterSkillReadyAt||0))return null;
+ actor.characterSkillReadyAt=now+def.cooldownMs;
+ const applied=hit&&target.hp>0;if(applied)applyActionSlow(target,actor,def,now);
+ recordMatchEvent(actor,'skill',def.name+(applied?'：5秒間、行動間隔＋0.5秒':hit?'：撃破':'：効果なし'),now);
+ if(actor===S)addLog(def.name+(applied?'！ 相手の行動を5秒間遅くした':hit?'で撃破！':'：効果なし'));
+ return {id:skillId,applied};
+},kind:'active',normalHitActive:true,
+  tooltip:'攻撃と同時に相手を5秒間減速（ガードでも発動）。CT60秒',
+  prepare(){return null},comShouldUse(){return true}
+ },
+ gale_shoot:{kind:'active',
+  tooltip:'薫風を全消費して115＋5×スタック%の攻撃。4消費時、実ダメージの25%のスタミナ回復。CT40秒',
+  prepare(actor,target,now){const stacks=breezeStacks(actor,now);actor.breezeStacks=0;actor.breezeUntil=0;return {stacks,multiplier:(115+stacks*5)/100}},
+  resolvePrepared(actor,target,hit,now,gale,dealt){const staminaRecovered=actor.hp>0&&gale.stacks===4?Math.min(actorMax(actor,'st')-actor.st,Math.floor(dealt*.25)):0;actor.st+=staminaRecovered;const text='ゲイルシュート：薫風'+gale.stacks+'消費／'+(115+gale.stacks*5)+'%'+(staminaRecovered?'／スタミナ＋'+staminaRecovered:'');recordMatchEvent(actor,'skill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return {...gale,applied:true,staminaRecovered}},
+  comShouldUse(){return true}
+ },
+ white_target:{kind:'active',
+  tooltip:'110%ダメージ。敵の残りHP割合でクリティカル率上昇（最大40%）。撃破でCT5秒。通常CT60秒',
+  prepare(actor,target,now){return {multiplier:1.1,criticalChance:whiteTargetCriticalChance(actor,target,now)}},
+  onResolved(actor,target,hit,now){if(target.hp<=0)actor.characterSkillReadyAt=now+5000},comShouldUse(){return true}
+ },
+ physics_blow:{comShouldUse(actor,now,target=null,kind='player'){ if(!target||target.hp<=0)return false;
+ const estimate=evaluateCombat(actor,target,now,kind),normal=estimate.perHit;
+ // Save the long cooldown when a normal hit suffices; use the extra damage to finish.
+ if(target.hp<=normal)return false;
+ const active=Math.max(1,Math.floor(normal*1.1));
+ // Small drones are not worth a PvP injury cooldown.
+ if(kind==='drone'&&targetMaxHp(target)<250)return false;
+ if(target.hp<=active)return true;
+ const injuryWindow=target.hp-active<=targetMaxHp(target)/2&&Object.keys(BODY_INJURIES).some(part=>!hasBodyInjury(target,part));
+ const followup=estimate.action==='attack'&&actor.hp>Math.max(actorMax(actor,'hp')*.5,estimate.incoming*2)&&actor.st>=searchStaminaCost(actor)+5;
+ return injuryWindow&&followup;
+},comPressInjury(actor,now){
+ const pressure=actor.injuryPressure;
+ return !!(hasCharacterSkill(actor,'physics_blow')&&pressure&&now>=pressure.at&&now-pressure.at<8000&&pressure.area===actor.place&&pressure.visit===(actor.locationVersion||0)&&actor.hp>Math.max(actorMax(actor,'hp')*.5,pressure.incoming*2)&&actor.st>=searchStaminaCost(actor)+5&&!Object.keys(BODY_INJURIES).some(part=>hasBodyInjury(actor,part)));
+},kind:'active',
+  tooltip:'110%ダメージ。攻撃後の敵がHP50%以下ならランダムな部位に永続の怪我。CT100秒',
+  prepare(){return {multiplier:1.1,criticalChance:null}},
+  forceInjury(actor,target){return target.hp<=targetMaxHp(target)/2},
+  onInflictedInjury(actor,target,now){if(actor!==S)actor.injuryPressure={at:now,area:actor.place,visit:actor.locationVersion||0,incoming:evaluateCombat(actor,target,now,'player').incoming}}
+ },
+ une_deux:{kind:'active',
+  tooltip:'75%ダメージ後、6秒間、自分からのダメージ＋70%・クリティカル率＋25ポイント。CT80秒',
+  prepare(){return {multiplier:.75,criticalChance:null}},
+  onResolved(actor,target,hit,now){if(hit&&target.hp>0){target.postureBreaks||={};target.postureBreaks[actorIdentity(actor)]=now+6000}},comShouldUse(){return true}
+ },
+ outlaw_bite:{kind:'active',
+  tooltip:'110%ダメージ（水辺130%）。相手は3秒間区域移動不可。CT90秒',
+  prepare(actor){return {multiplier:isWaterArea(actor.place)?1.3:1.1,criticalChance:null}},
+  onResolved(actor,target,hit,now){if(hit&&target.hp>0){target.biteUntil=Math.max(target.biteUntil||0,now+3000);target.biteSourceId=actorIdentity(actor)}},comShouldUse(){return true}
+ },
+ danse_macabre:{attack(actor,target,now,drone=false,preserve=false){
+ if(!hasCharacterSkill(actor,'danse_macabre')||!canDanse(actor)||now<(actor.characterSkillReadyAt||0))return null;
+ const type=actorWeaponType(actor),night=isNightAt(now),limit=night?8:6,multiplier=night?.2:.25,shots=[];actor.characterSkillReadyAt=now+60000;
+ for(let i=0;i<limit&&actor.hp>0&&target.hp>0&&canDanse(actor);i++){
+  const shot=drone?strikeDrone(actor,target,now,null,{multiplier,deferCounter:true,awardMastery:i===0}):actorAttack(actor,target,now,preserve,null,{multiplier,awardMastery:i===0});
+  if(!shot)break;shots.push(shot);
+ }
+ if(!shots.length)return null;
+ const last=shots.at(-1),sum=key=>shots.reduce((n,x)=>n+(x[key]||0),0);
+ const result={...last,hit:true,shots,damage:sum('damage'),dealt:sum('dealt'),healing:sum('healing'),reflected:sum('reflected'),reflectedTaken:sum('reflectedTaken'),critical:shots.some(x=>x.critical),guarded:shots.every(x=>x.guarded),effect:{...last.effect,fixedDamage:shots.reduce((n,x)=>n+(x.effect.fixedDamage||0),0)},characterSkill:{id:'danse_macabre',applied:true,shots:shots.length,multiplier}};
+ for(const key of ['frozen','poison','injury'])result.effect[key]=shots.some(x=>x.effect[key]);
+ if(drone&&actor.hp>0&&target.spawned&&target.hp>0){
+  if(actionDelayMs(target,now)){scheduleDroneCounter(actor,target,now);result.counterPending=true}
+  else{const details={};result.counter=droneCounterDamage(DRONE_DEFS[target.kind],actor,now,details);result.counterCritical=details.critical;bumpMatchStat(actor,'damageTaken',Math.min(actor.hp,result.counter));actor.hp=Math.max(0,actor.hp-result.counter)}
+ }
+ // A volley is one attack action. Defer wear and armor retaliation until every shot resolves.
+ recordWeaponUse(actor,type,now,sum('durabilityLoss'));recoverOnAction(actor,now);
+ const text='ダンスマカブル：'+shots.length+'連射／合計'+result.dealt+'ダメージ';recordMatchEvent(actor,'skill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return result;
+},kind:'active',
+  tooltip:'銃か弓のみ。昼25%×6発、夜20%×8発。残弾切れ・撃破で終了。CT60秒',
+  canUse(actor){return canDanse(actor)},unavailableMessage:'弾薬のある銃か弓を装備してください',
+  prepare(){return {multiplier:1.1,criticalChance:null}},comShouldUse(){return true}
+ },
+ jewel_hunt:{kind:'active',
+  tooltip:'105%ダメージ。敵の所持する石・鉱石系素材を1個コピー。CT30秒',
+  prepare(){return {multiplier:1.05,criticalChance:null}},
+  onResolved(actor,target,hit,now,prepared){prepared.copiedMineral=copyHuntedMineral(actor,target,now)},comShouldUse(){return true}
+ }
+};
+function hasCharacterSkill(actor,id){return Object.values(CHARACTER_SKILLS[actor?.character]||{}).some(def=>def.id===id)}
+function characterSkillBehavior(actor,kind){const definition=CHARACTER_SKILLS[actor?.character]?.[kind];return definition&&SKILL_BEHAVIORS[definition.id]}
+function characterSkillHook(actor,kind,hook,...args){return characterSkillBehavior(actor,kind)?.[hook]?.(actor,...args)}
+function validateSkillBehaviors(characters,behaviors){
+ for(const character of characters)for(const [kind,definition] of Object.entries(character.skills||{})){
+  const behavior=behaviors[definition.id];
+  if(!behavior||behavior.kind!==kind)throw new Error('Missing skill behavior: '+character.id+'/'+definition.id);
+  if(kind==='passive'&&typeof behavior.view!=='function')throw new Error('Incomplete passive skill behavior: '+definition.id);
+  if(kind==='active'&&(typeof behavior.prepare!=='function'||typeof behavior.comShouldUse!=='function'||(behavior.normalHitActive&&typeof behavior.resolveUnprepared!=='function')))throw new Error('Incomplete active skill behavior: '+definition.id);
+  if(kind==='field'&&(!['beforeRecovery','afterRecovery'].includes(behavior.comPhase)||typeof behavior.execute!=='function'||typeof behavior.playerUse!=='function'||typeof behavior.comUse!=='function'))throw new Error('Incomplete field skill behavior: '+definition.id);
+ }
+ return true;
+}
+validateSkillBehaviors(CHARACTER_DEFS,SKILL_BEHAVIORS);
+function tryComFieldSkill(actor,plan,now,phase){const behavior=characterSkillBehavior(actor,'field');return !!(behavior?.comPhase===phase&&now>=(actor.characterFieldReadyAt||0)&&behavior.comUse(actor,plan,now))}
+
 function skillTargetKey(target){return target?.kind&&Number.isInteger(target.generation)?'drone:'+target.kind+':'+target.generation:'player:'+actorIdentity(target)}
 function resetFightingInstinct(actor){if(actor.fightingInstinct)actor.fightingInstinct=null}
 function awardAttackMastery(actor,target,type){
  const wasSS=masteryRank(type,actor)===MASTERY_RANKS.length-1;
- const passive=CHARACTER_SKILLS[actor.character]?.passive;let bonus=0;
- if(passive?.id==='fighting_instinct'){
-  const key=skillTargetKey(target);let state=actor.fightingInstinct;
-  if(!state||state.targetKey!==key)state=actor.fightingInstinct={targetKey:key,stacks:0};
-  bonus=state.stacks;state.stacks=Math.min(passive.maxStacks,state.stacks+1);
- }
+ const passive=CHARACTER_SKILLS[actor.character]?.passive;const bonus=characterSkillHook(actor,'passive','extraMastery',target,passive)||0;
  if(wasSS){actor.ssAttackCounts||={};actor.ssAttackCounts[type]=(actor.ssAttackCounts[type]||0)+1;if(actor===S&&actor.ssAttackCounts[type]%3===0)addLog(WEAPON_TYPES[type]+'：SS鍛錬で攻撃力＋1（累計＋'+ssAttackBonus(actor,type)+'）')}
  addMastery(type,1+bonus,actor);if(bonus)bumpMatchStat(actor,'masteryBonus',bonus);return 1+bonus;
 }
@@ -3444,74 +3638,43 @@ function applyActionSlow(target,source,definition,now){
   if((target.combatReadyAt||0)>now)target.combatReadyAt+=definition.actionDelayMs;
  }
 }
-function breezeStacks(actor,now=Date.now()){
- return actor.character==='hayate'&&(actor.breezeUntil||0)>now?actor.breezeStacks||0:0;
-}
+function breezeStacks(actor,now=Date.now()){return SKILL_BEHAVIORS.spirit_breeze.stacks(actor,now)}
 const WATER_AREAS=new Set(['海岸区画','港湾区画','湖畔区画','水没施設区画','海底研究区画']);
 function isWaterArea(area){return WATER_AREAS.has(area)}
-function actorStatMultiplier(stat,actor,now=Date.now()){return (stat==='attack'&&hasBodyInjury(actor,'hand')?.95:1)*(actor.character==='jerk'&&isWaterArea(actor.place)?1.1:1)*(stat==='attack'&&(actor.burningSpiritUntil||0)>now?1+(actor.burningSpiritPower||0)/100:1)}
+function actorStatMultiplier(stat,actor,now=Date.now()){return (stat==='attack'&&hasBodyInjury(actor,'hand')?.95:1)*(characterSkillHook(actor,'passive','statMultiplier',stat,now)||1)*(stat==='attack'&&(actor.burningSpiritUntil||0)>now?1+(actor.burningSpiritPower||0)/100:1)}
 function postureBonus(actor,target,now){return (target?.postureBreaks?.[actor.id]||0)>now}
 function postureDamage(damage,actor,target,now){return postureBonus(actor,target,now)?Math.max(1,Math.floor(damage*1.7)):damage}
 function attackCriticalChance(actor,type,skill,target,now){return Math.min(1,(skill?.criticalChance??actorCriticalChance(actor,type,now))+(postureBonus(actor,target,now)?.25:0))}
 function isMovementLocked(actor,now=Date.now()){return (actor.biteUntil||0)>now}
-function marineKillRecovery(actor,target,now){
- if(actor.character!=='jerk'||target.kind!=='fish'||actor.hp<=0)return 0;
- const restored=Math.min(150,Math.max(0,actorMax(actor,'hp')-actor.hp));actor.hp+=restored;
- const text='マリンギャング：魚型ドローン撃破でHP＋'+restored;recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return restored;
-}
-function consumeEfficiency(actor){if(actor.character!=='flugel'||(actor.efficiencySearches||0)<6)return false;actor.efficiencySearches=0;return true}
+function marineKillRecovery(actor,target,now){return SKILL_BEHAVIORS.marine_gang.onDroneKill(actor,target,now)}
+function consumeEfficiency(actor){return characterSkillHook(actor,'passive','consumeSearchBatch')||false}
 function resolveEfficientPlayerSearch(preferred=null){
  if(!consumeEfficiency(S))return false;
  const items=drawSearchBatch(S,3,preferred?[preferred]:[]);addLog('効率重視：アイテムを'+items.length+'個発見！');
  if(items.length)presentSearchBatch(items);else{toast('この区画の素材はなくなった');awardEmptySearchXp(S,Date.now())}
  return true;
 }
-const DRONE_MODIFICATION_GAINS={bird:1,fish:1,dog:2,humanoid:2,scorpion:4,octopus:4,dragon:10};
-const WEAPON_MODIFICATION_REQUIREMENTS={common:1,uncommon:5,rare:10,epic:45};
+const DRONE_MODIFICATION_GAINS=SKILL_BEHAVIORS.dismantler.gains;
+const WEAPON_MODIFICATION_REQUIREMENTS=SKILL_BEHAVIORS.weapon_modification.requirements;
 const WEAPON_RARITY_ORDER=['common','uncommon','rare','epic','legendary'];
-function restRecoveryRate(actor=S){return RECOVERY_MODE_RATES.stamina+(actor.character==='kankan'?1:0)}
-function burnSpirit(actor,now=Date.now()){
- const consumed=Math.floor(actor.hp*.4);
- if(actor.character!=='kankan'||actor.hp<=0||consumed<1||now<(actor.characterFieldReadyAt||0))return false;
- updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.hp-=consumed;
- actor.burningSpiritPower=consumed;actor.burningSpiritUntil=now+30000;actor.characterFieldReadyAt=now+120000;
- const text='燃える闘魂：HP－'+consumed+'／30秒間、攻撃力＋'+consumed+'%';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
-}
-function dismantlerDamageBonus(actor){return actor.character==='raku'?Math.min(.6,Math.max(0,actor.modificationStacks||0)*.02):0}
-function dismantlerExtraDrops(actor){return actor?.character==='raku'?((actor.modificationStacks||0)>=15?2:(actor.modificationStacks||0)>=7?1:0):0}
-function awardDismantlerStacks(actor,kind,now){
- if(actor.character!=='raku'||actor.hp<=0)return 0;
- const gained=DRONE_MODIFICATION_GAINS[kind]||0;if(!gained)return 0;
- actor.modificationStacks=(actor.modificationStacks||0)+gained;
- const text='解体屋：改造スタック＋'+gained+'（合計'+actor.modificationStacks+'）';recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return gained;
-}
+function restRecoveryRate(actor=S){return RECOVERY_MODE_RATES.stamina+(characterSkillHook(actor,'passive','recoveryBonus')||0)}
+function burnSpirit(actor,now=Date.now()){return SKILL_BEHAVIORS.burning_spirit.execute(actor,now)}
+function dismantlerDamageBonus(actor){return characterSkillHook(actor,'passive','droneDamageBonus')||0}
+function dismantlerExtraDrops(actor){return characterSkillHook(actor,'passive','extraDrops')||0}
+function awardDismantlerStacks(actor,kind,now){return SKILL_BEHAVIORS.dismantler.onDroneKill(actor,kind,now)}
 function weaponModificationPlan(actor){
  const old=actor.equipment?.weapon,def=equipmentDef(old),tier=RECIPE_RARITY[old]||'common',required=WEAPON_MODIFICATION_REQUIREMENTS[tier];
  const next=WEAPON_RARITY_ORDER[WEAPON_RARITY_ORDER.indexOf(tier)+1];
  const candidates=def?.slot==='weapon'&&required!=null?Object.entries(EQUIPMENT_DEFS).filter(([id,d])=>d.slot==='weapon'&&d.weaponType===def.weaponType&&(RECIPE_RARITY[id]||'common')===next).map(([id])=>id):[];
- return {old,required,next,candidates,eligible:actor.character==='raku'&&actor.hp>0&&required!=null&&(actor.modificationStacks||0)>=required&&candidates.length>0};
+ return {old,required,next,candidates,eligible:hasCharacterSkill(actor,'weapon_modification')&&actor.hp>0&&required!=null&&(actor.modificationStacks||0)>=required&&candidates.length>0};
 }
-function modifyEquippedWeapon(actor,now=Date.now()){
- const plan=weaponModificationPlan(actor);if(!plan.eligible||now<(actor.characterFieldReadyAt||0))return false;
- const id=plan.candidates[rand(plan.candidates.length)],def=equipmentDef(id),ammo=weaponAmmo(plan.old,actor.equipmentAmmo.weapon);
- updateBodyTreatment(actor,now);cancelBodyTreatment(actor);actor.equipment.weapon=id;
- if(def.ammoType&&!def.unlimitedAmmo)actor.equipmentAmmo.weapon=weaponAmmo(id,ammo);else delete actor.equipmentAmmo.weapon;
- actor.equipmentEffects||={};actor.equipmentEffects.weapon=equipmentInstanceEffects(id);actor.characterFieldReadyAt=now+90000;
- const text='改造：'+names[plan.old]+' → '+names[id]+'（スタック消費なし）';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
-}
+function modifyEquippedWeapon(actor,now=Date.now()){return SKILL_BEHAVIORS.weapon_modification.execute(actor,now)}
 const EDIBLE_MINERALS=new Set(['stone','marble','mystery','whitestone','redstone','bluestone','obsidian','meteorite','bronze','iron','steel','blackiron','silver','whitesilver','gold','wonderore','wonderjewel','ruby','sapphire','diamond']);
 const MINERAL_STACKS={common:1,uncommon:2,rare:3,epic:5,legendary:8};
 function isEdibleMineral(id){return EDIBLE_MINERALS.has(id)&&!!names[id]&&!equipmentDef(id)}
 function mineralStacksFor(id){return MINERAL_STACKS[RECIPE_RARITY[id]||'common']||1}
 function mineralInjuryImmune(actor){return (actor.mineralMantleStacks||0)>=20}
-function consumeMineral(actor,id,now=Date.now()){
- if(actor.character!=='zakuro'||actor.hp<=0||!isEdibleMineral(id)||now<(actor.characterFieldReadyAt||0)||!takeFromBag(id,1,actor))return false;
- updateBodyTreatment(actor,now);cancelBodyTreatment(actor);
- actor.mineralMantleStacks=(actor.mineralMantleStacks||0)+mineralStacksFor(id);
- if(id==='ruby')actor.rubyMantle=true;if(id==='sapphire')actor.sapphireMantle=true;if(id==='diamond')actor.diamondMantle=true;
- actor.characterFieldReadyAt=now+30000;
- const text='鉱物喰らい：'+names[id]+'を1個消費／鉱物纏い＋'+mineralStacksFor(id)+'（合計'+actor.mineralMantleStacks+'）';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
-}
+function consumeMineral(actor,id,now=Date.now()){return SKILL_BEHAVIORS.mineral_feast.execute(actor,id,now)}
 function showMineralMenu(){
  const items=S.bag.filter(x=>x.count>0&&isEdibleMineral(x.id));
  modal('鉱物喰らい：素材を1個選択','<p>鉱物纏い：'+(S.mineralMantleStacks||0)+'／20以上で通常攻撃の怪我を防ぐ。効果は試合中永続。</p>'+items.map(x=>'<p>'+itemIconHTML(x.id)+names[x.id]+' ×'+x.count+' <button onclick="useMineralMantle(\''+x.id+'\')">1個食べる：防御＋'+mineralStacksFor(x.id)+(x.id==='ruby'?'／紅玉纏い':x.id==='sapphire'?'／蒼玉纏い':x.id==='diamond'?'／白玉纏い':'')+'</button></p>').join('')+(items.length?'':'<p>食べられる石・鉱石系素材を持っていません。</p>'));
@@ -3545,77 +3708,32 @@ function finalCharacterDamage(base,actor,target,skill,now,guarded,activeAttack=!
  return endureDamage(target,damage,now);
 }
 function canDanse(actor){const def=equipmentDef(actor.equipment?.weapon);return !!def&&['bow','gun'].includes(def.weaponType)&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)>0}
-function executeDanse(actor,target,now,drone=false,preserve=false){
- if(actor.character!=='bat'||!canDanse(actor)||now<(actor.characterSkillReadyAt||0))return null;
- const type=actorWeaponType(actor),night=isNightAt(now),limit=night?8:6,multiplier=night?.2:.25,shots=[];actor.characterSkillReadyAt=now+60000;
- for(let i=0;i<limit&&actor.hp>0&&target.hp>0&&canDanse(actor);i++){
-  const shot=drone?strikeDrone(actor,target,now,null,{multiplier,deferCounter:true,awardMastery:i===0}):actorAttack(actor,target,now,preserve,null,{multiplier,awardMastery:i===0});
-  if(!shot)break;shots.push(shot);
- }
- if(!shots.length)return null;
- const last=shots.at(-1),sum=key=>shots.reduce((n,x)=>n+(x[key]||0),0);
- const result={...last,hit:true,shots,damage:sum('damage'),dealt:sum('dealt'),healing:sum('healing'),reflected:sum('reflected'),reflectedTaken:sum('reflectedTaken'),critical:shots.some(x=>x.critical),guarded:shots.every(x=>x.guarded),effect:{...last.effect,fixedDamage:shots.reduce((n,x)=>n+(x.effect.fixedDamage||0),0)},characterSkill:{id:'danse_macabre',applied:true,shots:shots.length,multiplier}};
- for(const key of ['frozen','poison','injury'])result.effect[key]=shots.some(x=>x.effect[key]);
- if(drone&&actor.hp>0&&target.spawned&&target.hp>0){
-  if(actionDelayMs(target,now)){scheduleDroneCounter(actor,target,now);result.counterPending=true}
-  else{const details={};result.counter=droneCounterDamage(DRONE_DEFS[target.kind],actor,now,details);result.counterCritical=details.critical;bumpMatchStat(actor,'damageTaken',Math.min(actor.hp,result.counter));actor.hp=Math.max(0,actor.hp-result.counter)}
- }
- // A volley is one attack action. Defer wear and armor retaliation until every shot resolves.
- recordWeaponUse(actor,type,now,sum('durabilityLoss'));recoverOnAction(actor,now);
- const text='ダンスマカブル：'+shots.length+'連射／合計'+result.dealt+'ダメージ';recordMatchEvent(actor,'skill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return result;
-}
+function executeDanse(actor,target,now,drone=false,preserve=false){return SKILL_BEHAVIORS.danse_macabre.attack(actor,target,now,drone,preserve)}
 function characterBuffHTML(actor,now=Date.now()){
  return ((actor.burningSpiritUntil||0)>now?'<span>燃える闘魂：攻撃力＋'+actor.burningSpiritPower+'%（'+Math.ceil((actor.burningSpiritUntil-now)/1000)+'秒）</span>':'')+ ((actor.mineralMantleStacks||0)>0?'<span>鉱物纏い：防御＋'+actor.mineralMantleStacks+(mineralInjuryImmune(actor)?'／通常攻撃の怪我を無効':'')+'（永続）</span>':'')+(actor.rubyMantle?'<span>紅玉纏い：与ダメージ＋2</span>':'')+(actor.sapphireMantle?'<span>蒼玉纏い：消費ST－1</span>':'')+(actor.diamondMantle?'<span>白玉纏い：被ダメージ－4</span>':'');
 }
 function prepareCharacterAttack(actor,target,skillId,now){
- const def=CHARACTER_SKILLS[actor.character]?.active;
- if(!skillId||def?.id!==skillId||now<(actor.characterSkillReadyAt||0))return null;
- if(skillId==='step_break')return null;
+ const def=CHARACTER_SKILLS[actor.character]?.active,behavior=characterSkillBehavior(actor,'active');
+ if(!skillId||def?.id!==skillId||!behavior||now<(actor.characterSkillReadyAt||0))return null;
+ if(behavior.normalHitActive)return behavior.prepare(actor,target,now);
  actor.characterSkillReadyAt=now+def.cooldownMs;
- if(skillId==='gale_shoot'){
-  const stacks=breezeStacks(actor,now);actor.breezeStacks=0;actor.breezeUntil=0;
-  return {id:skillId,stacks,multiplier:(115+stacks*5)/100};
- }
- return {id:skillId,multiplier:skillId==='une_deux'?.75:skillId==='outlaw_bite'?(isWaterArea(actor.place)?1.3:1.1):skillId==='jewel_hunt'?1.05:1.1,criticalChance:skillId==='white_target'?whiteTargetCriticalChance(actor,target,now):null};
+ return {id:skillId,...behavior.prepare(actor,target,now)};
 }
 function targetMaxHp(target){return target.kind?DRONE_DEFS[target.kind]?.hp||target.hp:actorMax(target,'hp')}
 function whiteTargetCriticalChance(actor,target,now=Date.now()){const base=actorCriticalChance(actor,undefined,now);return Math.min(.4,base+(.4-base)*Math.max(0,Math.min(1,target.hp/targetMaxHp(target))))}
 function characterSkillDamage(damage,skill){return skill?Math.max(1,Math.floor(damage*skill.multiplier)):damage}
 function attackCritical(actor,type,skill,target,now){return skill?.criticalChance!=null||postureBonus(actor,target,now)?Math.random()>=1-attackCriticalChance(actor,type,skill,target,now):rollCritical(actor,type,now)}
 function comCharacterSkill(actor,now,target=null,kind='player'){
- const def=CHARACTER_SKILLS[actor.character]?.active;
- if(!['step_break','gale_shoot','white_target','physics_blow','une_deux','outlaw_bite','danse_macabre','jewel_hunt'].includes(def?.id)||now<(actor.characterSkillReadyAt||0)||(def.id==='danse_macabre'&&!canDanse(actor)))return null;
- if(def.id!=='physics_blow')return def.id;
- if(!target||target.hp<=0)return null;
- const estimate=evaluateCombat(actor,target,now,kind),normal=estimate.perHit;
- // Save the long cooldown when a normal hit suffices; use the extra damage to finish.
- if(target.hp<=normal)return null;
- const active=Math.max(1,Math.floor(normal*1.1));
- // Small drones are not worth a PvP injury cooldown.
- if(kind==='drone'&&targetMaxHp(target)<250)return null;
- if(target.hp<=active)return def.id;
- const injuryWindow=target.hp-active<=targetMaxHp(target)/2&&Object.keys(BODY_INJURIES).some(part=>!hasBodyInjury(target,part));
- const followup=estimate.action==='attack'&&actor.hp>Math.max(actorMax(actor,'hp')*.5,estimate.incoming*2)&&actor.st>=searchStaminaCost(actor)+5;
- return injuryWindow&&followup?def.id:null;
+ const def=CHARACTER_SKILLS[actor.character]?.active,behavior=characterSkillBehavior(actor,'active');
+ if(!def||!behavior||now<(actor.characterSkillReadyAt||0)||behavior.canUse?.(actor)===false)return null;
+ return behavior.comShouldUse(actor,now,target,kind)?def.id:null;
 }
-function comShouldPressInjury(actor,now){
- const pressure=actor.injuryPressure;
- return !!(actor.character==='bjorn'&&pressure&&now>=pressure.at&&now-pressure.at<8000&&pressure.area===actor.place&&pressure.visit===(actor.locationVersion||0)&&actor.hp>Math.max(actorMax(actor,'hp')*.5,pressure.incoming*2)&&actor.st>=searchStaminaCost(actor)+5&&!Object.keys(BODY_INJURIES).some(part=>hasBodyInjury(actor,part)));
-}
-function gatherHerbs(actor,now=Date.now()){
- const def=CHARACTER_SKILLS[actor.character]?.field;
- if(def?.id!=='herb_gathering'||actor.hp<=0||now<(actor.characterFieldReadyAt||0))return false;
- const id=Math.random()<.5?'herb':'small_flower';
- if(!receive(id,1,null,actor)){if(actor===S)toast('バッグに空きがありません');return false}
- actor.characterFieldReadyAt=now+def.cooldownMs;
- const text=def.name+'：'+names[id]+'を獲得';recoverOnAction(actor,now);recordMatchEvent(actor,'fieldSkill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);return true;
-}
+function comShouldPressInjury(actor,now){return characterSkillHook(actor,'active','comPressInjury',now)||false}
+function gatherHerbs(actor,now=Date.now()){return SKILL_BEHAVIORS.herb_gathering.execute(actor,now)}
 function useCharacterFieldSkill(){
  if(!allowMatchAction()||S.busy||S.enemy||S.pendingFound||S.corpseVisit)return;
  if(Date.now()<(S.characterFieldReadyAt||0))return;stopRecoveryMode();
- if(S.character==='kankan'){if(burnSpirit(S,Date.now()))refresh();else toast('燃える闘魂を使用できません');return}
- if(S.character==='raku'){if(modifyEquippedWeapon(S,Date.now())){refresh();showEquipment()}else toast('必要スタック不足、または1等級上の改造候補がありません');return}
- if(S.character==='zakuro'){showMineralMenu();return}if(gatherHerbs(S,Date.now()))refresh();
+ characterSkillBehavior(S,'field')?.playerUse(S,Date.now());
 }
 const BODY_INJURIES={head:{name:'頭の怪我',effect:'命中率－10%'},hand:{name:'手の怪我',effect:'攻撃力－5%'},torso:{name:'胴の怪我',effect:'被ダメージ＋10%'},leg:{name:'足の怪我',effect:'消費スタミナ＋1'}};
 function hasBodyInjury(actor,part){return !!actor.bodyInjuries?.[part]}
@@ -3630,7 +3748,7 @@ function inflictBodyInjury(target,source,now){
 }
 function applyBodyAttackInjury(actor,target,skill,now){
  if(target.hp<=0)return null;
- const forced=skill?.id==='physics_blow'&&target.hp<=targetMaxHp(target)/2;
+ const forced=SKILL_BEHAVIORS[skill?.id]?.forceInjury?.(actor,target,skill,now)||false;
  return forced||(!mineralInjuryImmune(target)&&rollBodyInjury())?inflictBodyInjury(target,actor,now):null;
 }
 function injuryDamage(damage,target){return hasBodyInjury(target,'torso')?Math.max(1,Math.floor(damage*1.1)):damage}
@@ -3653,28 +3771,14 @@ function treatBodyInjury(part){
  stopRecoveryMode();if(beginBodyTreatment(S,part,Date.now())){closeModal();refresh()}
 }
 function resolveCharacterSkill(actor,target,skillId,hit,now,gale=null,dealt=0){
- if(gale&&gale.id!=='gale_shoot'){
-  if(hit&&target.hp>0&&gale.id==='une_deux'){target.postureBreaks||={};target.postureBreaks[actorIdentity(actor)]=now+6000}
-  if(hit&&target.hp>0&&gale.id==='outlaw_bite'){target.biteUntil=Math.max(target.biteUntil||0,now+3000);target.biteSourceId=actorIdentity(actor)}
-  if(gale.id==='jewel_hunt')gale.copiedMineral=copyHuntedMineral(actor,target,now);
-  if(gale.id==='white_target'&&target.hp<=0)actor.characterSkillReadyAt=now+5000;
+ if(gale){
+  const behavior=SKILL_BEHAVIORS[gale.id];
+  if(behavior?.resolvePrepared)return behavior.resolvePrepared(actor,target,hit,now,gale,dealt);
+  behavior?.onResolved?.(actor,target,hit,now,gale);
   const text=CHARACTER_SKILLS[actor.character].active.name+(target.hp<=0?'：撃破':'');recordMatchEvent(actor,'skill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);
   return {...gale,applied:true};
  }
- if(gale){
-  const staminaRecovered=actor.hp>0&&gale.stacks===4?Math.min(actorMax(actor,'st')-actor.st,Math.floor(dealt*.25)):0;
-  actor.st+=staminaRecovered;
-  const text='ゲイルシュート：薫風'+gale.stacks+'消費／'+(115+gale.stacks*5)+'%'+(staminaRecovered?'／スタミナ＋'+staminaRecovered:'');
-  recordMatchEvent(actor,'skill',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);
-  return {...gale,applied:true,staminaRecovered};
- }
- const def=CHARACTER_SKILLS[actor.character]?.active;
- if(!skillId||def?.id!==skillId||now<(actor.characterSkillReadyAt||0))return null;
- actor.characterSkillReadyAt=now+def.cooldownMs;
- const applied=hit&&target.hp>0;if(applied)applyActionSlow(target,actor,def,now);
- recordMatchEvent(actor,'skill',def.name+(applied?'：5秒間、行動間隔＋0.5秒':hit?'：撃破':'：効果なし'),now);
- if(actor===S)addLog(def.name+(applied?'！ 相手の行動を5秒間遅くした':hit?'で撃破！':'：効果なし'));
- return {id:skillId,applied};
+ return characterSkillBehavior(actor,'active')?.resolveUnprepared?.(actor,target,skillId,hit,now)||null;
 }
 
 function equipmentSkillArt(id){const icon=ITEM_BY_ID[id]?.skillIcon;return icon?icon.art+'#'+icon.id+'.webp':''}
@@ -3689,25 +3793,25 @@ function renderCharacterSkills(now=Date.now()){
  if(definition.active)setCharacterSkillArt($('characterSkillBtn'),definition.active.id);
  if(!definition.field){field.textContent='';field.title='';field.disabled=true}
  if(definition.field){
-  const wait=Math.max(0,(S.characterFieldReadyAt||0)-now);field.innerHTML=characterSkillIconHTML(definition.field.id)+'<span class="bp-skill-count">'+(wait?Math.ceil(wait/1000)+'秒':S.character==='zakuro'?String(S.mineralMantleStacks||0):'発動')+'</span>';field.ariaLabel=definition.field.name+(wait?' あと'+Math.ceil(wait/1000)+'秒':'');field.title=S.character==='kankan'?'現在HPの40%を消費し、その実数%だけ30秒間攻撃力上昇。CT120秒':S.character==='raku'?'同武器種の1等級上へランダム改造。必要スタック1/5/10/45、消費なし。CT90秒':S.character==='zakuro'?'石・鉱石系素材を1個選んで消費し、永続の鉱物纏いを獲得。CT30秒':'薬草か小さい花を各50%で1個獲得。CT45秒';
-  field.disabled=!!wait||(S.character==='raku'&&!weaponModificationPlan(S).eligible)||(S.character==='kankan'&&Math.floor(S.hp*.4)<1)||!!S.enemy||!!S.busy||!!S.pendingFound||!!S.corpseVisit||S.hp<=0||matchClock.ended||!!matchClock.result;
+  const behavior=characterSkillBehavior(S,'field'),wait=Math.max(0,(S.characterFieldReadyAt||0)-now);
+  field.innerHTML=characterSkillIconHTML(definition.field.id)+'<span class="bp-skill-count">'+(wait?Math.ceil(wait/1000)+'秒':behavior?.count?.(S)||'発動')+'</span>';field.ariaLabel=definition.field.name+(wait?' あと'+Math.ceil(wait/1000)+'秒':'');field.title=behavior?.tooltip||definition.field.description;
+  field.disabled=!!wait||behavior?.canUse?.(S)===false||!!S.enemy||!!S.busy||!!S.pendingFound||!!S.corpseVisit||S.hp<=0||matchClock.ended||!!matchClock.result;
  }
  if(definition.passive){
-  const target=currentSkillTarget(),state=S.fightingInstinct,hayate=S.character==='hayate',footwork=S.character==='snow_leopard',efficient=S.character==='flugel',marine=S.character==='jerk',nightHunter=S.character==='bat',qigong=S.character==='kankan',dismantler=S.character==='raku';
-  const stacks=hayate?breezeStacks(S,now):footwork?S.footworkSearches||0:efficient?S.efficiencySearches||0:marine?Number(isWaterArea(S.place)):nightHunter?Number(isNightAt(now)):qigong?1:dismantler?S.modificationStacks||0:state&&(!target||state.targetKey===skillTargetKey(target))?state.stacks:0;
-  const max=footwork?10:efficient?6:marine||nightHunter||qigong?1:dismantler?45:definition.passive.maxStacks;$('characterPassiveCount').textContent=qigong?'+1':dismantler?String(stacks):stacks+'/'+max;
-  passive.title=definition.passive.name+(dismantler?' '+stacks+'スタック':qigong?'':' '+stacks+'/'+max)+(hayate?'（残り'+Math.ceil(Math.max(0,(S.breezeUntil||0)-now)/1000)+'秒／移動時に30秒へ更新）':footwork?'（探索10回ごとにスタミナ＋10）':efficient?'（6回目の探索で必ずアイテム3個発見）':marine?'（水辺で攻防＋10%／魚型撃破でHP150回復）':nightHunter?'（夜間：被発見率－7ポイント／クリティカル率＋2ポイント）':qigong?'（休憩・HP治療の毎秒回復＋1）':dismantler?'（ドローンへのダメージ＋'+Math.round(dismantlerDamageBonus(S)*100)+'%／追加ドロップ'+dismantlerExtraDrops(S)+'）':'（次の攻撃：熟練度＋'+(1+stacks)+'）');passive.ariaLabel=passive.title;passive.classList.toggle('is-max',dismantler?stacks>=max:stacks===max);
+  const view=characterSkillHook(S,'passive','view',now,currentSkillTarget())||{stacks:0,max:definition.passive.maxStacks,suffix:''};
+  $('characterPassiveCount').textContent=view.count??view.stacks+'/'+view.max;
+  passive.title=definition.passive.name+(view.label??' '+view.stacks+'/'+view.max)+view.suffix;passive.ariaLabel=passive.title;passive.classList.toggle('is-max',view.isMax??view.stacks===view.max);
  }
  const button=$('characterSkillBtn');button.hidden=!definition.active;if(!definition.active){button.disabled=true;button.title='';button.ariaLabel='';return}
- const wait=Math.max(0,(S.characterSkillReadyAt||0)-now);
+ const behavior=characterSkillBehavior(S,'active'),wait=Math.max(0,(S.characterSkillReadyAt||0)-now);
  $('characterSkillCount').textContent=wait?Math.ceil(wait/1000)+'秒':'発動';button.ariaLabel=definition.active.name+(wait?' あと'+Math.ceil(wait/1000)+'秒':'');
- button.title=({danse_macabre:'銃か弓のみ。昼25%×6発、夜20%×8発。残弾切れ・撃破で終了。CT60秒',jewel_hunt:'105%ダメージ。敵の所持する石・鉱石系素材を1個コピー。CT30秒',gale_shoot:'薫風を全消費して115＋5×スタック%の攻撃。4消費時、実ダメージの25%のスタミナ回復。CT40秒',step_break:'攻撃と同時に相手を5秒間減速（ガードでも発動）。CT60秒',white_target:'110%ダメージ。敵の残りHP割合でクリティカル率上昇（最大40%）。撃破でCT5秒。通常CT60秒',une_deux:'75%ダメージ後、6秒間、自分からのダメージ＋70%・クリティカル率＋25ポイント。CT80秒',outlaw_bite:'110%ダメージ（水辺130%）。相手は3秒間区域移動不可。CT90秒',physics_blow:'110%ダメージ。攻撃後の敵がHP50%以下ならランダムな部位に永続の怪我。CT100秒'})[definition.active.id];
- button.disabled=!!wait||!S.enemy||!!S.busy||S.hp<=0||(definition.active.id==='danse_macabre'&&!canDanse(S))||matchClock.ended||!!matchClock.result;
+ button.title=behavior?.tooltip||definition.active.description;
+ button.disabled=!!wait||!S.enemy||!!S.busy||S.hp<=0||behavior?.canUse?.(S)===false||matchClock.ended||!!matchClock.result;
 }
 function useCharacterSkill(){
  if(!allowMatchAction()||S.busy||!S.enemy)return;
- const def=CHARACTER_SKILLS[S.character]?.active;if(!def||Date.now()<(S.characterSkillReadyAt||0))return;
- if(def.id==='danse_macabre'&&!canDanse(S))return toast('弾薬のある銃か弓を装備してください');
+ const def=CHARACTER_SKILLS[S.character]?.active,behavior=characterSkillBehavior(S,'active');if(!def||!behavior||Date.now()<(S.characterSkillReadyAt||0))return;
+ if(behavior.canUse?.(S)===false)return toast(behavior.unavailableMessage);
  if(S.enemyPlayerId)attackOpponent(def.id);else attackDiscoveredDrone(def.id);
 }
 function scheduleDroneCounter(actor,drone,now){
@@ -3765,12 +3869,12 @@ function damageAfterDefense(attack,defense){const d=Math.max(0,defense);return M
 const BASE_CRITICAL_RATE=0.03,CRITICAL_MULTIPLIER=1.3;
 function actorCriticalChance(actor,type=actor?actorWeaponType(actor):null,now=Date.now()){
  const id=actor?.equipment?.weapon,def=equipmentDef(id);
- return Math.min(1,BASE_CRITICAL_RATE+(actor?.character==='bat'&&isNightAt(now)?.02:0)+(def&&type===def.weaponType?(EQUIPMENT_SPECIAL_EFFECTS[id]?.criticalBonus||0):0));
+ return Math.min(1,BASE_CRITICAL_RATE+(characterSkillHook(actor,'passive','criticalBonus',now)||0)+(def&&type===def.weaponType?(EQUIPMENT_SPECIAL_EFFECTS[id]?.criticalBonus||0):0));
 }
 function rollCritical(actor=null,type,now=Date.now()){const chance=actorCriticalChance(actor,type,now);return chance>0&&Math.random()>=1-chance}
 function guardDamage(damage){return Math.max(1,Math.floor(damage*0.5))}
 function criticalDamage(damage,critical,actor=null){return critical?Math.max(1,Math.floor(damage*(actor?EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.criticalMultiplier||CRITICAL_MULTIPLIER:CRITICAL_MULTIPLIER))):damage}
-function treatmentRate(actor=S){const override=Math.max(0,...Object.values(actor.equipment||{}).map(id=>EQUIPMENT_SPECIAL_EFFECTS[id]?.treatmentOverride||0));if(override)return override;return RECOVERY_MODE_RATES.hp+(actor.character==='kankan'?1:0)+(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.treatmentBonus||0)}
+function treatmentRate(actor=S){const override=Math.max(0,...Object.values(actor.equipment||{}).map(id=>EQUIPMENT_SPECIAL_EFFECTS[id]?.treatmentOverride||0));if(override)return override;return RECOVERY_MODE_RATES.hp+(characterSkillHook(actor,'passive','recoveryBonus')||0)+(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.treatmentBonus||0)}
 function attackRoll(){return rand(3)-1}
 function combatDamage(attack,defense,type,other=1,actor=S){return Math.max(1,Math.floor(damageAfterDefense(attack,defense)*MASTERY_MULTIPLIERS[masteryRank(type,actor)]*other))}
 function addMastery(type,amount,actor=S){if(!WEAPON_TYPES[type]||amount<=0)return;const before=masteryRank(type,actor);actor.masteryAttacks[type]=(actor.masteryAttacks[type]||0)+amount;const after=masteryRank(type,actor);if(after>before&&actor===S)addLog(WEAPON_TYPES[type]+'熟練度が'+MASTERY_RANKS[after]+'に上昇！')}
@@ -4495,11 +4599,7 @@ function selectGeneratedMineral(minTier=null,rng=Math.random){
 function recordExploration(actor,now){
  recoverOnAction(actor,now);
  actor.ticks=(actor.ticks||0)+1;bumpMatchStat(actor,'searches');
- if(actor.character==='flugel')actor.efficiencySearches=Math.min(6,(actor.efficiencySearches||0)+1);
- if(actor.character==='snow_leopard'){
-  actor.footworkSearches=(actor.footworkSearches||0)+1;
-  if(actor.footworkSearches>=10){actor.footworkSearches=0;const restored=Math.min(10,Math.max(0,actorMax(actor,'stamina')-actor.st));actor.st+=restored;const text='フットワーク：スタミナ＋'+restored;recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now)}
- }
+ characterSkillHook(actor,'passive','onSearch',now);
  for(const [slot,id] of Object.entries(actor.equipment)){
   const effect=EQUIPMENT_SPECIAL_EFFECTS[id];if(!effect?.searchInterval||!effect.staminaRecovery)continue;
   const state=equipmentState(actor,slot);state.searches=(state.searches||0)+1;
@@ -4732,7 +4832,7 @@ function handleComCombatDecision(actor,target,now,kind){
  if(kind==='player'&&!hasObservedOpponent(actor,target,now))return false;
  const item=usableCombatRecovery(actor,now),missing=actorMax(actor,'hp')-actor.hp;
  if(item&&(actor.hp<actorMax(actor,'hp')*.7||missing>=item.amount*.8)&&recoverActor(actor,item.id,now))comLog(actor,'戦闘中の回復：'+names[item.id],now);
- if(kind==='player'&&comShouldBurnSpirit(actor,now,target))burnSpirit(actor,now);
+ if(kind==='player')characterSkillHook(actor,'field','comCombatUse',target,now);
  const decision=evaluateCombat(actor,target,now,kind);logCombatDecision(actor,target,decision,now,kind);
  if(decision.action==='retreat'&&safeComRetreat(actor,now)){
   actor.dangerAreas||={};actor.dangerAreas[actor.place]=now+90000;
@@ -4772,7 +4872,7 @@ function searchStaminaCost(actor=S){return Math.max(0,3-(actor.sapphireMantle?1:
 function enemyDiscoveryBonus(actor){return Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.enemyDiscoveryBonus||0),0)}
 function droneDiscoveryRate(actor=S){return Math.min(1,DRONE_DISCOVERY_RATE+enemyDiscoveryBonus(actor))}
 function chooseLocalOpponent(actor){const local=localOpponents(actor);return local.length===1?local[0]:local.length?local[rand(local.length)]:null}
-function actorDiscoveryRate(target,searcher=S,now=Date.now()){return Math.max(0,Math.min(1,PLAYER_DISCOVERY_RATE-(target.character==='bat'&&isNightAt(now)?.07:0)+enemyDiscoveryBonus(searcher)+Object.values(target.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.discoveryRateBonus||0),0)))}
+function actorDiscoveryRate(target,searcher=S,now=Date.now()){return Math.max(0,Math.min(1,PLAYER_DISCOVERY_RATE-(characterSkillHook(target,'passive','discoveryPenalty',now)||0)+enemyDiscoveryBonus(searcher)+Object.values(target.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.discoveryRateBonus||0),0)))}
 function captureEncounter(target){return JSON.parse(JSON.stringify(target))}
 function clearPlayerEncounter(){S.encounterSnapshot=null;S.contactExpiresAt=0;S.enemy=false;S.enemyPlayerId=null;S.pvpPending=null;S.pvpFeedback=null;S.busy=false;S.actionToken=(S.actionToken||0)+1}
 function interruptForPlayerEncounter(){
@@ -4793,11 +4893,11 @@ function escapeOpponent(){
 }
 function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=null,shotContext=null){
  if(attacker.hp<=0||target.hp<=0||attacker.place!==target.place)return null;
- if(skillId==='danse_macabre')return executeDanse(attacker,target,now,false,preserveTargetActivity);
+ if(SKILL_BEHAVIORS[skillId]?.attack)return SKILL_BEHAVIORS[skillId].attack(attacker,target,now,false,preserveTargetActivity);
  updateBodyTreatment(attacker,now);updateBodyTreatment(target,now);cancelBodyTreatment(attacker);cancelBodyTreatment(target);
  const gale=shotContext||prepareCharacterAttack(attacker,target,skillId,now);
  // Step Break adds a debuff to a normal-strength hit, but that hit is still an active skill.
- const activeAttack=!!gale||(skillId==='step_break'&&CHARACTER_SKILLS[attacker.character]?.active?.id===skillId&&now>=(attacker.characterSkillReadyAt||0));
+ const activeAttack=!!gale||(SKILL_BEHAVIORS[skillId]?.normalHitActive&&CHARACTER_SKILLS[attacker.character]?.active?.id===skillId&&now>=(attacker.characterSkillReadyAt||0));
  const type=actorWeaponType(attacker),weapon=equipmentDef(attacker.equipment.weapon),ranged=weapon?.ammoType;
  spendAttackAmmo(attacker,type);
  attacker.recoveryMode=null;attacker.recoveryTickAt=0;attacker.restMode=null;if(!preserveTargetActivity){target.recoveryMode=null;target.recoveryTickAt=0;target.restMode=null;}
@@ -4822,7 +4922,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  if(attacker.hp>0)gainXp(1,attacker);
  const characterSkill=shotContext?null:resolveCharacterSkill(attacker,target,skillId,hit,now,gale,dealt);
  const result={hit,guarded,type,critical,damage,dealt,bodyInjury,healing,reflected,reflectedTaken,effect,characterSkill,durabilityLoss};trackActorAttack(attacker,target,result,now,'player');
- if(bodyInjury&&attacker!==S&&attacker.character==='bjorn')attacker.injuryPressure={at:now,area:attacker.place,visit:attacker.locationVersion||0,incoming:evaluateCombat(attacker,target,now,'player').incoming};
+ if(bodyInjury)characterSkillHook(attacker,'active','onInflictedInjury',target,now);
  if(!shotContext){recordWeaponUse(attacker,type,now,durabilityLoss);recoverOnAction(attacker,now)}return result;
 }
 let incomingNoticeTimer,incomingNoticeVersion=0;
@@ -4963,7 +5063,7 @@ function droneCounterDamage(def,actor=S,now=Date.now(),details=null){
 function actorWeaponType(actor){const def=equipmentDef(actor.equipment.weapon);return def?.ammoType&&!weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)?'fist':def?.weaponType||'fist'}
 function strikeDrone(actor,d,now,skillId=null,shotContext=null){
  if(actor.hp<=0||!d?.spawned||d.hp<=0||d.area!==actor.place)return null;
- if(skillId==='danse_macabre')return executeDanse(actor,d,now,true);
+ if(SKILL_BEHAVIORS[skillId]?.attack)return SKILL_BEHAVIORS[skillId].attack(actor,d,now,true);
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);
  const gale=shotContext||prepareCharacterAttack(actor,d,skillId,now);
  const def=DRONE_DEFS[d.kind],type=actorWeaponType(actor),weapon=equipmentDef(actor.equipment.weapon),ranged=weapon?.ammoType;
@@ -4980,9 +5080,9 @@ function strikeDrone(actor,d,now,skillId=null,shotContext=null){
  const characterSkill=shotContext?null:resolveCharacterSkill(actor,d,skillId,hit,now,gale,dealt);
  let body=null,counter=0,counterPending=false,marineHealing=0;const counterDetails={critical:false};
  if(d.hp===0){
-  awardDismantlerStacks(actor,d.kind,now);
+  characterSkillHook(actor,'passive','beforeDroneCorpse',d,now);
   body=createDroneCorpse(d.kind,actor.place,now,actorIdentity(actor));
-  d.spawned=false;d.area=null;d.respawnAt=now+def.respawn*1000;if(d.kind==='dragon')announceDragonDefeat(now);awardDefeatXp(actor,d,now);marineHealing=marineKillRecovery(actor,d,now);bumpMatchStat(actor,'droneKills');recordMatchEvent(actor,'kill',def.name+'を撃破',now);
+  d.spawned=false;d.area=null;d.respawnAt=now+def.respawn*1000;if(d.kind==='dragon')announceDragonDefeat(now);awardDefeatXp(actor,d,now);marineHealing=characterSkillHook(actor,'passive','afterDroneDefeat',d,now)||0;bumpMatchStat(actor,'droneKills');recordMatchEvent(actor,'kill',def.name+'を撃破',now);
  }else if(shotContext?.deferCounter){/* A volley receives one counter after its final shot. */}else if(actionDelayMs(d,now)){scheduleDroneCounter(actor,d,now);counterPending=true;}else{counter=droneCounterDamage(def,actor,now,counterDetails);bumpMatchStat(actor,'damageTaken',Math.min(actor.hp,counter));actor.hp=Math.max(0,actor.hp-counter);}
  const result={type,hit,guarded,critical,damage,dealt,bodyInjury,healing,effect,counter,counterCritical:counterDetails.critical,counterPending,characterSkill,marineHealing,body,defeated:d.hp===0};trackActorAttack(actor,d,result,now,'drone');
  if(!shotContext){recordWeaponUse(actor,type,now);recoverOnAction(actor,now)}return result;
@@ -5711,7 +5811,7 @@ function payMovementCost(actor,now=Date.now()){
  const stacks=breezeStacks(actor,now),discount=stacks>=4?4:stacks>=2?2:0;
  const cost=matchClock.section>0?Math.max(0,5-(actor.sapphireMantle?1:0)+(hasBodyInjury(actor,'leg')?1:0)-discount-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.movementDiscount||0),0)):0;
  const staminaCost=Math.min(actor.st,cost),hpCost=cost-staminaCost;
- actor.st-=staminaCost;actor.hp=Math.max(0,actor.hp-hpCost);if(actor.character==='hayate'&&actor.hp>0){actor.breezeStacks=Math.min(4,stacks+1);actor.breezeUntil=now+30000}recoverOnAction(actor,now);bumpMatchStat(actor,'moves');recordMatchEvent(actor,'move',actor.place+'へ移動',now);return {staminaCost,hpCost};
+ actor.st-=staminaCost;actor.hp=Math.max(0,actor.hp-hpCost);characterSkillHook(actor,'passive','onMove',now,stacks);recoverOnAction(actor,now);bumpMatchStat(actor,'moves');recordMatchEvent(actor,'move',actor.place+'へ移動',now);return {staminaCost,hpCost};
 }
 function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>60)actor.history.shift()}
 function initializeComActors(count=COM_COUNT){
@@ -6039,12 +6139,7 @@ function comReserveTurn(actor,gearPlan,reservePlan,gearReady,now){
  return true;
 }
 function comUnderFire(actor,now){const n=actor.damageNotice;return !!(n&&n.at<=now&&now-n.at<=8000&&n.area===actor.place)}
-function comShouldBurnSpirit(actor,now,target=null){
- if(actor.character!=='kankan'||actor.hp<actorMax(actor,'hp')*.85||now<(actor.characterFieldReadyAt||0))return false;
- if(!target&&!comUnderFire(actor,now))return false;
- const consumed=Math.floor(actor.hp*.4),incoming=target?evaluateCombat(actor,target,now,'player').incoming:actorMax(actor,'hp')*.2;
- return actor.hp-consumed>incoming*2&&comRecoveryTotal(actor)>=consumed&&Math.max(0,(actor.recoveryReadyAt.hp||0)-now)<=RECOVERY_COOLDOWN_MS;
-}
+function comShouldBurnSpirit(actor,now,target=null){return characterSkillHook(actor,'field','comShouldUse',now,target)||false}
 function comLeaveUnderFire(actor,plan,now){
  const notice=actor.damageNotice;
  if(!notice||notice.at>now||now-notice.at>8000||notice.area!==actor.place||!safeComRetreat(actor,now))return false;
@@ -6079,8 +6174,7 @@ function stepCom(actor,now){
  if(actor.bodyTreatment){if(!updateBodyTreatment(actor,now))return}
  const injuredPart=Object.keys(BODY_INJURIES).find(part=>hasBodyInjury(actor,part));
  if(injuredPart){beginBodyTreatment(actor,injuredPart,now);return}
- if(actor.character==='zakuro'&&now>=(actor.characterFieldReadyAt||0)){const id=comMineralChoice(actor,plan);if(id&&consumeMineral(actor,id,now))return}
- if(actor.character==='bjorn'&&now>=(actor.characterFieldReadyAt||0)&&(canReceive('herb',actor.bag)||canReceive('small_flower',actor.bag))&&gatherHerbs(actor,now))return;
+ if(tryComFieldSkill(actor,plan,now,'beforeRecovery'))return;
  const policy=comRecoveryPolicy(actor),hpMissing=actorMax(actor,'hp')-actor.hp;
  const hpChoice=comSelectRecovery(actor,'hp',now);
  const reservePlan=comRecoveryPlan(actor,now,plan);
@@ -6114,8 +6208,7 @@ function stepCom(actor,now){
   const needed={...plan.needed};for(const [id,n]of Object.entries(reservePlan.needed))needed[id]=Math.max(needed[id]||0,n);
   plan={...reservePlan,needed};actor.recoveryRoute=plan.routeKey;actor.recoveryGoal=plan.recipeId||Object.keys(plan.missing)[0];
  }else actor.recoveryGoal=null;
- if(comShouldBurnSpirit(actor,now)&&burnSpirit(actor,now))return;
- if(actor.character==='raku'&&modifyEquippedWeapon(actor,now))return;
+ if(tryComFieldSkill(actor,plan,now,'afterRecovery'))return;
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
  if(comDiscardRedundantWeapon(actor,plan,now))return;
