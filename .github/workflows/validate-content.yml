@@ -1,0 +1,31 @@
+name: Validate game registrations
+on:
+  push:
+    paths:
+      - index.html
+      - 'assets/**'
+      - tools/validate-content.cjs
+      - tests/content-validation.test.cjs
+      - .github/workflows/validate-content.yml
+  pull_request:
+    paths:
+      - index.html
+      - 'assets/**'
+      - tools/validate-content.cjs
+      - tests/content-validation.test.cjs
+      - .github/workflows/validate-content.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check registrations and image references
+        run: node tools/validate-content.cjs
+      - name: Verify detection of invalid registrations
+        run: node --test tests/content-validation.test.cjs

@@ -30,3 +30,7 @@
 `node tests/character-catalog.test.cjs`
 
 画像パス、ID重複・設定不備の検出、および仮の追加キャラが選択・スキン・初期熟練度・COM参加へ反映されることを確認します。起動時にも `validateCharacterDefinitions` が定義の基本的な整合性を検査します。
+
+## 登録漏れの全体チェック
+
+`node tools/validate-content.cjs` でキャラ・スキル・アイテム・レシピ・画像・配置などをまとめて確認できます。詳しくは [CONTENT_VALIDATION.md](CONTENT_VALIDATION.md) を参照してください。
