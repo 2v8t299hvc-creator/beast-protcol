@@ -54,6 +54,7 @@ function validateContent(data,root,{assetExists=fs.existsSync}={}){
  }
  const recipeOrders=new Map();
  for(const item of data.items){
+  if(item.encyclopediaAfter&&(!items.has(item.encyclopediaAfter)||item.encyclopediaAfter===item.id))error('INVALID_DISPLAY_ORDER','item.'+item.id,'図鑑の並び順で指定したアイテムが不正です');
   if(!item.art&&!item.fallback)error('MISSING_ITEM_ICON','item.'+item.id,'画像も代替アイコンも登録されていません');
   if(item.equipment?.ammoType&&(typeof item.equipment.capacity!=='number'||!(item.equipment.capacity===Infinity||(Number.isInteger(item.equipment.capacity)&&item.equipment.capacity>=0))))error('INVALID_AMMO_CAPACITY','item.'+item.id,'装填数は0以上の整数またはInfinityにしてください');
   if(item.craftGroup&&!data.craftGroups.includes(item.craftGroup))error('UNKNOWN_CRAFT_GROUP','item.'+item.id,'未登録の製作分類: '+item.craftGroup);

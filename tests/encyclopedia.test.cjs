@@ -60,3 +60,17 @@ test('delayed encyclopedia image loads hydrate safely before match initializatio
  run('closeEncyclopedia();startSelectedCharacter();encyRefreshCalls=0');
  run('pendingImages[1].onload()');assert.equal(run('encyRefreshCalls'),1);
 });
+test('armguard display follows its starter and crafting links carry their own rarity',()=>{
+ const {run}=harness();
+ for(const filter of ['{}',"{category:'armor:arm'}","{query:'アームガード'}"]){
+  const ids=plain(run,'encyclopediaFilteredItems('+filter+').map(i=>i.id)');assert.equal(ids.indexOf('armguard'),ids.indexOf('simple_armguard')+1);
+ }
+ assert(run("ITEM_DEFS.findIndex(i=>i.id==='armguard')<ITEM_DEFS.findIndex(i=>i.id==='simple_armguard')"));
+ for(const id of ['stone','armguard','iron_armguard','kukri','dragon_heart'])assert(run(`encyclopediaLink('${id}').includes('data-rarity="'+(ITEM_BY_ID['${id}'].rarity||'common')+'"')`));
+ assert(run("encyclopediaRecipeTree('kukri').includes('data-rarity=\"rare\"')"));
+ run("readySheets.basic=true;readySheets.slash_03=true");
+ assert(run("itemIconHTML('stone').includes('border:0;outline:0;box-shadow:none')"));
+ assert(run("itemSheetUrl('basic').includes('artVersion=')"));
+ assert(run("itemSheetUrl('basic',2).includes('&artRetry=2')"));
+ assert.equal(run("itemSheetUrl('slash_03')"),run('itemArtSheets.slash_03'));
+});
