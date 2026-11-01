@@ -3302,7 +3302,7 @@ const CHARACTER_DEFS=[
     "id": "une_deux",
     "name": "ユヌードゥ",
     "cooldownMs": 80000,
-    "description": "通常攻撃の0.75倍のダメージを与える。その後6秒間、自分がその相手に与えるダメージが1.7倍になり、クリティカル率が25ポイント上昇する（例：3%→28%）。",
+    "description": "通常攻撃の0.75倍のダメージを与え、相手に最大6秒間の姿勢崩しを付与する。姿勢崩し中は、自分がその相手に与えるダメージが1.7倍になり、クリティカル率が25ポイント上昇する（例：3%→28%）。姿勢崩しは、付与後に相手が攻撃を1回受けると解除される。強化効果は解除される攻撃にも適用する。ガードされた攻撃や、第三者・ドローンの攻撃でも解除される。",
     "icon": "assets/inline-art/skills/characters/une_deux.webp"
    }
   }
@@ -3856,7 +3856,7 @@ const SKILL_BEHAVIORS={
   onInflictedInjury(actor,target,now){if(actor!==S)actor.injuryPressure={at:now,area:actor.place,visit:actor.locationVersion||0,incoming:evaluateCombat(actor,target,now,'player').incoming}}
  },
  une_deux:{kind:'active',
-  tooltip:'75%ダメージ後、6秒間、自分からのダメージ＋70%・クリティカル率＋25ポイント。CT80秒',
+  tooltip:'75%ダメージ後、最大6秒間、自分からのダメージ＋70%・クリティカル率＋25ポイント。次の被弾後に解除（ガード・第三者・ドローンを含む）。再使用：80秒',
   prepare(){return {multiplier:.75,criticalChance:null}},
   onResolved(actor,target,hit,now){if(hit&&target.hp>0){target.postureBreaks||={};target.postureBreaks[actorIdentity(actor)]=now+6000}},comShouldUse(){return true}
  },
@@ -3931,6 +3931,9 @@ function breezeStacks(actor,now=Date.now()){return SKILL_BEHAVIORS.spirit_breeze
 const WATER_AREAS=new Set(['海岸区画','港湾区画','湖畔区画','水没施設区画','海底研究区画']);
 function isWaterArea(area){return WATER_AREAS.has(area)}
 function actorStatMultiplier(stat,actor,now=Date.now()){return (stat==='attack'&&hasBodyInjury(actor,'hand')?.95:1)*(characterSkillHook(actor,'passive','statMultiplier',stat,now)||1)*(stat==='attack'&&(actor.burningSpiritUntil||0)>now?1+(actor.burningSpiritPower||0)/100:1)}
+function consumePostureBreak(target){
+ if(target?.postureBreaks)target.postureBreaks={};
+}
 function postureBonus(actor,target,now){return (target?.postureBreaks?.[actor.id]||0)>now}
 function postureDamage(damage,actor,target,now){return postureBonus(actor,target,now)?Math.max(1,Math.floor(damage*1.7)):damage}
 function attackCriticalChance(actor,type,skill,target,now){return Math.min(1,(skill?.criticalChance??actorCriticalChance(actor,type,now))+(postureBonus(actor,target,now)?.25:0))}
@@ -4782,7 +4785,7 @@ function paySearchCost(actor,now){
 }
 function characterDebuffHTML(actor,now=Date.now()){
  let html=isMovementLocked(actor,now)?'<span>喰らいつき：区画移動不可（'+Math.ceil((actor.biteUntil-now)/1000)+'秒）</span>':'';
- for(const [id,until] of Object.entries(actor.postureBreaks||{}))if(until>now)html+='<span>姿勢崩し：'+actorName(findActor(id)||{name:id})+'からのダメージ＋70%／クリティカル率＋25ポイント（'+Math.ceil((until-now)/1000)+'秒）</span>';
+ for(const [id,until] of Object.entries(actor.postureBreaks||{}))if(until>now)html+='<span>姿勢崩し：'+actorName(findActor(id)||{name:id})+'からのダメージ＋70%／クリティカル率＋25ポイント（'+Math.ceil((until-now)/1000)+'秒／次の被弾で解除）</span>';
  return html;
 }
 function renderStatusEffects(){
@@ -5264,7 +5267,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  const critical=!guarded&&attackCritical(attacker,type,gale,target,now);base=criticalDamage(base,critical,attacker);
  applyAttackInjury(attacker,target,hit,now);
  const effect=applyWeaponEffects(attacker,target,type,hit,now),damage=finalCharacterDamage(base+effect.fixedDamage,attacker,target,gale,now,guarded,activeAttack),dealt=Math.min(target.hp,damage);
- target.hp=Math.max(0,target.hp-damage);const bodyInjury=applyBodyAttackInjury(attacker,target,gale,now);
+ target.hp=Math.max(0,target.hp-damage);consumePostureBreak(target);const bodyInjury=applyBodyAttackInjury(attacker,target,gale,now);
  const lifesteal=effect.lifesteal&&dealt?Math.ceil(dealt*effect.lifesteal):0,healing=Math.min(Math.max(0,actorMax(attacker,'hp')-attacker.hp),lifesteal);attacker.hp+=healing;
  const reflected=hit&&type==='fist'&&armor.fistCounterDamage?endureDamage(attacker,whiteMantleDamage(armor.fistCounterDamage,attacker),now):0,reflectedTaken=Math.min(attacker.hp,reflected);attacker.hp=Math.max(0,attacker.hp-reflected);
  let durabilityLoss=0;
@@ -5410,7 +5413,7 @@ function droneCounterDamage(def,actor=S,now=Date.now(),details=null){
  const drone=drones[Object.keys(DRONE_DEFS).find(kind=>DRONE_DEFS[kind]===def)],guarded=hasBodyInjury(drone||{},'head')&&Math.random()>=.9;
  const critical=!guarded&&rollCritical(),base=criticalDamage(Math.max(1,Math.floor(damageAfterDefense(def.attack*(hasBodyInjury(drone||{},'hand')?.95:1)+attackRoll(),totalStat('defense',actor,now)))),critical);
  if(details)details.critical=critical;
- const damage=injuryDamage(Math.max(1,Math.floor((base+(def.poison?statusStacks('purplePoison',actor):0))*(1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.droneDamageReduction||0)))),actor);const finalDamage=whiteMantleDamage(guarded?guardDamage(damage):damage,actor);if(actor.hp>finalDamage&&!mineralInjuryImmune(actor)&&rollBodyInjury())inflictBodyInjury(actor,drone,now);return endureDamage(actor,finalDamage,now);
+ const damage=injuryDamage(Math.max(1,Math.floor((base+(def.poison?statusStacks('purplePoison',actor):0))*(1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment?.weapon]?.droneDamageReduction||0)))),actor);const finalDamage=whiteMantleDamage(guarded?guardDamage(damage):damage,actor);if(actor.hp>finalDamage&&!mineralInjuryImmune(actor)&&rollBodyInjury())inflictBodyInjury(actor,drone,now);const resolved=endureDamage(actor,finalDamage,now);consumePostureBreak(actor);return resolved;
 }
 function actorWeaponType(actor){const def=equipmentDef(actor.equipment.weapon);return def?.ammoType&&!weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)?'fist':def?.weaponType||'fist'}
 function strikeDrone(actor,d,now,skillId=null,shotContext=null){
@@ -5426,7 +5429,7 @@ function strikeDrone(actor,d,now,skillId=null,shotContext=null){
  const critical=!guarded&&attackCritical(actor,type,gale,d,now),baseDamage=hit?criticalDamage(damageToDrone(def,type,attack,bonus,actor),critical,actor):0;
  applyAttackInjury(actor,d,hit,now);
  const effect=applyWeaponEffects(actor,d,type,hit,now),damage=finalCharacterDamage(baseDamage+effect.fixedDamage,actor,d,gale,now,guarded),dealt=Math.min(d.hp,damage);
- d.hp=Math.max(0,d.hp-damage);const bodyInjury=applyBodyAttackInjury(actor,d,gale,now);
+ d.hp=Math.max(0,d.hp-damage);consumePostureBreak(d);const bodyInjury=applyBodyAttackInjury(actor,d,gale,now);
  const healing=effect.lifesteal&&dealt>0?Math.min(actorMax(actor,'hp')-actor.hp,Math.ceil(dealt*effect.lifesteal)):0;actor.hp+=healing;
  gainXp(1,actor);
  const characterSkill=shotContext?null:resolveCharacterSkill(actor,d,skillId,hit,now,gale,dealt);
