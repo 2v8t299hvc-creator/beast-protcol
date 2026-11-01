@@ -212,44 +212,52 @@
 const ITEM_DEFS=[
  {
   id:"scrap",
+  displayOrder:0,
   name:"ガラクタ",
   art:["materials",0],
   fallback:"🔩"
  },
  {
   id:"stone",
+  displayOrder:5,
   name:"石ころ",
   art:["basic",0]
  },
  {
   id:"wood",
+  displayOrder:200,
   name:"木材",
   art:["basic",1]
  },
  {
   id:"mystery",
+  displayOrder:15,
   name:"謎の鉱石",
   art:["basic",2]
  },
  {
   id:"pickaxe",
+  displayOrder:2600,
   name:"ピッケル",
   equipment:{"slot":"weapon","weaponType":"slash","attack":10,"defense":0},
   art:["tools",1]
  },
  {
   id:"marble",
+  displayOrder:10,
   name:"大理石",
   art:["basic",3]
  },
  {
   id:"lighter",
+  displayOrder:720,
   name:"ライター",
   art:["tools",0],
   findCount:3
  },
  {
   id:"bronze",
+  displayOrder:100,
   name:"青銅",
   rarity:"uncommon",
   art:["metal",0],
@@ -258,6 +266,7 @@ const ITEM_DEFS=[
  },
  {
   id:"iron",
+  displayOrder:105,
   name:"鉄",
   rarity:"uncommon",
   art:["metal",1],
@@ -266,6 +275,7 @@ const ITEM_DEFS=[
  },
  {
   id:"blackiron",
+  displayOrder:115,
   name:"黒鉄",
   rarity:"rare",
   art:["metal",2],
@@ -274,6 +284,7 @@ const ITEM_DEFS=[
  },
  {
   id:"silver",
+  displayOrder:120,
   name:"銀",
   rarity:"rare",
   art:["advanced",0],
@@ -282,6 +293,7 @@ const ITEM_DEFS=[
  },
  {
   id:"whitesilver",
+  displayOrder:125,
   name:"白銀",
   rarity:"epic",
   art:["metal",3],
@@ -290,6 +302,7 @@ const ITEM_DEFS=[
  },
  {
   id:"gold",
+  displayOrder:130,
   name:"金",
   rarity:"epic",
   art:["advanced",1],
@@ -298,6 +311,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wonderore",
+  displayOrder:20,
   name:"不思議な鉱石",
   rarity:"rare",
   art:["advanced",2],
@@ -306,6 +320,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wonderjewel",
+  displayOrder:25,
   name:"ワンダージュエル",
   rarity:"epic",
   art:["advanced",3],
@@ -314,6 +329,7 @@ const ITEM_DEFS=[
  },
  {
   id:"ruby",
+  displayOrder:35,
   name:"ルビー",
   rarity:"epic",
   art:["gems",0],
@@ -322,6 +338,7 @@ const ITEM_DEFS=[
  },
  {
   id:"sapphire",
+  displayOrder:45,
   name:"サファイヤ",
   rarity:"epic",
   art:["gems",1],
@@ -330,6 +347,7 @@ const ITEM_DEFS=[
  },
  {
   id:"diamond",
+  displayOrder:55,
   name:"ダイヤモンド",
   rarity:"epic",
   art:["gems",2],
@@ -338,6 +356,7 @@ const ITEM_DEFS=[
  },
  {
   id:"superpickaxe",
+  displayOrder:2605,
   name:"スーパーピッケル",
   equipment:{"slot":"weapon","weaponType":"slash","attack":20,"defense":0},
   rarity:"rare",
@@ -346,6 +365,7 @@ const ITEM_DEFS=[
  },
  {
   id:"greatpickaxe",
+  displayOrder:2610,
   name:"グレートピッケル",
   equipment:{"slot":"weapon","weaponType":"slash","attack":20,"defense":0},
   rarity:"rare",
@@ -354,6 +374,7 @@ const ITEM_DEFS=[
  },
  {
   id:"redstone",
+  displayOrder:30,
   name:"赤い石",
   art:["stones",0],
   craftGroup:"mineral",
@@ -361,6 +382,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bluestone",
+  displayOrder:40,
   name:"青い石",
   art:["stones",1],
   craftGroup:"mineral",
@@ -368,6 +390,7 @@ const ITEM_DEFS=[
  },
  {
   id:"whitestone",
+  displayOrder:50,
   name:"白い石",
   art:["stones",2],
   craftGroup:"mineral",
@@ -375,28 +398,33 @@ const ITEM_DEFS=[
  },
  {
   id:"obsidian",
+  displayOrder:60,
   name:"黒曜石",
   art:["gems",3]
  },
  {
   id:"meteorite",
+  displayOrder:65,
   name:"メテオライト",
   art:["stones",3]
  },
  {
   id:"cloth",
+  displayOrder:300,
   name:"布",
   art:["materials",1],
   fallback:"🧵"
  },
  {
   id:"cell",
+  displayOrder:610,
   name:"エネルギーセル",
   art:["energy",1],
   fallback:"🔋"
  },
  {
   id:"ragglove",
+  displayOrder:2005,
   name:"ボロ手袋",
   equipment:{"slot":"weapon","weaponType":"fist","attack":5,"defense":0},
   art:["gloves",0],
@@ -404,6 +432,7 @@ const ITEM_DEFS=[
  },
  {
   id:"scissors",
+  displayOrder:2615,
   name:"ハサミ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":8,"defense":0},
   art:["materials",2],
@@ -411,6 +440,7 @@ const ITEM_DEFS=[
  },
  {
   id:"charcoal",
+  displayOrder:205,
   name:"木炭",
   rarity:"common",
   art:["materials",3],
@@ -420,12 +450,14 @@ const ITEM_DEFS=[
  },
  {
   id:"core",
+  displayOrder:620,
   name:"プラズマコア",
   art:["energy",0],
   fallback:"🔮"
  },
  {
   id:"glove",
+  displayOrder:2010,
   name:"グローブ",
   equipment:{"slot":"weapon","weaponType":"fist","attack":12,"defense":0},
   rarity:"uncommon",
@@ -435,6 +467,7 @@ const ITEM_DEFS=[
  },
  {
   id:"reinforced",
+  displayOrder:2015,
   name:"強化グローブ",
   equipment:{"slot":"weapon","weaponType":"fist","attack":24,"defense":0},
   rarity:"rare",
@@ -444,6 +477,7 @@ const ITEM_DEFS=[
  },
  {
   id:"steel",
+  displayOrder:110,
   name:"鋼鉄",
   rarity:"rare",
   art:["energy",2],
@@ -453,6 +487,7 @@ const ITEM_DEFS=[
  },
  {
   id:"discharger",
+  displayOrder:615,
   name:"放電装置",
   rarity:"rare",
   art:["energy",3],
@@ -462,6 +497,7 @@ const ITEM_DEFS=[
  },
  {
   id:"plasma",
+  displayOrder:2020,
   name:"プラズマグローブ",
   equipment:{"slot":"weapon","weaponType":"fist","attack":46,"defense":0},
   effect:{"name":"迸る電撃","description":"攻撃時、相手のスタミナが50以下の場合、追加で5ダメージを与える。ドローンのスタミナは0として判定する。","lowStaminaThreshold":50,"lowStaminaDamage":5},
@@ -472,6 +508,7 @@ const ITEM_DEFS=[
  },
  {
   id:"armguard",
+  displayOrder:3405,
   encyclopediaAfter:"simple_armguard",
   name:"アームガード",
   equipment:{"slot":"arm","attack":0,"defense":18},
@@ -482,6 +519,7 @@ const ITEM_DEFS=[
  },
  {
   id:"kit",
+  displayOrder:1215,
   name:"応急キット",
   rarity:"common",
   recovery:{"group":"hp","amount":60},
@@ -492,6 +530,7 @@ const ITEM_DEFS=[
  },
  {
   id:"ration",
+  displayOrder:1100,
   name:"レーション",
   recovery:{"group":"hp","amount":20},
   art:["gear",1],
@@ -499,6 +538,7 @@ const ITEM_DEFS=[
  },
  {
   id:"drink",
+  displayOrder:1605,
   name:"ドリンク",
   recovery:{"group":"stamina","amount":20},
   art:["gear",2],
@@ -508,6 +548,7 @@ const ITEM_DEFS=[
  },
  {
   id:"water",
+  displayOrder:1600,
   name:"水",
   recovery:{"group":"stamina","amount":10},
   art:["water_1",0],
@@ -516,6 +557,7 @@ const ITEM_DEFS=[
  },
  {
   id:"seaweed",
+  displayOrder:1500,
   name:"海草",
   recovery:{"group":"hp","amount":10},
   art:["water_1",1],
@@ -523,6 +565,7 @@ const ITEM_DEFS=[
  },
  {
   id:"swimsuit",
+  displayOrder:3600,
   name:"水着",
   equipment:{"slot":"body","attack":0,"defense":8},
   art:["water_gear_1",0],
@@ -530,18 +573,21 @@ const ITEM_DEFS=[
  },
  {
   id:"rubber",
+  displayOrder:700,
   name:"ゴム",
   art:["water_1",3],
   fallback:"⚫"
  },
  {
   id:"oil",
+  displayOrder:710,
   name:"オイル",
   art:["water_1",2],
   fallback:"🛢️"
  },
  {
   id:"swordfish",
+  displayOrder:800,
   name:"ソードフィッシュ",
   art:["water_2",0],
   fallback:"🐟",
@@ -549,6 +595,7 @@ const ITEM_DEFS=[
  },
  {
   id:"minefish",
+  displayOrder:805,
   name:"ジライギョ",
   art:["water_2",1],
   fallback:"🐡",
@@ -556,6 +603,7 @@ const ITEM_DEFS=[
  },
  {
   id:"porcupinefish",
+  displayOrder:810,
   name:"ハリセンボン",
   art:["water_2",2],
   fallback:"🐡",
@@ -563,6 +611,7 @@ const ITEM_DEFS=[
  },
  {
   id:"paradisefish",
+  displayOrder:815,
   name:"ラクエンウオ",
   art:["water_2",3],
   fallback:"🐠",
@@ -570,6 +619,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wood_sword",
+  displayOrder:2305,
   name:"木剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":12,"defense":0},
   art:["water_5",2],
@@ -577,6 +627,7 @@ const ITEM_DEFS=[
  },
  {
   id:"survival_knife",
+  displayOrder:2400,
   name:"サバイバルナイフ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":18,"defense":0},
   art:["water_5",3],
@@ -584,6 +635,7 @@ const ITEM_DEFS=[
  },
  {
   id:"hotwater",
+  displayOrder:725,
   name:"熱湯",
   rarity:"common",
   art:["water_3",0],
@@ -593,6 +645,7 @@ const ITEM_DEFS=[
  },
  {
   id:"seaweed_soup",
+  displayOrder:1505,
   name:"海草スープ",
   rarity:"common",
   recovery:{"group":"hp","amount":30},
@@ -603,6 +656,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bikini_pants",
+  displayOrder:3605,
   name:"ビキニパンツ",
   equipment:{"slot":"body","attack":0,"defense":15},
   rarity:"uncommon",
@@ -612,6 +666,7 @@ const ITEM_DEFS=[
  },
  {
   id:"passion_bikini",
+  displayOrder:3610,
   name:"情熱のビキニ",
   equipment:{"slot":"body","attack":0,"defense":48},
   effect:{"name":"情熱の紅","description":"与えるダメージが2増加する。相手に発見される確率が5ポイント上昇する。","damageBonus":2,"discoveryRateBonus":0.05},
@@ -622,6 +677,7 @@ const ITEM_DEFS=[
  },
  {
   id:"rubber_gloves",
+  displayOrder:2220,
   name:"ゴム手袋",
   equipment:{"slot":"weapon","weaponType":"fist","attack":24,"defense":0},
   rarity:"uncommon",
@@ -631,6 +687,7 @@ const ITEM_DEFS=[
  },
  {
   id:"rubber_suit",
+  displayOrder:3615,
   name:"ラバースーツ",
   equipment:{"slot":"body","attack":0,"defense":20},
   rarity:"uncommon",
@@ -640,6 +697,7 @@ const ITEM_DEFS=[
  },
  {
   id:"insulated_suit",
+  displayOrder:3620,
   name:"耐電スーツ",
   equipment:{"slot":"body","attack":0,"defense":30},
   rarity:"rare",
@@ -649,6 +707,7 @@ const ITEM_DEFS=[
  },
  {
   id:"charged_suit",
+  displayOrder:3625,
   name:"帯電スーツ",
   equipment:{"slot":"body","attack":0,"defense":46},
   effect:{"name":"帯電","description":"銃による攻撃を受けたとき、相手の銃の耐久値を1減らす。","gunDurabilityRetaliation":1,"cooldownSeconds":90},
@@ -660,6 +719,7 @@ const ITEM_DEFS=[
  },
  {
   id:"glue",
+  displayOrder:705,
   name:"接着剤",
   rarity:"uncommon",
   art:["water_3",2],
@@ -669,6 +729,7 @@ const ITEM_DEFS=[
  },
  {
   id:"heated_oil",
+  displayOrder:715,
   name:"熱したオイル",
   rarity:"uncommon",
   art:["water_3",1],
@@ -678,6 +739,7 @@ const ITEM_DEFS=[
  },
  {
   id:"sea_sword",
+  displayOrder:2620,
   name:"海魚剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":33,"defense":0},
   rarity:"rare",
@@ -687,6 +749,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fried_swordfish",
+  displayOrder:1515,
   name:"剣魚の素揚げ",
   rarity:"rare",
   recovery:{"group":"hp","amount":40},
@@ -697,6 +760,7 @@ const ITEM_DEFS=[
  },
  {
   id:"swordfish_sashimi",
+  displayOrder:1510,
   name:"剣魚の刺身",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":30},
@@ -707,6 +771,7 @@ const ITEM_DEFS=[
  },
  {
   id:"minefish_sashimi",
+  displayOrder:1520,
   name:"地雷魚の刺身",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":25},
@@ -717,6 +782,7 @@ const ITEM_DEFS=[
  },
  {
   id:"needle_suit",
+  displayOrder:3630,
   name:"ニードルスーツ",
   equipment:{"slot":"body","attack":0,"defense":25},
   effect:{"name":"トゲ","description":"拳による攻撃を受けたとき、相手に2ダメージを与える。","fistCounterDamage":2},
@@ -727,6 +793,7 @@ const ITEM_DEFS=[
  },
  {
   id:"stinger_suit",
+  displayOrder:3635,
   name:"スティンガースーツ",
   equipment:{"slot":"body","attack":0,"defense":46},
   effect:{"name":"鋭いトゲ","description":"拳による攻撃を受けたとき、相手に4ダメージを与える。","fistCounterDamage":4},
@@ -737,6 +804,7 @@ const ITEM_DEFS=[
  },
  {
   id:"onyx_suit",
+  displayOrder:3640,
   name:"オニキススーツ",
   equipment:{"slot":"body","attack":0,"defense":52},
   effect:{"name":"黒曜のトゲ","description":"拳による被ダメージが10%減少する。拳による攻撃を受けたとき、相手に2ダメージを与える。","fistDamageReduction":0.1,"fistCounterDamage":2},
@@ -747,6 +815,7 @@ const ITEM_DEFS=[
  },
  {
   id:"paradise_sashimi",
+  displayOrder:1525,
   name:"楽園魚の刺身",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":20},
@@ -757,6 +826,7 @@ const ITEM_DEFS=[
  },
  {
   id:"paradise_platter",
+  displayOrder:1530,
   name:"楽園魚の造り",
   rarity:"rare",
   recovery:{"group":"hp","amount":100},
@@ -767,6 +837,7 @@ const ITEM_DEFS=[
  },
  {
   id:"paradise_broth",
+  displayOrder:1535,
   name:"極楽湯",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":30},
@@ -777,6 +848,7 @@ const ITEM_DEFS=[
  },
  {
   id:"handgun",
+  displayOrder:3105,
   name:"ハンドガン",
   equipment:{"slot":"weapon","attack":18,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},
   rarity:"uncommon",
@@ -785,6 +857,7 @@ const ITEM_DEFS=[
  },
  {
   id:"hand_blaster",
+  displayOrder:3110,
   name:"ハンドブラスター",
   equipment:{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},
   rarity:"rare",
@@ -794,6 +867,7 @@ const ITEM_DEFS=[
  },
  {
   id:"magma_blaster",
+  displayOrder:3115,
   name:"マグマブラスター",
   equipment:{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},
   effect:{"name":"噴火","description":"3回攻撃するごとに、追加で固定15ダメージを与える。ガードされた攻撃も回数に含む。","attackInterval":3,"fixedDamage":15},
@@ -805,6 +879,7 @@ const ITEM_DEFS=[
  },
  {
   id:"rifle",
+  displayOrder:3120,
   name:"ライフル",
   equipment:{"slot":"weapon","attack":19,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},
   rarity:"uncommon",
@@ -813,6 +888,7 @@ const ITEM_DEFS=[
  },
  {
   id:"sniper_rifle",
+  displayOrder:3125,
   name:"スナイパーライフル",
   equipment:{"slot":"weapon","attack":32,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},
   effect:{"name":"ガード突破","description":"ガードされる確率が5ポイント低下する。","accuracyBonus":5},
@@ -823,6 +899,7 @@ const ITEM_DEFS=[
  },
  {
   id:"laser_rifle",
+  displayOrder:3130,
   name:"レーザーライフル",
   equipment:{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":Infinity,"unlimitedAmmo":true},
   effect:{"name":"ガード突破","description":"ガードされる確率が5ポイント低下する。","accuracyBonus":5},
@@ -833,6 +910,7 @@ const ITEM_DEFS=[
  },
  {
   id:"cannon",
+  displayOrder:3135,
   name:"キャノン",
   equipment:{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},
   rarity:"rare",
@@ -842,6 +920,7 @@ const ITEM_DEFS=[
  },
  {
   id:"blizzard_cannon",
+  displayOrder:3140,
   name:"ブリザードキャノン",
   equipment:{"slot":"weapon","attack":48,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},
   effect:{"name":"豪雪","description":"攻撃時、相手に凍結を付与する。凍結中は4秒間、回復アイテムを使用できない。ガードされても発動する。","freezeMs":4000,"cooldownMs":45000},
@@ -852,6 +931,7 @@ const ITEM_DEFS=[
  },
  {
   id:"telescope",
+  displayOrder:4400,
   name:"望遠鏡",
   equipment:{"slot":"accessory","attack":0,"defense":10},
   rarity:"uncommon",
@@ -860,6 +940,7 @@ const ITEM_DEFS=[
  },
  {
   id:"optical_sight",
+  displayOrder:4415,
   name:"光学照準器",
   equipment:{"slot":"accessory","attack":0,"defense":12},
   effect:{"name":"ガード突破","description":"ガードされる確率が5ポイント低下する。","accuracyBonus":5},
@@ -870,6 +951,7 @@ const ITEM_DEFS=[
  },
  {
   id:"stargazing_telescope",
+  displayOrder:4405,
   name:"星見望遠鏡",
   equipment:{"slot":"accessory","attack":0,"defense":16},
   effect:{"name":"スターゲイザー","description":"15回探索するごとに、所持品に空き枠があれば石・鉱石系素材を1個入手する。等級が低い素材ほど選ばれやすい。","searchInterval":15},
@@ -881,6 +963,7 @@ const ITEM_DEFS=[
  },
  {
   id:"mythic_telescope",
+  displayOrder:4410,
   name:"神話の望遠鏡",
   equipment:{"slot":"accessory","attack":0,"defense":22},
   effect:{"name":"神の恵み","description":"10回探索するごとに、所持品に空き枠があればレア以上の石・鉱石系素材を1個入手する。","searchInterval":10,"mineralMinTier":"rare"},
@@ -892,6 +975,7 @@ const ITEM_DEFS=[
  },
  {
   id:"japanese_bow",
+  displayOrder:2905,
   name:"和弓",
   equipment:{"slot":"weapon","attack":12,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
   rarity:"common",
@@ -900,6 +984,7 @@ const ITEM_DEFS=[
  },
  {
   id:"strong_bow",
+  displayOrder:2910,
   name:"強弓",
   equipment:{"slot":"weapon","attack":18,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
   rarity:"uncommon",
@@ -909,6 +994,7 @@ const ITEM_DEFS=[
  },
  {
   id:"reinforced_wire",
+  displayOrder:605,
   name:"強化ワイヤー",
   rarity:"uncommon",
   art:["ranged_materials",2],
@@ -917,6 +1003,7 @@ const ITEM_DEFS=[
  },
  {
   id:"mighty_bow",
+  displayOrder:2915,
   name:"剛弓",
   equipment:{"slot":"weapon","attack":30,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
   rarity:"rare",
@@ -926,6 +1013,7 @@ const ITEM_DEFS=[
  },
  {
   id:"azusa_bow",
+  displayOrder:2920,
   name:"梓弓",
   equipment:{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":20},
   rarity:"epic",
@@ -935,6 +1023,7 @@ const ITEM_DEFS=[
  },
  {
   id:"unerring_bow",
+  displayOrder:2925,
   name:"名弓・百発百中",
   equipment:{"slot":"weapon","attack":46,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},
   effect:{"name":"ガード突破","description":"ガードされる確率が5ポイント低下する。","accuracyBonus":5},
@@ -945,6 +1034,7 @@ const ITEM_DEFS=[
  },
  {
   id:"western_bow",
+  displayOrder:3000,
   name:"洋弓",
   equipment:{"slot":"weapon","attack":14,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
   rarity:"common",
@@ -953,6 +1043,7 @@ const ITEM_DEFS=[
  },
  {
   id:"longbow",
+  displayOrder:3005,
   name:"ロングボウ",
   equipment:{"slot":"weapon","attack":20,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
   rarity:"uncommon",
@@ -962,6 +1053,7 @@ const ITEM_DEFS=[
  },
  {
   id:"silver_bow",
+  displayOrder:3010,
   name:"白銀の弓",
   equipment:{"slot":"weapon","attack":32,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},
   rarity:"rare",
@@ -971,6 +1063,7 @@ const ITEM_DEFS=[
  },
  {
   id:"golden_bow",
+  displayOrder:3015,
   name:"黄金の弓",
   equipment:{"slot":"weapon","attack":35,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},
   rarity:"rare",
@@ -980,6 +1073,7 @@ const ITEM_DEFS=[
  },
  {
   id:"angel_wing",
+  displayOrder:4510,
   name:"天使の羽",
   equipment:{"slot":"accessory","attack":0,"defense":16},
   rarity:"rare",
@@ -989,6 +1083,7 @@ const ITEM_DEFS=[
  },
  {
   id:"eros_bow",
+  displayOrder:3020,
   name:"エロスの弓",
   equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},
   effect:{"name":"愛の矢","description":"攻撃時、実際に与えたダメージの5%分のHPを回復する。回復量の端数は切り上げる。","lifesteal":0.05},
@@ -999,6 +1094,7 @@ const ITEM_DEFS=[
  },
  {
   id:"amalgam_bow",
+  displayOrder:3025,
   name:"アマルガムボウ",
   equipment:{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
   effect:{"name":"合成皮質","description":"攻撃しても耐久値が低下しない。","durabilityLossImmune":true},
@@ -1009,6 +1105,7 @@ const ITEM_DEFS=[
  },
  {
   id:"apollo_bow",
+  displayOrder:3030,
   name:"アポロンの弓",
   equipment:{"slot":"weapon","attack":50,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},
   rarity:"epic",
@@ -1018,6 +1115,7 @@ const ITEM_DEFS=[
  },
  {
   id:"rubbery_hide",
+  displayOrder:415,
   name:"ゴム質の皮",
   rarity:"uncommon",
   art:["hides_feathers",3],
@@ -1026,6 +1124,7 @@ const ITEM_DEFS=[
  },
  {
   id:"gunpowder",
+  displayOrder:740,
   name:"火薬",
   rarity:"common",
   art:["ranged_materials",0],
@@ -1033,6 +1132,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wire",
+  displayOrder:600,
   name:"ワイヤー",
   rarity:"common",
   art:["ranged_materials",1],
@@ -1040,6 +1140,7 @@ const ITEM_DEFS=[
  },
  {
   id:"feather",
+  displayOrder:405,
   name:"羽",
   rarity:"common",
   art:["hides_feathers",1],
@@ -1047,6 +1148,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fur",
+  displayOrder:400,
   name:"毛皮",
   rarity:"common",
   art:["hides_feathers",2],
@@ -1054,6 +1156,7 @@ const ITEM_DEFS=[
  },
  {
   id:"laurel",
+  displayOrder:910,
   name:"月桂樹",
   rarity:"epic",
   art:["ranged_materials",3],
@@ -1061,6 +1164,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bullets",
+  displayOrder:1005,
   name:"銃弾",
   rarity:"common",
   art:["ammo",0],
@@ -1070,6 +1174,7 @@ const ITEM_DEFS=[
  },
  {
   id:"arrows",
+  displayOrder:1000,
   name:"矢",
   rarity:"common",
   art:["ammo",1],
@@ -1079,6 +1184,7 @@ const ITEM_DEFS=[
  },
  {
   id:"egg",
+  displayOrder:1400,
   name:"卵",
   recovery:{"group":"hp","amount":10},
   art:["drone_drops_1",0],
@@ -1086,12 +1192,14 @@ const ITEM_DEFS=[
  },
  {
   id:"fish_scale",
+  displayOrder:410,
   name:"魚鱗",
   art:["drone_drops_1",1],
   fallback:"🔹"
  },
  {
   id:"beast_meat",
+  displayOrder:1300,
   name:"獣肉",
   recovery:{"group":"hp","amount":30},
   art:["drone_drops_1",2],
@@ -1099,6 +1207,7 @@ const ITEM_DEFS=[
  },
  {
   id:"premium_ration",
+  displayOrder:1110,
   name:"高級レーション",
   rarity:"rare",
   recovery:{"group":"hp","amount":80},
@@ -1109,6 +1218,7 @@ const ITEM_DEFS=[
  },
  {
   id:"energy_drink",
+  displayOrder:1610,
   name:"エナジードリンク",
   rarity:"uncommon",
   recovery:{"group":"stamina","amount":50},
@@ -1119,6 +1229,7 @@ const ITEM_DEFS=[
  },
  {
   id:"goggles",
+  displayOrder:3200,
   name:"ゴーグル",
   equipment:{"slot":"head","attack":0,"defense":6},
   rarity:"common",
@@ -1127,6 +1238,7 @@ const ITEM_DEFS=[
  },
  {
   id:"night_goggles",
+  displayOrder:3205,
   name:"暗視ゴーグル",
   equipment:{"slot":"head","attack":0,"defense":26},
   rarity:"rare",
@@ -1136,6 +1248,7 @@ const ITEM_DEFS=[
  },
  {
   id:"xray_goggles",
+  displayOrder:3210,
   name:"透視ゴーグル",
   equipment:{"slot":"head","attack":0,"defense":46},
   effect:{"name":"ガード突破","description":"ガードされる確率が7ポイント低下する。","accuracyBonus":7},
@@ -1146,6 +1259,7 @@ const ITEM_DEFS=[
  },
  {
   id:"machine_goggles",
+  displayOrder:3215,
   name:"機械ゴーグル",
   equipment:{"slot":"head","attack":0,"defense":14},
   rarity:"uncommon",
@@ -1155,6 +1269,7 @@ const ITEM_DEFS=[
  },
  {
   id:"mechanic_goggles",
+  displayOrder:3220,
   name:"メカニックゴーグル",
   equipment:{"slot":"head","attack":0,"defense":30},
   rarity:"rare",
@@ -1164,6 +1279,7 @@ const ITEM_DEFS=[
  },
  {
   id:"steampunk_goggles",
+  displayOrder:3225,
   name:"スチームパンクゴーグル",
   equipment:{"slot":"head","attack":0,"defense":48},
   rarity:"epic",
@@ -1173,6 +1289,7 @@ const ITEM_DEFS=[
  },
  {
   id:"hat",
+  displayOrder:3300,
   name:"帽子",
   equipment:{"slot":"head","attack":0,"defense":7},
   rarity:"common",
@@ -1181,6 +1298,7 @@ const ITEM_DEFS=[
  },
  {
   id:"cloth_hat",
+  displayOrder:3305,
   name:"布の帽子",
   equipment:{"slot":"head","attack":0,"defense":14},
   rarity:"uncommon",
@@ -1190,6 +1308,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fur_hat",
+  displayOrder:3310,
   name:"毛皮の帽子",
   equipment:{"slot":"head","attack":0,"defense":26},
   rarity:"rare",
@@ -1199,6 +1318,7 @@ const ITEM_DEFS=[
  },
  {
   id:"leather_hat",
+  displayOrder:3315,
   name:"レザーハット",
   equipment:{"slot":"head","attack":0,"defense":38},
   effect:{"name":"斬撃軽減","description":"斬りによる被ダメージが10%減少する。軽減後の端数は切り捨て、ダメージは最低1になる。","slashDamageReduction":0.1},
@@ -1209,6 +1329,7 @@ const ITEM_DEFS=[
  },
  {
   id:"feather_hat",
+  displayOrder:3320,
   name:"羽付き帽子",
   equipment:{"slot":"head","attack":0,"defense":12},
   rarity:"uncommon",
@@ -1218,6 +1339,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bluebird_hat",
+  displayOrder:3325,
   name:"青い鳥の帽子",
   equipment:{"slot":"head","attack":0,"defense":44},
   effect:{"name":"幸福の予感","description":"4回探索するごとに、スタミナを6回復する。","searchInterval":4,"staminaRecovery":6},
@@ -1229,6 +1351,7 @@ const ITEM_DEFS=[
  },
  {
   id:"glass_shard",
+  displayOrder:730,
   name:"ガラス片",
   rarity:"common",
   art:["equipment_04",0],
@@ -1236,6 +1359,7 @@ const ITEM_DEFS=[
  },
  {
   id:"monitor",
+  displayOrder:735,
   name:"モニター",
   rarity:"uncommon",
   art:["equipment_04",1],
@@ -1244,6 +1368,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bracelet",
+  displayOrder:3500,
   name:"ブレスレット",
   equipment:{"slot":"arm","attack":0,"defense":8},
   rarity:"common",
@@ -1252,6 +1377,7 @@ const ITEM_DEFS=[
  },
  {
   id:"ruby_bracelet",
+  displayOrder:3515,
   name:"紅玉のブレスレット",
   equipment:{"slot":"arm","attack":0,"defense":36},
   effect:{"name":"ルビーの輝き","description":"回復アイテムによるHP・スタミナの回復量が10%増加する。回復量の端数は切り上げる。","recoveryBonus":0.1},
@@ -1262,6 +1388,7 @@ const ITEM_DEFS=[
  },
  {
   id:"gold_bracelet",
+  displayOrder:3505,
   name:"金のブレスレット",
   equipment:{"slot":"arm","attack":0,"defense":25},
   rarity:"rare",
@@ -1271,6 +1398,7 @@ const ITEM_DEFS=[
  },
  {
   id:"silver_bracelet",
+  displayOrder:3510,
   name:"白銀のブレスレット",
   equipment:{"slot":"arm","attack":0,"defense":35},
   effect:{"name":"純然たる輝き","description":"アクティブスキルによる被ダメージが20%減少する。軽減後の端数は切り捨て、ダメージは最低1になる。","activeDamageReduction":0.2},
@@ -1281,6 +1409,7 @@ const ITEM_DEFS=[
  },
  {
   id:"hermes_bracelet",
+  displayOrder:3520,
   name:"ヘルメスのブレスレット",
   equipment:{"slot":"arm","attack":0,"defense":40},
   effect:{"name":"伝令神の証","description":"区画移動時の消費スタミナが1減少する。","movementDiscount":1},
@@ -1291,6 +1420,7 @@ const ITEM_DEFS=[
  },
  {
   id:"simple_armguard",
+  displayOrder:3400,
   name:"簡易アームガード",
   equipment:{"slot":"arm","attack":0,"defense":12},
   rarity:"common",
@@ -1300,6 +1430,7 @@ const ITEM_DEFS=[
  },
  {
   id:"iron_armguard",
+  displayOrder:3410,
   name:"鉄のアームガード",
   equipment:{"slot":"arm","attack":0,"defense":25},
   rarity:"rare",
@@ -1309,6 +1440,7 @@ const ITEM_DEFS=[
  },
  {
   id:"steel_armguard",
+  displayOrder:3415,
   name:"鋼のアームガード",
   equipment:{"slot":"arm","attack":0,"defense":35},
   effect:{"name":"鋼鉄の護り","description":"斬りによる攻撃を受けたとき、相手の武器の耐久値を1減らす。","slashDurabilityRetaliation":1,"cooldownSeconds":60},
@@ -1320,6 +1452,7 @@ const ITEM_DEFS=[
  },
  {
   id:"obsidian_armguard",
+  displayOrder:3420,
   name:"黒曜石のアームガード",
   equipment:{"slot":"arm","attack":0,"defense":40},
   rarity:"epic",
@@ -1329,6 +1462,7 @@ const ITEM_DEFS=[
  },
  {
   id:"boots",
+  displayOrder:3900,
   name:"ブーツ",
   equipment:{"slot":"legs","attack":0,"defense":6},
   rarity:"common",
@@ -1337,6 +1471,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fur_boots",
+  displayOrder:3905,
   name:"毛皮のブーツ",
   equipment:{"slot":"legs","attack":0,"defense":12},
   rarity:"uncommon",
@@ -1346,6 +1481,7 @@ const ITEM_DEFS=[
  },
  {
   id:"synthetic_boots",
+  displayOrder:3910,
   name:"合皮ブーツ",
   equipment:{"slot":"legs","attack":0,"defense":25},
   rarity:"rare",
@@ -1355,6 +1491,7 @@ const ITEM_DEFS=[
  },
  {
   id:"amalgam_boots",
+  displayOrder:3915,
   name:"アマルガムブーツ",
   equipment:{"slot":"legs","attack":0,"defense":44},
   rarity:"epic",
@@ -1364,6 +1501,7 @@ const ITEM_DEFS=[
  },
  {
   id:"primal_boots",
+  displayOrder:3920,
   name:"原生獣のブーツ",
   equipment:{"slot":"legs","attack":0,"defense":44},
   effect:{"name":"野生の本能","description":"相手を倒したとき、その死体にレア以下のランダムな報酬を1個追加する。","corpseBonus":true},
@@ -1374,6 +1512,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wing_boots",
+  displayOrder:4000,
   name:"ウィングブーツ",
   equipment:{"slot":"legs","attack":0,"defense":11},
   rarity:"common",
@@ -1383,6 +1522,7 @@ const ITEM_DEFS=[
  },
  {
   id:"spike_boots",
+  displayOrder:4005,
   name:"スパイクブーツ",
   equipment:{"slot":"legs","attack":0,"defense":22},
   rarity:"rare",
@@ -1392,6 +1532,7 @@ const ITEM_DEFS=[
  },
  {
   id:"diamond_boots",
+  displayOrder:4010,
   name:"金剛石のブーツ",
   equipment:{"slot":"legs","attack":0,"defense":55},
   effect:{"name":"5カラット","description":"探索時の消費スタミナが1増加する。","searchCostBonus":1},
@@ -1402,6 +1543,7 @@ const ITEM_DEFS=[
  },
  {
   id:"gear_boots",
+  displayOrder:4015,
   name:"ギアブーツ",
   equipment:{"slot":"legs","attack":0,"defense":24},
   rarity:"rare",
@@ -1411,6 +1553,7 @@ const ITEM_DEFS=[
  },
  {
   id:"automation_boots",
+  displayOrder:4020,
   name:"オートメーションブーツ",
   equipment:{"slot":"legs","attack":0,"defense":42},
   effect:{"name":"自動操縦","description":"相手を発見する確率が5ポイント上昇する。","enemyDiscoveryBonus":0.05},
@@ -1421,6 +1564,7 @@ const ITEM_DEFS=[
  },
  {
   id:"leg_cover",
+  displayOrder:4100,
   name:"レッグカバー",
   equipment:{"slot":"legs","attack":0,"defense":12},
   rarity:"uncommon",
@@ -1430,6 +1574,7 @@ const ITEM_DEFS=[
  },
  {
   id:"steel_leg_cover",
+  displayOrder:4105,
   name:"鋼のレッグカバー",
   equipment:{"slot":"legs","attack":0,"defense":25},
   rarity:"rare",
@@ -1439,6 +1584,7 @@ const ITEM_DEFS=[
  },
  {
   id:"energy_socks",
+  displayOrder:4110,
   name:"エナジーソックス",
   equipment:{"slot":"legs","attack":0,"defense":36},
   effect:{"name":"ハイエナジー","description":"最大スタミナが30増加する。","maxStaminaBonus":30},
@@ -1449,6 +1595,7 @@ const ITEM_DEFS=[
  },
  {
   id:"small_gear",
+  displayOrder:500,
   name:"小さな歯車",
   rarity:"common",
   art:["equipment_04",2],
@@ -1456,6 +1603,7 @@ const ITEM_DEFS=[
  },
  {
   id:"large_gear",
+  displayOrder:505,
   name:"大きな歯車",
   rarity:"uncommon",
   art:["equipment_04",3],
@@ -1463,6 +1611,7 @@ const ITEM_DEFS=[
  },
  {
   id:"energy_gear",
+  displayOrder:510,
   name:"エネルギーギア",
   rarity:"rare",
   art:["equipment_10",2],
@@ -1471,6 +1620,7 @@ const ITEM_DEFS=[
  },
  {
   id:"suit",
+  displayOrder:3700,
   name:"スーツ",
   equipment:{"slot":"body","attack":0,"defense":18},
   rarity:"uncommon",
@@ -1480,6 +1630,7 @@ const ITEM_DEFS=[
  },
  {
   id:"royal_suit",
+  displayOrder:3705,
   name:"ロイヤルスーツ",
   equipment:{"slot":"body","attack":0,"defense":48},
   effect:{"name":"貴族の威光","description":"エピック以上のアイテムを製作したとき、獲得する経験値が10%増加する。","epicCraftXpBonus":0.1},
@@ -1490,6 +1641,7 @@ const ITEM_DEFS=[
  },
  {
   id:"sailor_suit",
+  displayOrder:3710,
   name:"セーラースーツ",
   equipment:{"slot":"body","attack":0,"defense":32},
   rarity:"rare",
@@ -1499,6 +1651,7 @@ const ITEM_DEFS=[
  },
  {
   id:"navy_suit",
+  displayOrder:3715,
   name:"ネイビースーツ",
   equipment:{"slot":"body","attack":0,"defense":49},
   effect:{"name":"対銃防護","description":"銃による被ダメージが10%減少する。軽減後の端数は切り捨て、ダメージは最低1になる。","gunDamageReduction":0.1},
@@ -1509,6 +1662,7 @@ const ITEM_DEFS=[
  },
  {
   id:"lab_coat",
+  displayOrder:3800,
   name:"白衣",
   equipment:{"slot":"body","attack":0,"defense":10},
   rarity:"common",
@@ -1517,6 +1671,7 @@ const ITEM_DEFS=[
  },
  {
   id:"apothecary_clothes",
+  displayOrder:3805,
   name:"薬師の服",
   equipment:{"slot":"body","attack":0,"defense":18},
   rarity:"uncommon",
@@ -1526,6 +1681,7 @@ const ITEM_DEFS=[
  },
  {
   id:"holy_robe",
+  displayOrder:3810,
   name:"聖なるローブ",
   equipment:{"slot":"body","attack":0,"defense":31},
   rarity:"rare",
@@ -1535,6 +1691,7 @@ const ITEM_DEFS=[
  },
  {
   id:"archangel_robe",
+  displayOrder:3815,
   name:"大天使のローブ",
   equipment:{"slot":"body","attack":0,"defense":46},
   effect:{"name":"大天使の加護","description":"回復薬系統のアイテムを製作したとき、完成する個数が1個増加する。","potionCraftBonus":1},
@@ -1545,6 +1702,7 @@ const ITEM_DEFS=[
  },
  {
   id:"doctor_suit",
+  displayOrder:3820,
   name:"ドクタースーツ",
   equipment:{"slot":"body","attack":0,"defense":20},
   rarity:"uncommon",
@@ -1554,6 +1712,7 @@ const ITEM_DEFS=[
  },
  {
   id:"black_doctor_gown",
+  displayOrder:3825,
   name:"黒医者のガウン",
   equipment:{"slot":"body","attack":0,"defense":32},
   rarity:"rare",
@@ -1563,6 +1722,7 @@ const ITEM_DEFS=[
  },
  {
   id:"mad_doctor_gown",
+  displayOrder:3830,
   name:"マッドドクターガウン",
   equipment:{"slot":"body","attack":0,"defense":47},
   effect:{"name":"狂ったメス","description":"攻撃時、相手に5秒間の負傷を付与する。負傷中は探索するたびにHPが4減少する。攻撃を受けると残り時間が5秒に戻る。ガードされても付与する。","injuryMs":5000,"cooldownMs":30000},
@@ -1574,6 +1734,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fine_cloth",
+  displayOrder:305,
   name:"上質な布",
   rarity:"uncommon",
   art:["body_03",3],
@@ -1582,6 +1743,7 @@ const ITEM_DEFS=[
  },
  {
   id:"thread",
+  displayOrder:310,
   name:"糸",
   rarity:"common",
   art:["body_04",0],
@@ -1589,6 +1751,7 @@ const ITEM_DEFS=[
  },
  {
   id:"gold_thread",
+  displayOrder:325,
   name:"黄金の糸",
   rarity:"rare",
   art:["body_04",1],
@@ -1597,6 +1760,7 @@ const ITEM_DEFS=[
  },
  {
   id:"sea_thread",
+  displayOrder:320,
   name:"潮風の糸",
   rarity:"uncommon",
   art:["body_04",2],
@@ -1605,6 +1769,7 @@ const ITEM_DEFS=[
  },
  {
   id:"black_thread",
+  displayOrder:315,
   name:"黒い糸",
   rarity:"uncommon",
   art:["body_04",3],
@@ -1613,6 +1778,7 @@ const ITEM_DEFS=[
  },
  {
   id:"herb_oil",
+  displayOrder:900,
   name:"薬草油",
   rarity:"uncommon",
   art:["body_05",0],
@@ -1621,6 +1787,7 @@ const ITEM_DEFS=[
  },
  {
   id:"poison_potion",
+  displayOrder:905,
   name:"毒薬",
   rarity:"rare",
   art:["body_05",1],
@@ -1629,6 +1796,7 @@ const ITEM_DEFS=[
  },
  {
   id:"herb",
+  displayOrder:1200,
   name:"薬草",
   rarity:"common",
   recovery:{"group":"hp","amount":10},
@@ -1638,6 +1806,7 @@ const ITEM_DEFS=[
  },
  {
   id:"healing_potion",
+  displayOrder:1220,
   name:"回復薬",
   rarity:"common",
   recovery:{"group":"hp","amount":30},
@@ -1648,6 +1817,7 @@ const ITEM_DEFS=[
  },
  {
   id:"practice_sword",
+  displayOrder:2300,
   name:"練習用の剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":8,"defense":0},
   art:["practice_1",0],
@@ -1655,6 +1825,7 @@ const ITEM_DEFS=[
  },
  {
   id:"practice_hammer",
+  displayOrder:2700,
   name:"練習用の槌",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":8,"defense":0},
   art:["practice_1",1],
@@ -1662,6 +1833,7 @@ const ITEM_DEFS=[
  },
  {
   id:"practice_gauntlet",
+  displayOrder:2000,
   name:"練習用の小手",
   equipment:{"slot":"weapon","weaponType":"fist","attack":8,"defense":0},
   art:["practice_1",2],
@@ -1669,6 +1841,7 @@ const ITEM_DEFS=[
  },
  {
   id:"practice_bow",
+  displayOrder:2900,
   name:"練習用の弓",
   equipment:{"slot":"weapon","weaponType":"bow","attack":8,"defense":0,"ammoType":"arrows","capacity":20},
   art:["practice_1",3],
@@ -1676,6 +1849,7 @@ const ITEM_DEFS=[
  },
  {
   id:"practice_gun",
+  displayOrder:3100,
   name:"練習用の銃",
   equipment:{"slot":"weapon","weaponType":"gun","attack":8,"defense":0,"ammoType":"bullets","capacity":20},
   art:["practice_2",0],
@@ -1683,6 +1857,7 @@ const ITEM_DEFS=[
  },
  {
   id:"roast_meat",
+  displayOrder:1305,
   name:"焼いた肉",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":80},
@@ -1693,6 +1868,7 @@ const ITEM_DEFS=[
  },
  {
   id:"smoked_meat",
+  displayOrder:1315,
   name:"燻製肉",
   rarity:"rare",
   recovery:{"group":"hp","amount":60},
@@ -1703,6 +1879,7 @@ const ITEM_DEFS=[
  },
  {
   id:"medium_ration",
+  displayOrder:1105,
   name:"中級レーション",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":40},
@@ -1713,6 +1890,7 @@ const ITEM_DEFS=[
  },
  {
   id:"boiled_egg",
+  displayOrder:1405,
   name:"ゆで卵",
   rarity:"common",
   recovery:{"group":"hp","amount":60},
@@ -1723,6 +1901,7 @@ const ITEM_DEFS=[
  },
  {
   id:"rock_salt",
+  displayOrder:1420,
   name:"岩塩",
   rarity:"common",
   recovery:{"group":"hp","amount":5},
@@ -1732,6 +1911,7 @@ const ITEM_DEFS=[
  },
  {
   id:"seasoned_egg",
+  displayOrder:1410,
   name:"味付き卵",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":60},
@@ -1742,6 +1922,7 @@ const ITEM_DEFS=[
  },
  {
   id:"frying_pan",
+  displayOrder:2830,
   name:"フライパン",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":7,"defense":0},
   rarity:"common",
@@ -1750,6 +1931,7 @@ const ITEM_DEFS=[
  },
  {
   id:"heated_frying_pan",
+  displayOrder:2835,
   name:"熱したフライパン",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":16,"defense":0},
   rarity:"uncommon",
@@ -1759,6 +1941,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fried_egg",
+  displayOrder:1415,
   name:"目玉焼き",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":50},
@@ -1769,6 +1952,7 @@ const ITEM_DEFS=[
  },
  {
   id:"salted_meat",
+  displayOrder:1310,
   name:"塩漬け肉",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":20},
@@ -1779,6 +1963,7 @@ const ITEM_DEFS=[
  },
  {
   id:"steak",
+  displayOrder:1320,
   name:"ステーキ",
   rarity:"epic",
   recovery:{"group":"hp","amount":150},
@@ -1789,6 +1974,7 @@ const ITEM_DEFS=[
  },
  {
   id:"small_flower",
+  displayOrder:1205,
   name:"小さな花",
   rarity:"common",
   recovery:{"group":"hp","amount":4},
@@ -1798,6 +1984,7 @@ const ITEM_DEFS=[
  },
  {
   id:"medium_healing_potion",
+  displayOrder:1225,
   name:"中級回復薬",
   rarity:"uncommon",
   recovery:{"group":"hp","amount":45},
@@ -1808,6 +1995,7 @@ const ITEM_DEFS=[
  },
  {
   id:"advanced_healing_potion",
+  displayOrder:1230,
   name:"上級回復薬",
   rarity:"rare",
   recovery:{"group":"hp","amount":70},
@@ -1818,6 +2006,7 @@ const ITEM_DEFS=[
  },
  {
   id:"energy_fruit",
+  displayOrder:1700,
   name:"エナジーフルーツ",
   rarity:"common",
   recovery:{"group":"stamina","amount":10},
@@ -1828,6 +2017,7 @@ const ITEM_DEFS=[
  },
  {
   id:"milk",
+  displayOrder:1705,
   name:"牛乳",
   rarity:"uncommon",
   recovery:{"group":"stamina","amount":20},
@@ -1837,6 +2027,7 @@ const ITEM_DEFS=[
  },
  {
   id:"hot_milk",
+  displayOrder:1710,
   name:"ホットミルク",
   rarity:"uncommon",
   recovery:{"group":"stamina","amount":20},
@@ -1847,6 +2038,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fruit_milk",
+  displayOrder:1715,
   name:"フルーツ牛乳",
   rarity:"rare",
   recovery:{"group":"stamina","amount":50},
@@ -1857,6 +2049,7 @@ const ITEM_DEFS=[
  },
  {
   id:"stamina_potion",
+  displayOrder:1800,
   name:"S回復薬",
   rarity:"common",
   recovery:{"group":"stamina","amount":30},
@@ -1867,6 +2060,7 @@ const ITEM_DEFS=[
  },
  {
   id:"advanced_stamina_potion",
+  displayOrder:1805,
   name:"上級S回復薬",
   rarity:"epic",
   recovery:{"group":"stamina","amount":80},
@@ -1877,6 +2071,7 @@ const ITEM_DEFS=[
  },
  {
   id:"soda",
+  displayOrder:1900,
   name:"ソーダ",
   rarity:"rare",
   recovery:{"group":"stamina","amount":40},
@@ -1886,6 +2081,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fruit_punch",
+  displayOrder:1720,
   name:"フルーツポンチ",
   rarity:"epic",
   recovery:{"group":"stamina","amount":60},
@@ -1896,6 +2092,7 @@ const ITEM_DEFS=[
  },
  {
   id:"craft_cola",
+  displayOrder:1905,
   name:"クラフトコーラ",
   rarity:"epic",
   recovery:{"group":"stamina","amount":150},
@@ -1906,6 +2103,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wood_mallet",
+  displayOrder:2705,
   name:"木槌",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":15,"defense":0},
   rarity:"common",
@@ -1914,6 +2112,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wood_hammer",
+  displayOrder:2710,
   name:"ウッドハンマー",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":25,"defense":0},
   rarity:"uncommon",
@@ -1923,6 +2122,7 @@ const ITEM_DEFS=[
  },
  {
   id:"steel_hammer",
+  displayOrder:2715,
   name:"スチールハンマー",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":36,"defense":0},
   rarity:"rare",
@@ -1932,6 +2132,7 @@ const ITEM_DEFS=[
  },
  {
   id:"keraunos_hammer",
+  displayOrder:2720,
   name:"ケラウノスハンマー",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":46,"defense":0},
   effect:{"name":"裁きの雷","description":"攻撃時、相手の6装備枠のうち、エピック以上の装備がない枠1つにつき追加で2ダメージを与える。ガードされても発動する。","judgment":true,"cooldownMs":30000},
@@ -1943,6 +2144,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bone_crusher",
+  displayOrder:2725,
   name:"ボーンクラッシャー",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":48,"defense":0},
   effect:{"name":"骨砕き","description":"攻撃時、1%の確率で相手に5秒間の負傷を付与する。負傷中は探索するたびにHPが4減少する。攻撃を受けると残り時間が5秒に戻る。ガードされても発動する。","injuryChance":0.01,"weaponInjuryMs":5000},
@@ -1953,6 +2155,7 @@ const ITEM_DEFS=[
  },
  {
   id:"wild_hammer",
+  displayOrder:2730,
   name:"ワイルドハンマー",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},
   rarity:"rare",
@@ -1962,6 +2165,7 @@ const ITEM_DEFS=[
  },
  {
   id:"super_wild_hammer",
+  displayOrder:2735,
   name:"超野生ハンマー",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},
   effect:{"name":"ワイルドパワー","description":"3回攻撃するごとに、この武器の攻撃力が1増加する。ガードされた攻撃も回数に含む。攻撃しても耐久値が低下しない。","growthInterval":3,"durabilityLossImmune":true},
@@ -1973,6 +2177,7 @@ const ITEM_DEFS=[
  },
  {
   id:"squeaky_hammer",
+  displayOrder:2740,
   name:"ピコピコハンマー",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":30,"defense":0},
   rarity:"rare",
@@ -1982,6 +2187,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bamboo_pole",
+  displayOrder:210,
   name:"竹竿",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":12,"defense":0},
   rarity:"common",
@@ -1990,6 +2196,7 @@ const ITEM_DEFS=[
  },
  {
   id:"drying_pole",
+  displayOrder:2805,
   name:"物干し竿",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":20,"defense":0},
   rarity:"uncommon",
@@ -1999,6 +2206,7 @@ const ITEM_DEFS=[
  },
  {
   id:"super_drying_pole",
+  displayOrder:2810,
   name:"超・物干し竿",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":34,"defense":0},
   rarity:"rare",
@@ -2008,6 +2216,7 @@ const ITEM_DEFS=[
  },
  {
   id:"true_drying_pole",
+  displayOrder:2815,
   name:"真・物干し竿",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":48,"defense":10},
   rarity:"epic",
@@ -2017,6 +2226,7 @@ const ITEM_DEFS=[
  },
  {
   id:"jade_club",
+  displayOrder:2820,
   name:"玉砕棍",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":33,"defense":0},
   rarity:"rare",
@@ -2026,6 +2236,7 @@ const ITEM_DEFS=[
  },
  {
   id:"diamond_jade_club",
+  displayOrder:2825,
   name:"金剛玉砕棍",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":50,"defense":0},
   rarity:"epic",
@@ -2035,6 +2246,7 @@ const ITEM_DEFS=[
  },
  {
   id:"knuckle",
+  displayOrder:2100,
   name:"ナックル",
   equipment:{"slot":"weapon","attack":10,"defense":0,"weaponType":"fist"},
   rarity:"common",
@@ -2043,6 +2255,7 @@ const ITEM_DEFS=[
  },
  {
   id:"iron_knuckle",
+  displayOrder:2105,
   name:"アイアンナックル",
   equipment:{"slot":"weapon","attack":22,"defense":0,"weaponType":"fist"},
   rarity:"uncommon",
@@ -2052,6 +2265,7 @@ const ITEM_DEFS=[
  },
  {
   id:"glass_knuckle",
+  displayOrder:2110,
   name:"ガラスナックル",
   equipment:{"slot":"weapon","attack":34,"defense":0,"weaponType":"fist"},
   rarity:"rare",
@@ -2061,6 +2275,7 @@ const ITEM_DEFS=[
  },
  {
   id:"brilliant_knuckle",
+  displayOrder:2115,
   name:"ブリリアントナックル",
   equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},
   rarity:"epic",
@@ -2070,6 +2285,7 @@ const ITEM_DEFS=[
  },
  {
   id:"poseidon_knuckle",
+  displayOrder:2120,
   name:"ポセイドンナックル",
   equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},
   rarity:"epic",
@@ -2079,6 +2295,7 @@ const ITEM_DEFS=[
  },
  {
   id:"sea_god_amulet",
+  displayOrder:4515,
   name:"海神の護符",
   equipment:{"slot":"accessory","attack":0,"defense":20},
   rarity:"rare",
@@ -2088,6 +2305,7 @@ const ITEM_DEFS=[
  },
  {
   id:"bandage",
+  displayOrder:1210,
   name:"包帯",
   rarity:"common",
   recovery:{"group":"hp","amount":25},
@@ -2097,6 +2315,7 @@ const ITEM_DEFS=[
  },
  {
   id:"fighting_wraps",
+  displayOrder:2200,
   name:"バンテージ",
   equipment:{"slot":"weapon","attack":18,"defense":0,"weaponType":"fist"},
   rarity:"uncommon",
@@ -2106,6 +2325,7 @@ const ITEM_DEFS=[
  },
  {
   id:"reinforced_wraps",
+  displayOrder:2205,
   name:"強化バンテージ",
   equipment:{"slot":"weapon","attack":32,"defense":0,"weaponType":"fist"},
   rarity:"rare",
@@ -2115,6 +2335,7 @@ const ITEM_DEFS=[
  },
  {
   id:"leather_wraps",
+  displayOrder:2210,
   name:"革のバンテージ",
   equipment:{"slot":"weapon","attack":26,"defense":0,"weaponType":"fist"},
   rarity:"rare",
@@ -2124,6 +2345,7 @@ const ITEM_DEFS=[
  },
  {
   id:"beast_fang",
+  displayOrder:2215,
   name:"ビーストファング",
   equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},
   effect:{"name":"ワイルドハント","description":"相手を倒したとき、死体の空き枠に毛皮と羽を各1個追加する。死体は最大12枠で、空き枠が1つの場合は毛皮を優先する。","wildHunt":true},
@@ -2134,6 +2356,7 @@ const ITEM_DEFS=[
  },
  {
   id:"iron_sword",
+  displayOrder:2310,
   name:"鉄の剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":20,"defense":0},
   rarity:"uncommon",
@@ -2143,6 +2366,7 @@ const ITEM_DEFS=[
  },
  {
   id:"steel_sword",
+  displayOrder:2315,
   name:"鋼の剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},
   rarity:"rare",
@@ -2152,6 +2376,7 @@ const ITEM_DEFS=[
  },
  {
   id:"zantetsu_sword",
+  displayOrder:2320,
   name:"斬鉄剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":46,"defense":0},
   rarity:"epic",
@@ -2161,6 +2386,7 @@ const ITEM_DEFS=[
  },
  {
   id:"hero_sword",
+  displayOrder:2325,
   name:"勇者の剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":48,"defense":0},
   effect:{"name":"勇気の印","description":"ドローンに与えるダメージが30%増加する。ドローンから受けるダメージが30%減少する。","droneDamageBonus":0.3,"droneDamageReduction":0.3},
@@ -2171,6 +2397,7 @@ const ITEM_DEFS=[
  },
  {
   id:"spirit_sword",
+  displayOrder:2330,
   name:"精霊の剣",
   equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
   effect:{"name":"アカシアの精霊","description":"治療による毎秒のHP回復量が3増加する。","treatmentBonus":3},
@@ -2181,6 +2408,7 @@ const ITEM_DEFS=[
  },
  {
   id:"army_knife",
+  displayOrder:2405,
   name:"アーミーナイフ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":35,"defense":0},
   rarity:"rare",
@@ -2190,6 +2418,7 @@ const ITEM_DEFS=[
  },
  {
   id:"assassin_knife",
+  displayOrder:2410,
   name:"アサシンナイフ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":44,"defense":0},
   effect:{"name":"蝕む劇毒","description":"攻撃時、相手に紫毒を1スタック付与し、付与後のスタック数と同じ追加ダメージを与える。最大10スタックで、5秒ごとに1減少する。ガードされても発動する。","purplePoison":true},
@@ -2200,6 +2429,7 @@ const ITEM_DEFS=[
  },
  {
   id:"mermaid_knife",
+  displayOrder:2415,
   name:"マーメイドナイフ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},
   rarity:"rare",
@@ -2209,6 +2439,7 @@ const ITEM_DEFS=[
  },
  {
   id:"jail_knife",
+  displayOrder:2420,
   name:"ジェイルナイフ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
   effect:{"name":"クリティカル補正","description":"クリティカル率が3ポイント上昇する。","criticalBonus":0.03},
@@ -2219,6 +2450,7 @@ const ITEM_DEFS=[
  },
  {
   id:"jambiya",
+  displayOrder:2425,
   name:"ジャンビーヤ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},
   rarity:"rare",
@@ -2228,6 +2460,7 @@ const ITEM_DEFS=[
  },
  {
   id:"orichalcum",
+  displayOrder:2435,
   name:"オリハルコン",
   equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
   effect:{"name":"不滅の刃","description":"攻撃しても耐久値が低下しない。","durabilityLossImmune":true},
@@ -2238,6 +2471,7 @@ const ITEM_DEFS=[
  },
  {
   id:"kukri",
+  displayOrder:2430,
   name:"ククリ",
   equipment:{"slot":"weapon","weaponType":"slash","attack":45,"defense":0},
   rarity:"epic",
@@ -2247,6 +2481,7 @@ const ITEM_DEFS=[
  },
  {
   id:"battle_axe",
+  displayOrder:2500,
   name:"バトルアックス",
   equipment:{"slot":"weapon","weaponType":"slash","attack":26,"defense":0},
   rarity:"uncommon",
@@ -2256,6 +2491,7 @@ const ITEM_DEFS=[
  },
  {
   id:"golden_axe",
+  displayOrder:2505,
   name:"ゴールデンアックス",
   equipment:{"slot":"weapon","weaponType":"slash","attack":38,"defense":0},
   rarity:"rare",
@@ -2265,6 +2501,7 @@ const ITEM_DEFS=[
  },
  {
   id:"platinum_axe",
+  displayOrder:2510,
   name:"プラチナムアックス",
   equipment:{"slot":"weapon","weaponType":"slash","attack":50,"defense":0},
   rarity:"epic",
@@ -2274,6 +2511,7 @@ const ITEM_DEFS=[
  },
  {
   id:"booster_axe",
+  displayOrder:2515,
   name:"ブースターアックス",
   equipment:{"slot":"weapon","weaponType":"slash","attack":32,"defense":0},
   rarity:"rare",
@@ -2283,6 +2521,7 @@ const ITEM_DEFS=[
  },
  {
   id:"double_gear",
+  displayOrder:515,
   name:"ダブルギア",
   rarity:"rare",
   art:["slash_05",0],
@@ -2291,6 +2530,7 @@ const ITEM_DEFS=[
  },
  {
   id:"automaton_axe",
+  displayOrder:2520,
   name:"オートマトンアックス",
   equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
   effect:{"name":"機械の照準","description":"ガードされる確率が5ポイント低下する。","accuracyBonus":5},
@@ -2301,6 +2541,7 @@ const ITEM_DEFS=[
  },
  {
   id:"quiver",
+  displayOrder:4200,
   name:"矢筒",
   equipment:{"slot":"accessory","attack":0,"defense":12},
   effect:{"bowCapacity":8,"name":"矢筒","description":"弓を装備している間、装填可能な矢の数が8本増加する。"},
@@ -2311,6 +2552,7 @@ const ITEM_DEFS=[
  },
  {
   id:"sturdy_quiver",
+  displayOrder:4205,
   name:"丈夫な矢筒",
   equipment:{"slot":"accessory","attack":0,"defense":18},
   effect:{"bowCapacity":12,"name":"丈夫な矢筒","description":"弓を装備している間、装填可能な矢の数が12本増加する。"},
@@ -2321,16 +2563,18 @@ const ITEM_DEFS=[
  },
  {
   id:"snakeskin_quiver",
+  displayOrder:4210,
   name:"ヘビ皮の矢筒",
   equipment:{"slot":"accessory","attack":0,"defense":26},
   effect:{"bowCapacity":18,"name":"ヘビ皮の矢筒","description":"弓を装備している間、装填可能な矢の数が18本増加する。"},
-  rarity:"rare",
+  rarity:"epic",
   art:["acc_snakeskin_quiver",0,"single"],
   fallback:"🏹",
   recipes:[{"order":173,"category":"armor","need":{"sturdy_quiver":1,"rubbery_hide":1},"desc":"弓装備時、装填可能数＋18"}]
  },
  {
   id:"magic_quiver",
+  displayOrder:4215,
   name:"魔法の矢筒",
   equipment:{"slot":"accessory","attack":0,"defense":12},
   effect:{"arrowSaveChance":0.5,"name":"魔法の矢筒","description":"弓で攻撃するとき、50%の確率で矢を消費しない。"},
@@ -2341,6 +2585,7 @@ const ITEM_DEFS=[
  },
  {
   id:"artemis_quiver",
+  displayOrder:4220,
   name:"アルテミスの矢筒",
   equipment:{"slot":"accessory","attack":0,"defense":18},
   effect:{"arrowSaveChance":0.9,"name":"アルテミスの矢筒","description":"弓で攻撃するとき、90%の確率で矢を消費しない。"},
@@ -2351,6 +2596,7 @@ const ITEM_DEFS=[
  },
  {
   id:"apollo_quiver",
+  displayOrder:4225,
   name:"アポロンの矢筒",
   equipment:{"slot":"accessory","attack":0,"defense":18},
   effect:{"arrowSaveChance":1,"name":"アポロンの矢筒","description":"弓で攻撃するとき、矢を消費しない。"},
@@ -2361,6 +2607,7 @@ const ITEM_DEFS=[
  },
  {
   id:"simple_magazine",
+  displayOrder:4300,
   name:"簡易マガジン",
   equipment:{"slot":"accessory","attack":0,"defense":8},
   effect:{"gunCapacity":20,"name":"簡易マガジン","description":"銃を装備している間、装填可能な弾の数が20発増加する。"},
@@ -2371,6 +2618,7 @@ const ITEM_DEFS=[
  },
  {
   id:"auto_magazine",
+  displayOrder:4305,
   name:"オートマガジン",
   equipment:{"slot":"accessory","attack":0,"defense":20},
   effect:{"gunCapacity":99,"name":"オートマガジン","description":"銃を装備している間、装填可能な弾の数が99発増加する。"},
@@ -2381,6 +2629,7 @@ const ITEM_DEFS=[
  },
  {
   id:"life_death_scales",
+  displayOrder:4520,
   name:"生と死の天秤",
   equipment:{"slot":"accessory","attack":0,"defense":20},
   effect:{"deadlyBalance":true,"name":"デッドリィバランス","description":"現在HPを超えるダメージを受けたとき、HP1で耐える。現在HPと同じダメージでは発動しない。"},
@@ -2392,6 +2641,7 @@ const ITEM_DEFS=[
  },
  {
   id:"medical_stone",
+  displayOrder:4500,
   name:"薬石",
   equipment:{"slot":"accessory","attack":0,"defense":16},
   effect:{"name":"薬効あり","description":"探索・攻撃・移動・製作・アイテム使用・装填・フィールドスキル使用時に、HPを1回復する。最大HPを超えて回復しない。","actionRecovery":1},
@@ -2402,6 +2652,7 @@ const ITEM_DEFS=[
  },
  {
   id:"philosophers_stone",
+  displayOrder:4505,
   name:"賢者の石",
   equipment:{"slot":"accessory","attack":0,"defense":20},
   effect:{"name":"ヒーリングオーラ","description":"探索・攻撃・移動・製作・アイテム使用・装填・フィールドスキル使用時に、HPを2回復する。最大HPを超えて回復しない。","actionRecovery":2},
@@ -2412,12 +2663,14 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_scale",
+  displayOrder:915,
   name:"逆鱗",
   rarity:"epic",
   art:["dragon_dragon_scale",0,"single"]
  },
  {
   id:"drago_core",
+  displayOrder:920,
   name:"ドラゴコア",
   rarity:"epic",
   art:["dragon_drago_core",0,"single"],
@@ -2425,6 +2678,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_heart",
+  displayOrder:2225,
   name:"ドラゴンハート",
   equipment:{"slot":"weapon","weaponType":"fist","attack":58,"defense":0},
   effect:{"lifesteal":0.3,"name":"龍の魂","description":"攻撃時、実際に与えたダメージの30%分のHPを回復する。攻撃しても耐久値が低下しない。","durabilityLossImmune":true},
@@ -2434,6 +2688,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_buster",
+  displayOrder:2625,
   name:"ドラゴンバスター",
   equipment:{"slot":"weapon","weaponType":"slash","attack":60,"defense":0},
   effect:{"droneDamageBonus":2,"killRewardMultiplier":4,"name":"屠龍の証","description":"ドローンに与えるダメージが200%増加する（通常の3倍）。相手を倒したとき、獲得する経験値と熟練度が300%増加する（通常の4倍）。撃破報酬の増加は対人戦にも適用する。攻撃しても耐久値が低下しない。","durabilityLossImmune":true},
@@ -2443,6 +2698,7 @@ const ITEM_DEFS=[
  },
  {
   id:"drag_eater",
+  displayOrder:2840,
   name:"ドラグイーター",
   equipment:{"slot":"weapon","weaponType":"hammer","attack":60,"defense":0},
   effect:{"criticalBonus":0.05,"criticalMultiplier":1.5,"name":"龍喰らいの槌","description":"クリティカル率が5ポイント上昇する。クリティカル時のダメージ倍率が1.5倍になる。攻撃しても耐久値が低下しない。","durabilityLossImmune":true},
@@ -2452,6 +2708,7 @@ const ITEM_DEFS=[
  },
  {
   id:"drag_energy_07",
+  displayOrder:3145,
   name:"ドラグエナジー07",
   equipment:{"slot":"weapon","weaponType":"gun","attack":55,"defense":0,"ammoType":"bullets","capacity":20},
   effect:{"accuracyBonus":20,"reloadGrowth":true,"name":"龍の息吹","description":"ガードされる確率が20ポイント低下する。リロードするたびに、この武器の攻撃力が1増加する。攻撃しても耐久値が低下しない。","durabilityLossImmune":true},
@@ -2461,6 +2718,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_killer",
+  displayOrder:3035,
   name:"ドラゴンキラー",
   equipment:{"slot":"weapon","weaponType":"bow","attack":60,"defense":0,"ammoType":"arrows","capacity":Infinity,"unlimitedAmmo":true},
   effect:{"staminaDrain":5,"name":"龍殺しの弓","description":"攻撃時、相手のスタミナを5減らす。スタミナが5未満の場合、不足分の4倍の追加ダメージを与える。ドローンのスタミナは0として判定する。攻撃しても耐久値が低下しない。","durabilityLossImmune":true},
@@ -2470,6 +2728,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_suit",
+  displayOrder:3720,
   name:"ドラゴンスーツ",
   equipment:{"slot":"body","attack":0,"defense":100},
   rarity:"legendary",
@@ -2478,6 +2737,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_sage_robe",
+  displayOrder:3835,
   name:"龍賢者のローブ",
   equipment:{"slot":"body","attack":0,"defense":88},
   effect:{"name":"超再生力","description":"治療による毎秒のHP回復量が20になる。怪我の治療時間が9秒短くなる。","treatmentOverride":20,"injuryTreatmentReduction":9000},
@@ -2487,6 +2747,7 @@ const ITEM_DEFS=[
  },
  {
   id:"scale_boots",
+  displayOrder:4115,
   name:"鱗のブーツ",
   equipment:{"slot":"legs","attack":0,"defense":15},
   rarity:"uncommon",
@@ -2495,6 +2756,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_scale_boots",
+  displayOrder:4120,
   name:"逆鱗ブーツ",
   equipment:{"slot":"legs","attack":0,"defense":48},
   effect:{"name":"龍の翼","description":"探索時の消費スタミナが1減少する。","searchCostBonus":-1},
@@ -2504,6 +2766,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_meat",
+  displayOrder:1325,
   name:"ドラゴンミート",
   rarity:"epic",
   recovery:{"group":"hp","amount":150},
@@ -2513,6 +2776,7 @@ const ITEM_DEFS=[
  },
  {
   id:"dragon_fruit",
+  displayOrder:1910,
   name:"ドラゴンフルーツ",
   rarity:"epic",
   recovery:{"group":"stamina","amount":200},
@@ -2522,6 +2786,7 @@ const ITEM_DEFS=[
  },
  {
   id:"jewel_meat",
+  displayOrder:1330,
   name:"ジュエルミート",
   rarity:"epic",
   recovery:{"group":"hp","amount":140},
@@ -2532,6 +2797,7 @@ const ITEM_DEFS=[
  },
  {
   id:"heaven_pot",
+  displayOrder:1335,
   name:"天国鍋",
   rarity:"epic",
   recovery:{"group":"hp","amount":120},
@@ -2542,6 +2808,7 @@ const ITEM_DEFS=[
  },
  {
   id:"compressed_ration",
+  displayOrder:1115,
   name:"圧縮レーション",
   rarity:"rare",
   recovery:{"group":"hp","amount":150},
@@ -2552,6 +2819,7 @@ const ITEM_DEFS=[
  },
  {
   id:"life_elixir",
+  displayOrder:1235,
   name:"生命の秘薬",
   rarity:"legendary",
   recovery:{"group":"hp","amount":220},
@@ -2675,6 +2943,7 @@ function validateItemDefinitions(definitions,sheets){
  const ids=new Set();
  for(const item of definitions){
   if(!item.id||ids.has(item.id)||!item.name)throw new Error('Duplicate or unnamed item: '+item.id);ids.add(item.id);
+  if(item.displayOrder!=null&&(!Number.isInteger(item.displayOrder)||item.displayOrder<0))throw new Error('Invalid item display order: '+item.id);
   if(item.rarity&&!['common','uncommon','rare','epic','legendary'].includes(item.rarity))throw new Error('Invalid item rarity: '+item.id);
   const equipment=item.equipment;
   if(equipment){
@@ -4593,6 +4862,16 @@ function applyWeaponEffects(actor,target,type,hit,now=Date.now()){
  if(hit&&effect.lifesteal)result.lifesteal=effect.lifesteal;
  return result;
 }
+function itemDisplayCategory(item){
+ const def=item.equipment;
+ if(def)return def.slot==='weapon'?20+['fist','slash','hammer','bow','gun'].indexOf(def.weaponType):30+['head','arm','body','legs','accessory'].indexOf(def.slot);
+ if(item.recovery)return item.recovery.group==='hp'?10:11;
+ return 0;
+}
+function compareItemDisplay(a,b){
+ return itemDisplayCategory(a)-itemDisplayCategory(b)||(a.displayOrder??Number.MAX_SAFE_INTEGER)-(b.displayOrder??Number.MAX_SAFE_INTEGER)||a.name.localeCompare(b.name,'ja')||a.id.localeCompare(b.id);
+}
+function compareRecipeDisplay(a,b){return compareItemDisplay(ITEM_BY_ID[a.id],ITEM_BY_ID[b.id])}
 function itemClassification(id){
  const item=ITEM_BY_ID[id];if(!item)return '';
  const def=item.equipment;
@@ -5578,7 +5857,7 @@ function showItemStack(index){
 }
 function showItem(id){const i=S.bag.findIndex(x=>x.id===id);if(i>=0)showItemStack(i);else {closeModal();refresh()}}
 function showRecipesFor(id,equipmentOnly=false){
- const list=recipes.filter(r=>Object.hasOwn(r.need,id)&&(!equipmentOnly||equipmentDef(r.id))).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
+ const list=recipes.filter(r=>Object.hasOwn(r.need,id)&&(!equipmentOnly||equipmentDef(r.id))).sort(compareRecipeDisplay);
  const back=equipmentOnly?'<button onclick="showEquipment()">← 装備欄へ戻る</button><p class="small">装備中のアイテムをそのまま素材にできます。</p>':'';
  modal('🔧 '+names[id]+'から製作',back+(list.map(craftRecipeHTML).join('')||'<p>製作先はありません</p>'));
 }
@@ -5733,7 +6012,7 @@ function refreshCraftCards(){
 }
 function focusRelatedRecipe(sourceId){
  materialSourceReturn=null;
- const related=recipes.filter(r=>Object.hasOwn(r.need,sourceId)).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
+ const related=recipes.filter(r=>Object.hasOwn(r.need,sourceId)).sort(compareRecipeDisplay);
  if(!related.length)return;
  if(!craftOrigin){craftOrigin={category:document.querySelector('.craftTabs button.selected')?.getAttribute('onclick')?.match(/showCraft\('([^']+)'/)?.[1]||'item',subcategory:selectedCraftSubcategory,scroll:currentCraftScroll(),source:sourceId}}
  const html='<button onclick="returnToCraft()">← 元の製作一覧へ戻る</button><p class="small">'+names[sourceId]+'を素材とするレシピ</p><div class="craft bp-craft-list">'+related.map(craftRecipeHTML).join('')+'</div>';
@@ -5755,8 +6034,8 @@ function showCraft(category='weapon',subcategory=null){
  selectedCraftSubcategory=active;
  const tabHtml='<div class="craftTabs">'+tabs.map(([key,label])=>`<button class="${category===key?'selected':''}" onclick="showCraft('${key}')">${label}</button>`).join('')+'</div>';
  const subHtml='<div class="craftTabs bp-craft-subtabs">'+groups.map(([key,label])=>`<button class="${active===key?'selected':''}" onclick="showCraft('${category}','${key}')">${label}</button>`).join('')+'</div>';
- const list=recipes.filter(r=>r.category===category&&recipeSubcategory(r)===active).sort((a,b)=>Number(canCraft(b))-Number(canCraft(a)));
- const body='<p class="small">製作可能なアイテムを上に表示。装備中の素材も使えます。</p>'+tabHtml+subHtml+'<div class="craft bp-craft-list">'+
+ const list=recipes.filter(r=>r.category===category&&recipeSubcategory(r)===active).sort(compareRecipeDisplay);
+ const body='<p class="small">同じ系統のアイテムを基本の品から順に表示。製作できる品は「製作可能」と表示します。装備中の素材も使えます。</p>'+tabHtml+subHtml+'<div class="craft bp-craft-list">'+
  (list.length?list.map(craftRecipeHTML).join(''):'<p class="small">この分類のレシピはまだありません。</p>')+'</div>';
  modal('🔧 製作',body);
 }
@@ -6321,7 +6600,7 @@ function encyclopediaSources(id){
 }
 function encyclopediaFilteredItems(state=encyclopediaState){
  const normalize=s=>String(s).normalize('NFKC').toLowerCase(),query=normalize(state.query||'').trim();
- const ordered=[...ITEM_DEFS];
+ const ordered=[...ITEM_DEFS].sort(compareItemDisplay);
  for(const item of ITEM_DEFS){if(!item.encyclopediaAfter)continue;const index=ordered.findIndex(i=>i.id===item.id);ordered.splice(index,1);const after=ordered.findIndex(i=>i.id===item.encyclopediaAfter);ordered.splice(after<0?ordered.length:after+1,0,item)}
  return ordered.filter(item=>{
   const def=item.equipment,category=state.category||'all';
@@ -6385,7 +6664,7 @@ function encyclopediaSelectItem(id){
 function encyclopediaBack(){const id=encyclopediaState.history.pop();if(id){encyclopediaState.selected=id;encyclopediaSelectItem(id)}}
 function renderEncyclopediaDetail(){
  const item=ITEM_BY_ID[encyclopediaState.selected],el=$('encyclopediaDetail');if(!item){el.innerHTML='<p>アイテムを選択してください。</p>';return}
- const sources=encyclopediaSources(item.id),makers=recipes.filter(r=>r.id===item.id),uses=recipes.filter(r=>Object.hasOwn(r.need,item.id));
+ const sources=encyclopediaSources(item.id),makers=recipes.filter(r=>r.id===item.id),uses=recipes.filter(r=>Object.hasOwn(r.need,item.id)).sort(compareRecipeDisplay);
  const locations=sources.areas.map(x=>'<li>'+escapeCorpseText(x.area)+'：探索物体'+x.objects+'件'+(x.perObject>1?'（1件につき'+x.perObject+'個）':'')+'</li>').join('');
  const extra=[sources.randomPlacement,sources.random?'開始時補給・ドローンのランダム報酬候補（確定入手ではありません）':null,sources.practice?'開始時に選択できる練習用武器':null,sources.generated?'スターゲイザー／神の恵みの生成候補（等級による制限あり）':null,sources.field?'ビヨルンの薬草採集で入手可能':null].filter(Boolean);
  el.innerHTML='<div class="bp-ency-detail-head"><button type="button" onclick="encyclopediaBack()" '+(!encyclopediaState.history.length?'disabled':'')+'>← 戻る</button><small>'+ENCYCLOPEDIA_RARITIES[item.rarity||'common']+'</small></div><h2>'+itemIconHTML(item.id)+escapeCorpseText(item.name)+'</h2>'+itemInformationHTML(item.id)+'<p class="bp-ency-note">1枠の上限 '+stackLimit(item.id)+'個'+(item.findCount?' ／ 標準1セット '+item.findCount+'個':'')+'</p><h3>入手方法</h3>'+(locations?'<ul>'+locations+'</ul>':'<p class="bp-ency-note">固定の区画配置はありません。</p>')+(sources.drones.length?'<ul>'+sources.drones.map(d=>'<li>'+escapeCorpseText(d.name)+'：セクション'+d.section+'以降の固定報酬</li>').join('')+'</ul>':'')+extra.map(text=>'<p>'+escapeCorpseText(text)+'</p>').join('')+(!locations&&!sources.drones.length&&!extra.length&&!makers.length?'<p class="bp-ency-note">現在、登録された入手経路はありません。</p>':'')+'<h3>製作方法</h3>'+(makers.length?'<p class="bp-ency-note">各素材をタップすると詳細へ移動。矢印で素材の内訳を展開できます。必要数は完成品1個を基準に計算します。</p><ul class="bp-ency-tree">'+encyclopediaRecipeTree(item.id)+'</ul>':'<p class="bp-ency-note">製作レシピはありません。</p>')+'<h3>これを素材に作れるもの</h3>'+(uses.length?'<div class="bp-ency-links">'+uses.map(r=>encyclopediaLink(r.id,names[r.id]+'（'+r.need[item.id]+'個使用）')).join('')+'</div>':'<p class="bp-ency-note">次の製作先はありません。</p>');

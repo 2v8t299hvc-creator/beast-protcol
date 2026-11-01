@@ -89,3 +89,24 @@ test('water item artwork uses alpha-enabled frame-free atlases in the shared ren
  assert.equal(run("JSON.stringify(itemArt.onyx_suit)"),'["water_gear_3",2]');
  assert.equal(run("JSON.stringify(itemArt.paradise_sashimi)"),'["water_4",3]');
 });
+test('catalog presentation groups upgrade families independently of registration order',()=>{
+ const {run}=harness();
+ for(const [query,ids]of [['レーション',['ration','medium_ration','premium_ration','compressed_ration']],['回復薬',['healing_potion','medium_healing_potion','advanced_healing_potion','stamina_potion','advanced_stamina_potion']],['矢筒',['quiver','sturdy_quiver','snakeskin_quiver','magic_quiver','artemis_quiver','apollo_quiver']]]){
+  assert.equal(run(`JSON.stringify(encyclopediaFilteredItems({query:${JSON.stringify(query)},category:${JSON.stringify(query==='回復薬'?'recovery':'all')}}).map(i=>i.id))`),JSON.stringify(ids));
+ }
+ const before=run('JSON.stringify(encyclopediaFilteredItems().map(i=>i.id))');
+ run('ITEM_DEFS.reverse()');assert.equal(run('JSON.stringify(encyclopediaFilteredItems().map(i=>i.id))'),before);
+ assert.equal(run("RECIPE_RARITY.snakeskin_quiver"),'epic');
+ assert.equal(run("EQUIPMENT_DEFS.snakeskin_quiver.defense"),26);
+ assert.equal(run("EQUIPMENT_SPECIAL_EFFECTS.snakeskin_quiver.bowCapacity"),18);
+ assert(run("encyclopediaLink('snakeskin_quiver').includes('data-rarity=\"epic\"')"));
+ run("encyclopediaSelectItem('snakeskin_quiver')");assert(run("$('encyclopediaDetail').innerHTML.includes('エピック')"));
+});
+test('crafting shares presentation order and new items have a stable fallback',()=>{
+ const {run}=harness();run("startSelectedCharacter();showCraft('item','recovery')");
+ const html=run("$('modalBody').innerHTML");
+ assert(html.indexOf('data-recipe-id="medium_ration"')<html.indexOf('data-recipe-id="premium_ration"'));
+ assert.equal(run('JSON.stringify(ITEM_DEFS.map(i=>i.id))'),harness().run('JSON.stringify(ITEM_DEFS.map(i=>i.id))'));
+ assert(run("compareItemDisplay({id:'new_b',name:'い',recovery:{group:'hp'}},{id:'new_a',name:'あ',recovery:{group:'hp'}})>0"));
+ assert.throws(()=>run("validateItemDefinitions([{id:'bad',name:'bad',displayOrder:-1}],ITEM_ART_SHEETS)"),/display order/);
+});
