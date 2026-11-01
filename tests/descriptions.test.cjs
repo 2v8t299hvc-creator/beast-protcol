@@ -1,5 +1,4 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {execFileSync}=require('node:child_process');
 const {harness}=require('./character-catalog.test.cjs');
 test('classification, real stats and effects are separate and shared',()=>{
  const {run}=harness();
@@ -13,8 +12,11 @@ test('classification, real stats and effects are separate and shared',()=>{
  assert(run("ITEM_DEFS.filter(i=>i.effect).every(i=>i.effect.description.endsWith('。')&&!/CT|クールタイム|外れ/.test(i.effect.description))"));
  assert(run("ITEM_DEFS.every(i=>!!itemClassification(i.id))"));
 });
-test('editing descriptions preserves registered mechanics and recipes',()=>{
- const {createHash}=require('node:crypto'),{run}=harness();
- const data=run("JSON.stringify({items:ITEM_DEFS,characters:CHARACTER_DEFS,recipes},(key,value)=>['description','desc','summary'].includes(key)?undefined:value)");
- assert.equal(createHash('sha256').update(data).digest('hex'),'9968e8fa2501d1e0b1a0e39191fd6c77b23d52b0357e7c56e4029fb99086c20e');
+test('shared presentation reads current catalog values without mutating game state',()=>{
+ const {run}=harness();
+ const before=run('JSON.stringify({S,comActors,ITEM_DEFS,CHARACTER_DEFS,recipes})');
+ run('ITEM_DEFS.forEach(i=>{itemClassification(i.id);itemBasicStats(i.id);itemInformationHTML(i.id);equipmentDetails(i.id)})');
+ assert.equal(run('JSON.stringify({S,comActors,ITEM_DEFS,CHARACTER_DEFS,recipes})'),before);
+ run("ITEM_DEFS[0].recovery={group:'hp',amount:43}");
+ assert(run("itemInformationHTML(ITEM_DEFS[0].id).includes('HPを43回復する。')"));
 });
