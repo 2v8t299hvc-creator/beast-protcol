@@ -4790,6 +4790,7 @@ function renderStatusEffects(){
 function droneAccuracy(def,type,actor=S){return Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,actor)]+actorAccuracyBonus(actor,type)-(def.evasion||0)-statusStacks('blackInk',actor)))}
 // Per-instance wear: ten protected uses, then increasing chance of losing 1/10.
 // No attack-count hard limit: even a heavily used weapon can survive a lucky streak.
+const WEAPON_WEAR_FACTORS={fist:1,slash:1,hammer:1,bow:.65,gun:.4};
 const WEAPON_DURABILITY={max:10,loss:1,graceAttacks:10,baseChance:.06,chancePerAttack:.004,maxBaseChance:.5,wearMultiplier:.6,maxChance:.8};
 function equipmentInstanceEffects(id,effects={}){
  const state={...(effects?.id&&effects.id!==id?{}:effects),id};
@@ -4799,10 +4800,10 @@ function equipmentInstanceEffects(id,effects={}){
  }
  return state;
 }
-function weaponDurabilityChance(state){
+function weaponDurabilityChance(state,type=equipmentDef(state.id)?.weaponType){
  const c=WEAPON_DURABILITY,uses=state.wearAttacks||0;
  if(uses<=c.graceAttacks)return 0;
- return Math.min(c.maxChance,Math.min(c.maxBaseChance,c.baseChance+(uses-c.graceAttacks-1)*c.chancePerAttack)*(1+(1-state.durability/c.max)*c.wearMultiplier));
+ return (WEAPON_WEAR_FACTORS[type]??1)*Math.min(c.maxChance,Math.min(c.maxBaseChance,c.baseChance+(uses-c.graceAttacks-1)*c.chancePerAttack)*(1+(1-state.durability/c.max)*c.wearMultiplier));
 }
 function weaponDurabilityLabel(id,effects=null){
  if(equipmentDef(id)?.slot!=='weapon')return '';
@@ -4888,7 +4889,7 @@ function itemClassification(id){
 }
 function itemBasicStats(id){
  const item=ITEM_BY_ID[id],def=item?.equipment,effect=item?.effect;
- if(def)return ['攻撃力：'+(def.attack||0),'防御力：'+(def.defense||0),...(def.ammoType?['装填数：'+(def.unlimitedAmmo?'無制限（弾薬・リロード不要）':def.capacity)]:[]),...(def.weaponType?['基本クリティカル率：'+Math.round((BASE_CRITICAL_RATE+(effect?.criticalBonus||0))*100)+'%']:[])];
+ if(def)return ['攻撃力：'+(def.attack||0),'防御力：'+(def.defense||0),...(def.ammoType?['装填数：'+(def.unlimitedAmmo?'無制限（弾薬・リロード不要）':def.capacity)]:[]),...(def.weaponType?['基本クリティカル率：'+Math.round((BASE_CRITICAL_RATE+(effect?.criticalBonus||0))*100)+'%']:[]),...(def.weaponType?[(def.weaponType==='gun'?'銃声の発生率：'+Math.round(COMBAT_SOUND_RULES.gunChance[item.rarity||'common']*100)+'%':'物音の発生率：'+COMBAT_SOUND_RULES.noiseChance*100+'%'),...(effect?.durabilityLossImmune?[]:['耐久消耗率：'+(['bow','gun'].includes(def.weaponType)?'近接武器の'+Math.round(WEAPON_WEAR_FACTORS[def.weaponType]*100)+'%':'標準')])]:[])];
  if(item?.recovery)return [(item.recovery.group==='hp'?'HP':'スタミナ')+'を'+item.recovery.amount+'回復する。'];
  return [];
 }
@@ -5208,6 +5209,30 @@ function escapeOpponent(){
  resetFightingInstinct(S);const target=findActor(S.enemyPlayerId);if(target){target.opponent=null;target.nextActionAt=Math.max(target.nextActionAt,Date.now()+1000)}
  clearPlayerEncounter();bumpMatchStat(S,'retreats');recordMatchEvent(S,'retreat',(target?actorName(target):'相手')+'から逃走',Date.now());addLog((target?actorName(target):'相手')+'から逃走した');refresh();
 }
+// Attack information reaches living participants in other areas; drones never emit it.
+const COMBAT_SOUND_RULES={noiseChance:.2,gunChance:{common:1,uncommon:.75,rare:.5,epic:.25,legendary:0},logIntervalMs:2000};
+function combatSoundSpec(actor,type){
+ const id=actor.equipment?.weapon,def=equipmentDef(id);
+ const gun=type==='gun'&&def?.weaponType==='gun';
+ return {kind:gun?'gunshot':'noise',chance:gun?(COMBAT_SOUND_RULES.gunChance[RECIPE_RARITY[id]||'common']??1):COMBAT_SOUND_RULES.noiseChance};
+}
+function emitCombatSound(actor,type,now=Date.now(),rng=Math.random){
+ if(!matchStarted||!matchClock||matchClock.ended||matchClock.result==='win'||actor.hp<=0||!Object.hasOwn(regionStock,actor.place)||![S,...comActors].includes(actor))return null;
+ const spec=combatSoundSpec(actor,type);
+ if(spec.chance<=0||spec.chance<1&&rng()>=spec.chance)return null;
+ const area=actor.place,message=spec.kind==='gunshot'?'銃声だ。'+area+'の方から聞こえる…':area+'の方から物音が聞こえる…';
+ recordMatchEvent(actor,'sound-emitted',message,now,{kind:spec.kind,area});
+ const listeners=[];
+ for(const listener of [S,...comActors]){
+  if(listener===actor||listener.hp<=0||listener.place===area||!Object.hasOwn(regionStock,listener.place))continue;
+  const previous=listener.lastHeardCombatSound;
+  listener.lastHeardCombatSound={kind:spec.kind,area,at:now};
+  recordMatchEvent(listener,'sound-heard',message,now,{kind:spec.kind,area});listeners.push(listener.id);
+  // Every shot is recorded. Repeated shots from one area share a short screen-log notice.
+  if(listener===S&&(!previous||previous.kind!==spec.kind||previous.area!==area||now-previous.at>=COMBAT_SOUND_RULES.logIntervalMs))addLog(message);
+ }
+ return {kind:spec.kind,area,listeners};
+}
 function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=null,shotContext=null){
  if(attacker.hp<=0||target.hp<=0||attacker.place!==target.place)return null;
  if(SKILL_BEHAVIORS[skillId]?.attack)return SKILL_BEHAVIORS[skillId].attack(attacker,target,now,false,preserveTargetActivity);
@@ -5216,7 +5241,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  // Step Break adds a debuff to a normal-strength hit, but that hit is still an active skill.
  const activeAttack=!!gale||(SKILL_BEHAVIORS[skillId]?.normalHitActive&&CHARACTER_SKILLS[attacker.character]?.active?.id===skillId&&now>=(attacker.characterSkillReadyAt||0));
  const type=actorWeaponType(attacker),weapon=equipmentDef(attacker.equipment.weapon),ranged=weapon?.ammoType;
- spendAttackAmmo(attacker,type);
+ spendAttackAmmo(attacker,type);emitCombatSound(attacker,type,now);
  attacker.recoveryMode=null;attacker.recoveryTickAt=0;attacker.restMode=null;if(!preserveTargetActivity){target.recoveryMode=null;target.recoveryTickAt=0;target.restMode=null;}
  updateStatusEffects(now,attacker);if(!shotContext||shotContext.awardMastery)awardAttackMastery(attacker,target,type);
  const accuracy=Math.max(0,Math.min(100,MASTERY_ACCURACY[masteryRank(type,attacker)]+actorAccuracyBonus(attacker,type)-statusStacks('blackInk',attacker)));
@@ -5384,7 +5409,7 @@ function strikeDrone(actor,d,now,skillId=null,shotContext=null){
  updateBodyTreatment(actor,now);cancelBodyTreatment(actor);
  const gale=shotContext||prepareCharacterAttack(actor,d,skillId,now);
  const def=DRONE_DEFS[d.kind],type=actorWeaponType(actor),weapon=equipmentDef(actor.equipment.weapon),ranged=weapon?.ammoType;
- spendAttackAmmo(actor,type);
+ spendAttackAmmo(actor,type);emitCombatSound(actor,type,now);
  updateStatusEffects(now,d);if(!shotContext||shotContext.awardMastery)awardAttackMastery(actor,d,type);
  const guarded=Math.random()*100>=droneAccuracy(def,type,actor),hit=true,bonus=EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.damageBonus||0;
  const attack=totalStat('attack',actor,now)-(ranged&&type==='fist'?weaponAttackContribution(actor)*actorStatMultiplier('attack',actor,now):0)+attackRoll();

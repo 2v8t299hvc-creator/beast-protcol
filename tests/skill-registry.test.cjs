@@ -22,7 +22,7 @@ run('recordExploration(S,1000000)');assert.equal(run('S.st'),12);
 run('useCharacterFieldSkill()');assert.equal(run('S.st'),15);assert(run('S.characterFieldReadyAt>0'));
 run('useCharacterFieldSkill()');assert.equal(run('S.st'),15);
 run("S.enemy=true;S.enemyPlayerId=a.id;renderCharacterSkills()");
-assert.equal(run("$('characterSkillBtn').title"),'テスト打撃');
+assert.equal(run("$('characterSkillBtn').title"),'125%攻撃\n再使用：5秒');
 assert.equal(run("$('characterPassiveCount').textContent"),'1/1');
 assert.equal(run('comCharacterSkill(S,1000000,a)'),'test_active');
 run("var result=actorAttack(S,a,1000000,false,'test_active')");
