@@ -2837,6 +2837,7 @@ const ITEM_DEFS=[
  },
 {
   "id": "garlic",
+  "art": ["food_garlic", 0, "single"],
   "name": "ガーリック",
   "displayOrder": 1340,
   "rarity": "common",
@@ -2849,6 +2850,7 @@ const ITEM_DEFS=[
 },
 {
   "id": "fried_garlic",
+  "art": ["food_fried_garlic", 0, "single"],
   "name": "フライドガーリック",
   "displayOrder": 1345,
   "rarity": "rare",
@@ -2872,6 +2874,7 @@ const ITEM_DEFS=[
 },
 {
   "id": "stamina_soup",
+  "art": ["food_stamina_soup", 0, "single"],
   "name": "スタミナスープ",
   "displayOrder": 1620,
   "rarity": "uncommon",
@@ -2895,6 +2898,7 @@ const ITEM_DEFS=[
 },
 {
   "id": "garlic_oil",
+  "art": ["food_garlic_oil", 0, "single"],
   "name": "ガーリックオイル",
   "displayOrder": 1615,
   "rarity": "uncommon",
@@ -2918,6 +2922,7 @@ const ITEM_DEFS=[
 },
 {
   "id": "garlic_steak",
+  "art": ["food_garlic_steak", 0, "single"],
   "name": "ガーリックステーキ",
   "displayOrder": 1321,
   "rarity": "epic",
@@ -2941,6 +2946,7 @@ const ITEM_DEFS=[
 },
 {
   "id": "ajillo",
+  "art": ["food_ajillo", 0, "single"],
   "name": "アヒージョ",
   "displayOrder": 1350,
   "rarity": "rare",
@@ -2961,10 +2967,42 @@ const ITEM_DEFS=[
       "count": 2
     }
   ]
+},
+{
+  "id": "salted_fish_liver",
+  "art": ["food_salted_fish_liver", 0, "single"],
+  "name": "塩漬け魚肝",
+  "displayOrder": 1625,
+  "rarity": "uncommon",
+  "recovery": {
+    "group": "stamina",
+    "amount": 45
+  },
+  "fallback": "🥣",
+  "craftGroup": "recovery",
+  "recipes": [
+    {
+      "order": 206,
+      "category": "item",
+      "need": {
+        "porcupinefish": 1,
+        "rock_salt": 1
+      },
+      "count": 3
+    }
+  ]
 }
 ];
 // Shared atlas URLs; each item selects its atlas and cell in its art field.
 const ITEM_ART_SHEETS={
+ "food_garlic": "assets/food/garlic.webp",
+ "food_fried_garlic": "assets/food/fried_garlic.webp",
+ "food_stamina_soup": "assets/food/stamina_soup.webp",
+ "food_garlic_oil": "assets/food/garlic_oil.webp",
+ "food_garlic_steak": "assets/food/garlic_steak.webp",
+ "food_ajillo": "assets/food/ajillo.webp",
+ "food_salted_fish_liver": "assets/food/salted_fish_liver.webp",
+
  "practice_1": "assets/icon_practice_1.webp",
  "practice_2": "assets/icon_practice_2.webp",
  "drone_drops_1": "assets/icon_drone_drops_1.webp",
@@ -5592,7 +5630,7 @@ function findCorpse(id){return corpses.find(c=>c.id===id&&corpseAvailable(c))}
 
 // Reusable weighted supply tables. Ordinary/recovery/jackpot weights are 70/25/5.
 // E is a dedicated recovery table. All entries refer to existing items.
-const RANDOM_OTHER_ITEMS=new Set('wood stone scrap cloth thread rubber wire oil lighter cell gunpowder glass_shard small_gear mystery marble redstone bluestone whitestone obsidian fish_scale feather fur charcoal hotwater core ration drink water seaweed_soup healing_potion bandage kit egg beast_meat herb energy_fruit energy_drink swordfish minefish porcupinefish paradisefish small_flower seaweed rock_salt boiled_egg bronze iron glue heated_oil reinforced_wire rubbery_hide monitor large_gear fine_cloth sea_thread black_thread herb_oil roast_meat medium_ration seasoned_egg fried_egg salted_meat milk hot_milk stamina_potion swordfish_sashimi minefish_sashimi paradise_sashimi paradise_broth blackiron silver wonderore steel discharger energy_gear double_gear gold_thread poison_potion premium_ration smoked_meat medium_healing_potion advanced_healing_potion fried_swordfish paradise_platter fruit_milk soda compressed_ration whitesilver gold wonderjewel ruby sapphire diamond laurel steak advanced_stamina_potion garlic fried_garlic stamina_soup garlic_oil ajillo'.split(' '));
+const RANDOM_OTHER_ITEMS=new Set('wood stone scrap cloth thread rubber wire oil lighter cell gunpowder glass_shard small_gear mystery marble redstone bluestone whitestone obsidian fish_scale feather fur charcoal hotwater core ration drink water seaweed_soup healing_potion bandage kit egg beast_meat herb energy_fruit energy_drink swordfish minefish porcupinefish paradisefish small_flower seaweed rock_salt boiled_egg bronze iron glue heated_oil reinforced_wire rubbery_hide monitor large_gear fine_cloth sea_thread black_thread herb_oil roast_meat medium_ration seasoned_egg fried_egg salted_meat milk hot_milk stamina_potion swordfish_sashimi minefish_sashimi paradise_sashimi paradise_broth blackiron silver wonderore steel discharger energy_gear double_gear gold_thread poison_potion premium_ration smoked_meat medium_healing_potion advanced_healing_potion fried_swordfish paradise_platter fruit_milk soda compressed_ration whitesilver gold wonderjewel ruby sapphire diamond laurel steak advanced_stamina_potion garlic fried_garlic stamina_soup garlic_oil ajillo salted_fish_liver'.split(' '));
 const RANDOM_SUPPLY_TABLES={
  weapon:{name:'ランダム武器',weights:{common:75,uncommon:25}},
  armor:{name:'ランダム防具',weights:{common:75,uncommon:25}},

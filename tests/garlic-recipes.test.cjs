@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {harness}=require('./character-catalog.test.cjs');
-const dishes=[['fried_garlic',{heated_oil:1,garlic:1},8,'rare','hp',25],['stamina_soup',{hotwater:1,garlic:1},4,'uncommon','stamina',42],['garlic_oil',{oil:1,garlic:1},2,'uncommon','stamina',30],['garlic_steak',{steak:1,garlic_oil:1},3,'epic','hp',150],['ajillo',{garlic_oil:1,fish_scale:1},2,'rare','hp',70]];
+const dishes=[['salted_fish_liver',{porcupinefish:1,rock_salt:1},3,'uncommon','stamina',45],['fried_garlic',{heated_oil:1,garlic:1},8,'rare','hp',25],['stamina_soup',{hotwater:1,garlic:1},4,'uncommon','stamina',42],['garlic_oil',{oil:1,garlic:1},2,'uncommon','stamina',30],['garlic_steak',{steak:1,garlic_oil:1},3,'epic','hp',150],['ajillo',{garlic_oil:1,fish_scale:1},2,'rare','hp',70]];
 for(const [id,need,count,rarity,group,amount] of dishes)test(id+' crafts the specified batch and restores the correct resource',()=>{
  const {run}=harness();run('startSelectedCharacter();matchClock.section=1;S.bag='+JSON.stringify(Object.entries(need).map(([id,count])=>({id,count})))+';syncInventory()');
  assert.equal(run(`RECIPE_RARITY.${id}`),rarity);
@@ -22,4 +22,14 @@ test('COM can plan and craft stamina soup from stocked ingredients',()=>{
  const {run}=harness();run("startSelectedCharacter();matchClock.section=1;var a=comActors[0];a.bag=[{id:'hotwater',count:1},{id:'garlic',count:1}];syncInventory(a);var p=comRecoveryPlan(a,1000000,{needed:{}})");
  assert.equal(run('p.recipeId'),'stamina_soup');
  assert(run("craftActor(a,recipes.find(r=>r.id===p.recipeId),1000000)"));assert.equal(run('a.inventory.stamina_soup'),4);
+});
+
+test('all seven new foods use separate unframed single-image assets',()=>{
+ const {run}=harness();
+ for(const id of ['garlic',...dishes.map(x=>x[0])]){
+  const cfg=run(`itemArt.${id}`);assert.equal(cfg[2],'single');
+  assert.equal(run(`itemArtSheets[${JSON.stringify(cfg[0])}]`),'assets/food/'+id+'.webp');
+  run(`readySheets[${JSON.stringify(cfg[0])}]=true`);
+  assert(run(`itemIconHTML('${id}').includes('background-size:100% 100%')`));
+ }
 });
