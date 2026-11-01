@@ -4587,7 +4587,8 @@ function addToStacks(stacks,id,count,metadata=null){
 }
 function removeFromStacks(stacks,id,count){
  let next=stacks.map(x=>({...x}));if(next.filter(x=>x.id===id).reduce((n,x)=>n+x.count,0)<count)return null;
- let left=count;for(let i=0;i<next.length&&left;){if(next[i].id!==id){i++;continue}const n=Math.min(left,next[i].count);next[i].count-=n;left-=n;if(!next[i].count)next.splice(i,1);else i++}return next;
+ // Spend the smallest matching stacks first, preserving all remaining slot order and metadata.
+ let left=count;for(const entry of next.filter(x=>x.id===id).sort((a,b)=>a.count-b.count)){const n=Math.min(left,entry.count);entry.count-=n;left-=n;if(!left)break}return next.filter(x=>x.count>0);
 }
 function canReceive(id,inv=S.bag,count=1){return !!addToStacks(Array.isArray(inv)?inv:S.bag,id,count)}
 function receive(id,count,metadata=null,actor=S){const next=addToStacks(actor.bag,id,count,metadata);if(!next)return false;actor.bag=next;syncInventory(actor);return true}
@@ -5114,7 +5115,7 @@ function recordExploration(actor,now){
  }
 }
 // Local-only observation log. It is evidence for later analysis, never an input to COM decisions.
-const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-11-01-bjorn-tactics-v1';
+const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-11-02-com-recovery-stacks-v1';
 let playJournal=null,playRecordTimer=null,playRecordDepth=0,playRecordLastState='',playRecordLastObservation=0,playRecordStorageError=false;
 let playRecords=readPlayRecords();
 function readPlayRecords(){
@@ -6419,7 +6420,8 @@ function comWeaponValue(actor,id,instance=null){
  const durability=state?.durability??WEAPON_DURABILITY.max;
  // These are planning weights, not changes to damage or weapon stats.
  const utility=(def.unlimitedAmmo?18:0)+(effect.durabilityLossImmune?12:0)+(effect.growthInterval?12:0)+(effect.reloadGrowth?6:0)+(effect.lifesteal||0)*60+(effect.droneDamageBonus||0)*8+(effect.criticalBonus||0)*80+(effect.freezeMs?4:0)+(effect.fixedDamage&&effect.attackInterval?effect.fixedDamage/effect.attackInterval:0);
- return attack*(effect.durabilityLossImmune?1:.85+.15*durability/WEAPON_DURABILITY.max)+utility;
+ const condition=effect.durabilityLossImmune?1:(durability<=WEAPON_DURABILITY.max/2?.7:1)*(.85+.15*durability/WEAPON_DURABILITY.max);
+ return attack*condition+utility;
 }
 function comAdaptivePlan(actor,now=Date.now()){
  // Cache only personal/public inputs. No live regionObjects, enemy inventory or hidden stock counts.
@@ -6501,9 +6503,9 @@ function equipActor(actor,index,now=Date.now()){
 function comEquipBetter(actor,now){
  const candidates=actor.bag.map((x,index)=>{
   const d=equipmentDef(x.id);if(!d||(d.slot==='weapon'&&!comWeaponTypes(actor).includes(d.weaponType)))return {index,score:0};
-  const value=comWeaponValue(actor,x.id,x.effects||{}),current=comWeaponValue(actor,actor.equipment.weapon),fresh=equipmentInstanceEffects(x.id,x.effects).durability;
-  const replacement=d.slot==='weapon'&&comWeaponNeedsReplacement(actor)&&fresh>WEAPON_DURABILITY.max/2&&value>=current*.85;
-  return {index,score:d.slot==='weapon'?Math.max(value-current,replacement?current*.7:0):comEquipmentValue(actor,x.id)-comEquipmentValue(actor,actor.equipment[d.slot])};
+  const value=comWeaponValue(actor,x.id,x.effects||{}),current=comWeaponValue(actor,actor.equipment.weapon);
+  // A single condition-aware ordering prevents repair preference and upgrade preference from undoing each other.
+  return {index,score:d.slot==='weapon'?value-current:comEquipmentValue(actor,x.id)-comEquipmentValue(actor,actor.equipment[d.slot])};
  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
  const index=candidates[0]?.index??-1;
  if(index<0)return false;const id=actor.bag[index].id;
@@ -6669,6 +6671,12 @@ function comReserveTurn(actor,gearPlan,reservePlan,gearReady,now){
  if(!actor.recoveryTripUntil)actor.recoveryTripUntil=now+(building?(reservePlan.expectedHeal>=120&&['rare','epic','legendary'].includes(RECIPE_RARITY[actor.equipment.weapon])?25000:10000):40000);
  return true;
 }
+function comEndgamePressure(){return pvpEnabled()&&(matchClock.section>=9||comFinalArea())}
+function comShouldTreatInjury(actor,now){
+ if(comEndgamePressure()||comUnderFire(actor,now))return false;
+ const notice=actor.damageNotice;
+ return !(notice&&notice.area===actor.place&&notice.at<=now&&now-notice.at<bodyTreatmentDuration(actor)+8000);
+}
 function comUnderFire(actor,now){const n=actor.damageNotice;return !!(n&&n.at<=now&&now-n.at<=8000&&n.area===actor.place)}
 function comShouldBurnSpirit(actor,now,target=null){return characterSkillHook(actor,'field','comShouldUse',now,target)||false}
 function comLeaveUnderFire(actor,plan,now){
@@ -6712,9 +6720,9 @@ function stepCom(actor,now){
  if(comUnderFire(actor,now)){comFinalSearch(actor,now);return}
  if(actor.enemy){comFight(actor,now);return}
  if(actor.leaveDanger){comMove(actor,now,'敵から離れる',plan);return}
- if(actor.bodyTreatment){if(!updateBodyTreatment(actor,now))return}
+ if(actor.bodyTreatment){if(!comShouldTreatInjury(actor,now))cancelBodyTreatment(actor);else if(!updateBodyTreatment(actor,now))return}
  const injuredPart=Object.keys(BODY_INJURIES).find(part=>hasBodyInjury(actor,part));
- if(injuredPart){beginBodyTreatment(actor,injuredPart,now);return}
+ if(injuredPart&&comShouldTreatInjury(actor,now)){beginBodyTreatment(actor,injuredPart,now);return}
  if(tryComFieldSkill(actor,plan,now,'beforeRecovery'))return;
  const policy=comRecoveryPolicy(actor),hpMissing=actorMax(actor,'hp')-actor.hp;
  const hpChoice=comSelectRecovery(actor,'hp',now);
@@ -6730,6 +6738,8 @@ function stepCom(actor,now){
   if(RECOVERY_ITEMS[r?.id]?.group==='hp'&&after&&addToStacks(after.stacks,r.id,craftOutputCount(actor,r))&&craftActor(actor,r,now)){actor.restMode=null;comLog(actor,'手持ち素材で回復を製作：'+names[r.id],now);return}
  }
  const minHp=Math.max(actorMax(actor,'hp')*.2,Math.max(0,searchStaminaCost(actor)-actor.st)+((actor.injuryUntil||0)>now?4:0)+Math.max(0,5-actor.st)+1);
+ // In the last phase, spend supplies and keep searching instead of filling a rest bar.
+ if((!comEndgamePressure()&&!comShouldTreatInjury(actor,now))||comEndgamePressure()&&(actor.hp<=minHp||actor.st<searchStaminaCost(actor)+5||actor.restMode)){comFinalSearch(actor,now);return}
  if(actor.hp<=minHp||actor.restMode==='hp'&&actor.hp<actorMax(actor,'hp')*.5){
   actor.restMode='hp';actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+treatmentRate(actor));comLog(actor,'物資を探せる体力まで治療',now);return;
  }

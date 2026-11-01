@@ -36,7 +36,7 @@ fresh();run(`var a=target;matchClock.competitive=true;a.hp=40;a.st=100;a.restMod
 // Repeated moves still wait for the COM operation interval; do not restart stationary therapy meanwhile.
 fresh();run(`var a=target;a.hp=25;a.st=100;a.damageNotice={at:1000000,area:a.place};a.moveDecisionReadyAt=1002500;var oldPlace=a.place,hp=a.hp;stepCom(a,1001000)`);eq('a.place',run('oldPlace'));eq('a.hp',run('hp'));eq('a.restMode',null);run('stepCom(a,1003000)');assert(run('a.place!==oldPlace'));
 // Stale notices do not cause retreat, and the final zone continues paid searches rather than waiting to heal.
-fresh();run(`var a=target;a.hp=25;a.st=100;a.damageNotice={at:990000,area:a.place};var oldPlace=a.place;stepCom(a,1001000)`);eq('a.place',run('oldPlace'));eq('a.restMode','hp');
+fresh();run(`var a=target;a.hp=25;a.st=100;a.damageNotice={at:980000,area:a.place};var oldPlace=a.place;stepCom(a,1001000)`);eq('a.place',run('oldPlace'));eq('a.restMode','hp');
 fresh();run(`var a=target;a.hp=25;a.st=100;a.damageNotice={at:1000000,area:a.place};matchClock.competitive=true;matchClock.blocked=Object.keys(regionStock).filter(p=>p!==a.place);matchClock.nextBlocked=[];var oldPlace=a.place;stepCom(a,1001000)`);eq('a.place',run('oldPlace'));eq('a.matchStats.searches',1);eq('a.restMode',null);
 // Lack of enough combined HP/ST for a move uses one stamina recovery tick, never a lethal retreat.
 fresh();run(`var a=target;a.hp=2;a.st=0;a.bag=[];syncInventory(a);a.damageNotice={at:1000000,area:a.place};var oldPlace=a.place;stepCom(a,1001000)`);eq('a.hp',2);eq('a.place',run('oldPlace'));assert(run('a.st>0'));run('stepCom(a,1002000)');assert(run('a.place!==oldPlace'));assert(run('a.hp>0'));

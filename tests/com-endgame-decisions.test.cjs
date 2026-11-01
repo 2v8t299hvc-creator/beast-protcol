@@ -29,6 +29,6 @@ prepared();run(`receive('lighter',1,null,a);receive('hotwater',1,null,a);receive
 prepared();run(`a.character='kankan';a.hp=actorMax(a,'hp');a.damageNotice={at:1000000,area:a.place}`);eq('comShouldBurnSpirit(a,1000000)',false);run(`receive('compressed_ration',3,null,a)`);eq('comShouldBurnSpirit(a,1000000)',true);eq('comShouldBurnSpirit(a,1009000)',false);
 // Under fire with movement locked still pays for random discovery, never a free retaliation target.
 prepared();run(`matchClock.competitive=true;a.hp=35;a.st=50;a.biteUntil=1010000;a.damageNotice={at:1000000,area:a.place};a.restMode='hp';var searches=a.matchStats.searches||0;stepCom(a,1000000)`);eq('a.restMode',null);eq('a.matchStats.searches',run('searches+1'));assert(run("!a.opponent||a.opponent.source==='search'"));
-// An old damage notice does not block normal safe treatment.
-prepared();run(`a.hp=20;a.damageNotice={at:990000,area:a.place};stepCom(a,1000000)`);eq('a.restMode','hp');
+// A damage notice older than the injury-treatment safety window does not block safe treatment.
+prepared();run(`a.hp=20;a.damageNotice={at:980000,area:a.place};stepCom(a,1000000)`);eq('a.restMode','hp');
 console.log('PASS: replayed melee accessory swap, held-food cooking before treatment, stocked-only spirit, paid discovery under fire and stale-notice isolation.');
