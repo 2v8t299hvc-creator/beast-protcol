@@ -220,6 +220,7 @@ const ITEM_DEFS=[
  {
   id:"stone",
   displayOrder:5,
+  craftGroup:"stone",
   name:"石ころ",
   art:["basic",0]
  },
@@ -232,6 +233,7 @@ const ITEM_DEFS=[
  {
   id:"mystery",
   displayOrder:15,
+  craftGroup:"mineral",
   name:"謎の鉱石",
   art:["basic",2]
  },
@@ -245,6 +247,7 @@ const ITEM_DEFS=[
  {
   id:"marble",
   displayOrder:10,
+  craftGroup:"stone",
   name:"大理石",
   art:["basic",3]
  },
@@ -377,7 +380,7 @@ const ITEM_DEFS=[
   displayOrder:30,
   name:"赤い石",
   art:["stones",0],
-  craftGroup:"mineral",
+  craftGroup:"stone",
   recipes:[{"order":182,"category":"item","need":{"stone":1,"minefish":1},"desc":"鉱石系素材"}]
  },
  {
@@ -385,7 +388,7 @@ const ITEM_DEFS=[
   displayOrder:40,
   name:"青い石",
   art:["stones",1],
-  craftGroup:"mineral",
+  craftGroup:"stone",
   recipes:[{"order":181,"category":"item","need":{"stone":1,"fish_scale":1},"desc":"鉱石系素材"}]
  },
  {
@@ -393,18 +396,21 @@ const ITEM_DEFS=[
   displayOrder:50,
   name:"白い石",
   art:["stones",2],
-  craftGroup:"mineral",
+  craftGroup:"stone",
   recipes:[{"order":180,"category":"item","need":{"stone":1,"marble":1},"desc":"鉱石系素材"}]
  },
  {
   id:"obsidian",
   displayOrder:60,
+  craftGroup:"stone",
+  rarity:"epic",
   name:"黒曜石",
   art:["gems",3]
  },
  {
   id:"meteorite",
   displayOrder:65,
+  craftGroup:"stone",
   name:"メテオライト",
   art:["stones",3]
  },
@@ -4866,7 +4872,7 @@ function itemDisplayCategory(item){
  const def=item.equipment;
  if(def)return def.slot==='weapon'?20+['fist','slash','hammer','bow','gun'].indexOf(def.weaponType):30+['head','arm','body','legs','accessory'].indexOf(def.slot);
  if(item.recovery)return item.recovery.group==='hp'?10:11;
- return 0;
+ return item.craftGroup==='stone'?0:1;
 }
 function compareItemDisplay(a,b){
  return itemDisplayCategory(a)-itemDisplayCategory(b)||(a.displayOrder??Number.MAX_SAFE_INTEGER)-(b.displayOrder??Number.MAX_SAFE_INTEGER)||a.name.localeCompare(b.name,'ja')||a.id.localeCompare(b.id);
@@ -4878,7 +4884,7 @@ function itemClassification(id){
  if(def)return (def.slot==='weapon'?'武器 › '+WEAPON_TYPES[def.weaponType]:'防具 › '+EQUIPMENT_SLOTS[def.slot]);
  if(item.recovery)return '回復 › '+(item.recovery.group==='hp'?'HP回復':'スタミナ回復');
  if(AMMO_LIMITS[id])return '道具 › 弾薬';
- return '素材・道具 › '+({mineral:'鉱石・金属',plant:'植物',recovery:'回復用素材',other:'その他'}[item.craftGroup]||'その他');
+ return '素材・道具 › '+({stone:'石系素材',mineral:'鉱石・金属・宝石',plant:'植物',recovery:'回復用素材',other:'その他'}[item.craftGroup]||'その他');
 }
 function itemBasicStats(id){
  const item=ITEM_BY_ID[id],def=item?.equipment,effect=item?.effect;
@@ -4894,7 +4900,7 @@ function equipmentDetails(id){
 function itemInformationHTML(id){
  const item=ITEM_BY_ID[id];if(!item)return '';
  const effect=item.effect,stats=itemBasicStats(id),cooldown=equipmentEffectCooldown(id);
- return '<div class="bp-item-information"><p class="bp-item-classification">分類：'+escapeCorpseText(itemClassification(id))+'</p>'+(stats.length?'<section><h3>基本性能</h3><ul>'+stats.map(text=>'<li>'+escapeCorpseText(text)+'</li>').join('')+'</ul></section>':'')+(effect?'<section class="bp-item-effect"><h3>固有効果</h3><strong>【'+escapeCorpseText(effect.name)+'】</strong>'+(cooldown?'<small>再使用：'+cooldown+'秒（自動発動）</small>':'')+'<ul>'+effect.description.split('。').filter(Boolean).map(line=>'<li>'+escapeCorpseText(line)+'。</li>').join('')+'</ul></section>':'')+(item.flavor?'<p class="bp-item-flavor">'+escapeCorpseText(item.flavor)+'</p>':'')+'</div>';
+ return '<div class="bp-item-information"><p class="bp-item-classification">分類：'+escapeCorpseText(itemClassification(id))+'</p>'+(stats.length?'<section><h3>基本性能</h3><ul>'+stats.map(text=>'<li>'+escapeCorpseText(text)+'</li>').join('')+'</ul></section>':'')+(effect?'<section class="bp-item-effect"><h3>固有効果</h3><strong>【'+escapeCorpseText(effect.name)+'】</strong>'+(cooldown?'<small>再使用：'+cooldown+'秒（自動発動）</small>':'')+'<ul>'+effect.description.split('。').filter(Boolean).map(line=>'<li>'+escapeCorpseText(line)+'。</li>').join('')+'</ul></section>':'')+(isEdibleMineral(id)?'<p class="bp-ency-note">ザクロが食べられる素材。鉱物喰らいで防御力が'+mineralStacksFor(id)+'増加する。</p>':'')+(item.flavor?'<p class="bp-item-flavor">'+escapeCorpseText(item.flavor)+'</p>':'')+'</div>';
 }
 // Tier is drawn first, then each material in that tier has the same probability.
 // With today's candidates: Stargazer C60/U25/R12/E3%; Mythic R80/E20%.
@@ -5967,7 +5973,7 @@ function craftRecipeHTML(r){
 const CRAFT_SUBCATEGORIES={
  weapon:[['fist','拳'],['slash','斬り'],['hammer','鈍器'],['gun','銃'],['bow','弓']],
  armor:[['head','頭'],['arm','腕'],['body','身体'],['legs','脚'],['accessory','アクセサリー']],
- item:[['recovery','回復'],['mineral','鉱石・金属系'],['plant','植物系'],['other','その他']]
+ item:[['recovery','回復'],['stone','石系素材'],['mineral','鉱石・金属・宝石'],['plant','植物系'],['other','その他']]
 };
 
 
@@ -6605,6 +6611,7 @@ function encyclopediaFilteredItems(state=encyclopediaState){
  return ordered.filter(item=>{
   const def=item.equipment,category=state.category||'all';
   if(category==='weapon'&&def?.slot!=='weapon'||category==='armor'&&(!def||def.slot==='weapon')||category==='recovery'&&!item.recovery||category==='material'&&(def||item.recovery))return false;
+  if(category.startsWith('material:')&&(def||item.recovery||(item.craftGroup||'other')!==category.slice(9)))return false;
   if(category.startsWith('weapon:')&&(def?.slot!=='weapon'||def.weaponType!==category.slice(7)))return false;
   if(category.startsWith('armor:')&&def?.slot!==category.slice(6))return false;
   if(state.rarity&&state.rarity!=='all'&&(item.rarity||'common')!==state.rarity)return false;
@@ -6629,7 +6636,7 @@ function encyclopediaRecipeTree(id,count=1,path=[],budget={remaining:90}){
 function showEncyclopedia(){
  if(matchStarted)return;
  const panel=$('encyclopedia');panel.hidden=false;$('characterSelect').inert=true;
- const categories=[['all','すべて'],['weapon','武器すべて'],...CRAFT_SUBCATEGORIES.weapon.map(([id,label])=>['weapon:'+id,label]),['armor','防具すべて'],...CRAFT_SUBCATEGORIES.armor.map(([id,label])=>['armor:'+id,label]),['recovery','回復'],['material','素材・その他']];
+ const categories=[['all','すべて'],['weapon','武器すべて'],...CRAFT_SUBCATEGORIES.weapon.map(([id,label])=>['weapon:'+id,label]),['armor','防具すべて'],...CRAFT_SUBCATEGORIES.armor.map(([id,label])=>['armor:'+id,label]),['recovery','回復'],['material','素材・道具すべて'],...CRAFT_SUBCATEGORIES.item.filter(([id])=>id!=='recovery').map(([id,label])=>['material:'+id,label])];
  $('encyclopediaCategory').innerHTML=categories.map(([id,label])=>'<option value="'+id+'">'+escapeCorpseText(label)+'</option>').join('');
  $('encyclopediaRarity').innerHTML='<option value="all">全等級</option>'+Object.entries(ENCYCLOPEDIA_RARITIES).map(([id,label])=>'<option value="'+id+'">'+label+'</option>').join('');
  $('encyclopediaArea').innerHTML='<option value="all">直接配置の区画：すべて</option>'+Object.keys(regionStock).map(area=>'<option value="'+escapeCorpseText(area)+'">'+escapeCorpseText(area)+'</option>').join('');

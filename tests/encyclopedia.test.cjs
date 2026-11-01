@@ -110,3 +110,18 @@ test('crafting shares presentation order and new items have a stable fallback',(
  assert(run("compareItemDisplay({id:'new_b',name:'い',recovery:{group:'hp'}},{id:'new_a',name:'あ',recovery:{group:'hp'}})>0"));
  assert.throws(()=>run("validateItemDefinitions([{id:'bad',name:'bad',displayOrder:-1}],ITEM_ART_SHEETS)"),/display order/);
 });
+test('stone materials are separate from ores and gems and retain mineral-feast compatibility',()=>{
+ const {run}=harness();
+ const ids=['stone','marble','redstone','bluestone','whitestone','obsidian','meteorite'];
+ assert.equal(run("JSON.stringify(encyclopediaFilteredItems({category:'material:stone'}).map(i=>i.id))"),JSON.stringify(ids));
+ for(const id of ids){assert(run(`isEdibleMineral('${id}')`));assert.equal(run(`itemClassification('${id}')`),'素材・道具 › 石系素材')}
+ for(const id of ['mystery','bronze','iron','ruby','sapphire','diamond'])assert(!run(`encyclopediaFilteredItems({category:'material:stone'}).some(i=>i.id==='${id}')`));
+ assert.equal(run("RECIPE_RARITY.obsidian"),'epic');assert.equal(run("mineralStacksFor('obsidian')"),5);
+ assert.equal(run("recipeSubcategory(recipes.find(r=>r.id==='redstone'))"),'stone');
+ run("showEncyclopedia();encyclopediaSelectItem('obsidian')");
+ assert(run("$('encyclopediaCategory').innerHTML.includes('material:stone')"));
+ assert(run("$('encyclopediaDetail').innerHTML.includes('エピック')"));
+ assert(run("$('encyclopediaDetail').innerHTML.includes('防御力が5増加')"));
+ assert(run("encyclopediaFilteredItems({category:'material:stone',rarity:'epic'}).some(i=>i.id==='obsidian')"));
+ assert.equal(run("encyclopediaFilteredItems({category:'material:stone',query:'ルビー'}).length"),0);
+});
