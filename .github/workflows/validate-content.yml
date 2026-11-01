@@ -6,6 +6,7 @@ on:
       - 'assets/**'
       - tools/validate-content.cjs
       - tests/content-validation.test.cjs
+      - tests/encyclopedia.test.cjs
       - .github/workflows/validate-content.yml
   pull_request:
     paths:
@@ -13,6 +14,7 @@ on:
       - 'assets/**'
       - tools/validate-content.cjs
       - tests/content-validation.test.cjs
+      - tests/encyclopedia.test.cjs
       - .github/workflows/validate-content.yml
   workflow_dispatch:
 permissions:
@@ -29,3 +31,5 @@ jobs:
         run: node tools/validate-content.cjs
       - name: Verify detection of invalid registrations
         run: node --test tests/content-validation.test.cjs
+      - name: Verify pre-match encyclopedia
+        run: node --test tests/encyclopedia.test.cjs
