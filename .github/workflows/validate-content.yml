@@ -1,22 +1,26 @@
-name: Validate game registrations
+name: Game checks
 on:
   push:
     paths:
       - index.html
       - 'assets/**'
-      - tools/validate-content.cjs
-      - tests/content-validation.test.cjs
-      - tests/encyclopedia.test.cjs
+      - 'tools/**'
+      - 'tests/**'
       - .github/workflows/validate-content.yml
   pull_request:
     paths:
       - index.html
       - 'assets/**'
-      - tools/validate-content.cjs
-      - tests/content-validation.test.cjs
-      - tests/encyclopedia.test.cjs
+      - 'tools/**'
+      - 'tests/**'
       - .github/workflows/validate-content.yml
   workflow_dispatch:
+    inputs:
+      suite:
+        description: Checks to run
+        type: choice
+        default: smoke
+        options: [smoke, content, combat, com, ui, records, maintained]
 permissions:
   contents: read
 jobs:
@@ -27,9 +31,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Check registrations and image references
-        run: node tools/validate-content.cjs
-      - name: Verify detection of invalid registrations
-        run: node --test tests/content-validation.test.cjs
-      - name: Verify pre-match encyclopedia
-        run: node --test tests/encyclopedia.test.cjs
+      - name: Run selected game checks
+        env:
+          TEST_SUITE: ${{ inputs.suite || 'smoke' }}
+        run: |
+          if [ "$TEST_SUITE" = maintained ]; then
+            node tools/test.cjs --maintained
+          else
+            node tools/test.cjs --suite "$TEST_SUITE"
+          fi

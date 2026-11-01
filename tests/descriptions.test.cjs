@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 test('classification, real stats and effects are separate and shared',()=>{
  const {run}=harness();
  assert.equal(run("itemClassification('dragon_buster')"),'武器 › 斬り');

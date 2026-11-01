@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 const plain=(run,code)=>JSON.parse(run('JSON.stringify('+code+')'));
 test('selection screen offers encyclopedia and browsing never starts or mutates a match',()=>{
  const {run}=harness();assert(run("$('characterSelectContent').innerHTML.includes('showEncyclopedia()')"));

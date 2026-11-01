@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 const unfolded=html=>html.replace(/<details\b[^>]*>[\s\S]*?<\/details>/g,'');
 test('crafting and related lists prioritize craftable recipes before family order',()=>{
  const {run}=harness();run("startSelectedCharacter();canCraft=r=>r.id==='premium_ration';showCraft('item','recovery')");

@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 function setup(){const h=harness();h.run(`selectedCharacter='flugel';startSelectedCharacter();matchClock.section=1;matchClock.competitive=false;matchClock.blocked=[];matchClock.nextBlocked=[];
  S.place='山岳区画';S.hp=100000;S.equipment={weapon:'practice_sword'};S.equipmentEffects={};S.masteryAttacks={slash:30};
  var a=comActors[0],third=comActors[1];for(const x of [a,third]){x.place=S.place;x.hp=100000;x.equipment={weapon:'practice_sword'};x.equipmentEffects={};x.masteryAttacks={slash:30}}

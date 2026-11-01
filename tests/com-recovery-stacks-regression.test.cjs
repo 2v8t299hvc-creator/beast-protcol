@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 function setup(){const h=harness();h.run(`selectedCharacter='raku';startSelectedCharacter();var now=Date.now(),a=comActors.find(x=>x.character==='zakuro');matchClock.section=5;matchClock.sectionEndsAt=now+1000000;matchClock.blocked=[];matchClock.nextBlocked=[];matchClock.competitive=true;a.place='山岳区画';a.equipment={weapon:'kukri'};a.equipmentEffects={weapon:equipmentInstanceEffects('kukri',{durability:3,wearAttacks:32})};a.masteryAttacks={slash:62};a.bag=[{id:'army_knife',count:1,effects:equipmentInstanceEffects('army_knife')}];a.hp=actorMax(a,'hp');a.st=100;a.goal=null;a.exhausted={};a.characterFieldReadyAt=now+100000;syncInventory(a);`);return h.run}
 test('logged Zakuro swaps once to fresh knife, then stays stable over 100 decisions',()=>{
  const run=setup();assert(run('comEquipBetter(a,now)'));assert.equal(run('a.equipment.weapon'),'army_knife');

@@ -45,3 +45,5 @@ ERROR [UNKNOWN_ITEM] region.山岳区画: 未登録のアイテムID: missing_it
 GitHub Actionsの「Validate game registrations」で検査結果と検出機能のテストを確認できます。エラーがあるとこのチェックが失敗します。GitHub Pagesの配信をこの結果でブロックする設定は別であり、このワークフローだけで配信停止を保証するものではありません。
 
 通常のゲーム起動時に行う基本的な定義チェックに加え、開発・反映時にこの全体チェックを実行してください。
+
+For normal development, use `node tools/test.cjs` for essential checks and select feature suites as described in [TESTING.md](TESTING.md). The full negative validation cases above remain in the optional content suite.

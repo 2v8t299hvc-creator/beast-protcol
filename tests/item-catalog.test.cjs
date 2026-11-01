@@ -1,6 +1,6 @@
 // A registered item must reach actual crafting, equipment, recovery and art paths.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 let {run}=harness();
 assert.equal(run('validateItemDefinitions(ITEM_DEFS,ITEM_ART_SHEETS)'),true);
 for(const url of run('Object.values(ITEM_ART_SHEETS).concat(ITEM_DEFS.filter(item=>item.skillIcon).map(item=>item.skillIcon.art))'))assert(fs.existsSync(path.join(__dirname,'..',url)),url);

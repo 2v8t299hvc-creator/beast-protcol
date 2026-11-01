@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 function setup(character='bjorn',weapon='wild_hammer'){
  const h=harness();h.run(`selectedCharacter='zakuro';startSelectedCharacter();matchClock.section=5;matchClock.sectionEndsAt=Date.now()+1000000;matchClock.blocked=[];matchClock.nextBlocked=[];matchClock.competitive=false;
  var a=comActors.find(a=>a.character==='${character}');a.place='工業区画';a.hp=actorMax(a,'hp');a.st=0;a.bag=[];a.equipment={weapon:'${weapon}'};a.equipmentEffects={weapon:equipmentInstanceEffects('${weapon}')};a.exhausted={};a.dangerAreas={};a.noProgress=0;a.goal=null;a.characterFieldReadyAt=Date.now()+1000000;a.masteryAttacks={fist:30,slash:30,hammer:30,bow:30,gun:30};syncInventory(a);`);return h;

@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 const dishes=[['salted_fish_liver',{porcupinefish:1,rock_salt:1},3,'uncommon','stamina',45],['fried_garlic',{heated_oil:1,garlic:1},8,'rare','hp',25],['stamina_soup',{hotwater:1,garlic:1},4,'uncommon','stamina',42],['garlic_oil',{oil:1,garlic:1},2,'uncommon','stamina',30],['garlic_steak',{steak:1,garlic_oil:1},3,'epic','hp',150],['ajillo',{garlic_oil:1,fish_scale:1},2,'rare','hp',70]];
 for(const [id,need,count,rarity,group,amount] of dishes)test(id+' crafts the specified batch and restores the correct resource',()=>{
  const {run}=harness();run('startSelectedCharacter();matchClock.section=1;S.bag='+JSON.stringify(Object.entries(need).map(([id,count])=>({id,count})))+';syncInventory()');

@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {harness}=require('./character-catalog.test.cjs');
+const {harness}=require('./helpers/game-harness.cjs');
 function setup(){
  const h=harness();h.run(`startSelectedCharacter();matchClock.section=1;matchClock.sectionEndsAt=9000000;matchClock.blocked=[];matchClock.nextBlocked=[];matchClock.competitive=false;
  S.place='森林区画';S.hp=100000;S.equipment={};S.equipmentAmmo={};S.equipmentEffects={};S.matchEvents=[];

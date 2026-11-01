@@ -1,5 +1,5 @@
 // New skills must work through normal player/COM paths without a hard-coded ID whitelist.
-const assert=require('node:assert/strict');const {harness}=require('./character-catalog.test.cjs');
+const assert=require('node:assert/strict');const {harness}=require('./helpers/game-harness.cjs');
 let {run}=harness();
 assert.equal(run('validateSkillBehaviors(CHARACTER_DEFS,SKILL_BEHAVIORS)'),true);
 assert.equal(run('Object.keys(SKILL_BEHAVIORS).length'),run('new Set(CHARACTER_DEFS.flatMap(c=>Object.values(c.skills).map(s=>s.id))).size'));

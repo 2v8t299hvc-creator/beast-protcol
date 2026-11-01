@@ -1,0 +1,99 @@
+{
+  "suites": {
+    "smoke": [
+      "smoke.test.cjs"
+    ],
+    "content": [
+      "content-validation.test.cjs",
+      "character-catalog.test.cjs",
+      "item-catalog.test.cjs",
+      "skill-registry.test.cjs",
+      "descriptions.test.cjs",
+      "garlic-recipes.test.cjs",
+      "random-supplies.test.cjs",
+      "recovery-meta.test.cjs",
+      "reward-recovery-update.test.cjs"
+    ],
+    "combat": [
+      "weapon-durability.test.cjs",
+      "ranged-sustain.test.cjs",
+      "une-deux-consumption.test.cjs",
+      "volley-under-fire.test.cjs",
+      "combat-sounds.test.cjs"
+    ],
+    "com": [
+      "bjorn-tactics.test.cjs",
+      "com-endgame-decisions.test.cjs",
+      "com-recovery-stacks-regression.test.cjs",
+      "com-search-build.test.cjs",
+      "com-weapon-upgrades.test.cjs"
+    ],
+    "ui": [
+      "compact-crafting-ui.test.cjs",
+      "craft-target.test.cjs",
+      "encyclopedia.test.cjs",
+      "equipment-skill-hud.test.cjs"
+    ],
+    "records": [
+      "play-recording.test.cjs"
+    ]
+  },
+  "pendingReview": {
+    "adaptive-com.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "armgear.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "bat.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "bjorn.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "body-injuries.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "bodygear-injury.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "com-actors.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "com-crafting-combat.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "com-decisions-report.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "com-upgrades-scissors.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "combat-notices.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "combat-screen.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "corpses.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "damage-balance.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "day-night.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "discovery-skill-ui.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "equipment-art.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "equipment-balance-update.test.cjs": "review-specification",
+    "equipment-effects.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "fist-weapons.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "flugel-jerk-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "flugel.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "guard.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "hammer-weapons.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "hayate-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "headgear.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "hp-recipes.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "hyouga-bjorn-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "item-art-loading.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "jerk.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "kaito-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "kankan-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "kankan.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "leggear.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "lobby.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "mastery-pace.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "medicine-stones.test.cjs": "review-specification",
+    "multiple-com.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "nox-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "pvp-awareness.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "pvp-combat.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "raku-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "raku.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "ranged-equipment.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "recovery-cooldowns.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "region-balance.test.cjs": "review-specification",
+    "rest-modes.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "search-recovery.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "search-rewards.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "sections.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "slash-weapons.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "snow-leopard.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "stamina-recipes.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "stock-rediscovery.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "zakuro-skills.test.cjs": "migrate-startup-fixture-and-review-assertions",
+    "zakuro.test.cjs": "migrate-startup-fixture-and-review-assertions"
+  }
+}
