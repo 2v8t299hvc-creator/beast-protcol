@@ -261,55 +261,601 @@ Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{royal_suit:{name:'貴族の威光',desc
 const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
 for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
 
-const PLAYABLE_CHARACTERS=[
- {id:'kaito',name:'カイト',species:'犬',weapon:'fist',mastery:'拳 E+',summary:'同じ敵への連続攻撃で熟練度を伸ばす。',startArea:'戦闘演習区画'},
- {id:'hayate',name:'ハヤテ',species:'ハクトウワシ',weapon:'bow',mastery:'弓 D+',summary:'区域移動で薫風を蓄積し、移動と一撃を強化。',startArea:null},
- {id:'snow_leopard',name:'ヒョウガ',species:'ユキヒョウ',weapon:'gun',mastery:'銃 D+',summary:'探索でスタミナ回復。高HPの敵への狙撃が得意。',startArea:'射撃演習区画'},
- {id:'bjorn',name:'ビヨルン',species:'ウサギ',weapon:'hammer',mastery:'鈍器 D+',summary:'薬草を採集し、強打で敵に怪我を負わせる。',startArea:'住宅区画'},
- {id:'flugel',name:'フリューゲル',species:'キツネ',weapon:'slash',mastery:'斬り D+',summary:'6回目の探索で3個発見。姿勢崩しから追撃。',startArea:'港湾区画'},
- {id:'jerk',name:'ジャーク',species:'シャチ',weapon:'hammer',mastery:'鈍器・拳 D',summary:'水辺で攻防が上昇。喰らいつきで移動を封じる。',startArea:'山岳区画'},
- {id:'bat',name:'ノクス',species:'コウモリ',weapon:'bow',mastery:'弓・銃 D',summary:'夜に強い狩人。弓か銃で連射攻撃。',startArea:'戦闘演習区画'},
- {id:'zakuro',name:'ザクロ',species:'トカゲ',weapon:'slash',mastery:'斬り・弓 D',summary:'鉱物を食べて防御を強化し、宝石の力を纏う。',startArea:'地下機構区画'},
- {id:'kankan',name:'カンカン',species:'パンダ',weapon:'fist',mastery:'拳 D+',summary:'休憩と治療が得意。HPを攻撃力に変換する。',startArea:'公園区画'},
- {id:'raku',name:'ラク',species:'アライグマ',weapon:null,mastery:'ランダム1種 D+',summary:'ドローンを解体して強化し、武器を改造する。',startArea:'遺跡区画'}
+// Character catalog: add each character's metadata, art, skins, growth and skill definitions here.
+// Skill behavior and COM timing remain in the gameplay functions below.
+const CHARACTER_DEFS=[
+ {
+  "id": "kaito",
+  "name": "カイト",
+  "species": "犬",
+  "weapon": "fist",
+  "mastery": "拳 E+",
+  "summary": "同じ敵への連続攻撃で熟練度を伸ばす。",
+  "startArea": "戦闘演習区画",
+  "art": "assets/characters/kaito_stand.png",
+  "emoji": "🐕",
+  "initialMastery": {
+   "fist": 9
+  },
+  "statTargets": [
+   18,
+   57,
+   17,
+   54,
+   140,
+   230,
+   135,
+   200
+  ],
+  "weaponTypes": [
+   "fist"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "fighter",
+    "name": "格闘家カイト",
+    "art": "assets/skins/kaito_fighter.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "fighting_instinct",
+    "name": "闘争本能",
+    "maxStacks": 3,
+    "description": "同じ敵を続けて攻撃すると、攻撃時に獲得する熟練度が1ずつ増える（通常1、最大4）。相手を変えたり逃走したりするとリセットされる。",
+    "icon": "assets/inline-art/skills/characters/fighting_instinct.webp"
+   },
+   "active": {
+    "id": "step_break",
+    "name": "ステップブレイク",
+    "cooldownMs": 60000,
+    "durationMs": 5000,
+    "actionDelayMs": 500,
+    "description": "攻撃と同時に、相手の行動にかかる時間を5秒間、毎回0.5秒延ばす。ガードされても効果が発動する。",
+    "icon": "assets/inline-art/skills/characters/step_break.webp"
+   }
+  }
+ },
+ {
+  "id": "hayate",
+  "name": "ハヤテ",
+  "species": "ハクトウワシ",
+  "weapon": "bow",
+  "mastery": "弓 D+",
+  "summary": "区域移動で薫風を蓄積し、移動と一撃を強化。",
+  "startArea": null,
+  "art": "assets/characters/hayate_encounter_transparent.webp",
+  "emoji": "🦅",
+  "initialMastery": {
+   "bow": 20
+  },
+  "statTargets": [
+   17,
+   54,
+   15,
+   50,
+   125,
+   205,
+   150,
+   220
+  ],
+  "weaponTypes": [
+   "bow"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "hunter",
+    "name": "狩人ハヤテ",
+    "art": "assets/skins/hayate_hunter.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "spirit_breeze",
+    "name": "精霊の薫風",
+    "maxStacks": 4,
+    "durationMs": 30000,
+    "description": "区域を移動するたびに薫風が1たまる（最大4）。最後の移動から30秒間持続。薫風が2〜3なら移動時の消費スタミナ－2、4なら－4。",
+    "icon": "assets/inline-art/skills/characters/spirit_breeze.webp"
+   },
+   "active": {
+    "id": "gale_shoot",
+    "name": "ゲイルシュート",
+    "cooldownMs": 40000,
+    "description": "薫風をすべて消費して攻撃する。ダメージは通常攻撃の1.15倍から、薫風1につき0.05倍ずつ増える（4なら1.35倍）。4消費した場合、実際に与えたダメージの25%分のスタミナを回復する。",
+    "icon": "assets/inline-art/skills/characters/gale_shoot.webp"
+   }
+  }
+ },
+ {
+  "id": "snow_leopard",
+  "name": "ヒョウガ",
+  "species": "ユキヒョウ",
+  "weapon": "gun",
+  "mastery": "銃 D+",
+  "summary": "探索でスタミナ回復。高HPの敵への狙撃が得意。",
+  "startArea": "射撃演習区画",
+  "art": "assets/characters/snow_leopard_encounter_transparent.webp",
+  "emoji": "🐆",
+  "initialMastery": {
+   "gun": 20
+  },
+  "statTargets": [
+   20,
+   60,
+   15,
+   50,
+   125,
+   210,
+   140,
+   205
+  ],
+  "weaponTypes": [
+   "gun"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "sniper",
+    "name": "狙撃手ヒョウガ",
+    "art": "assets/skins/snow_leopard_sniper.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "footwork",
+    "name": "フットワーク",
+    "searchInterval": 10,
+    "description": "探索を10回行うたびに、スタミナを10回復する。",
+    "icon": "assets/inline-art/skills/characters/footwork.webp"
+   },
+   "active": {
+    "id": "white_target",
+    "name": "ホワイトターゲット",
+    "cooldownMs": 60000,
+    "description": "通常攻撃の1.1倍のダメージを与える。敵の残りHPの割合が高いほどクリティカル率が上がり、HP満タンなら40%になる。この攻撃で倒すと、再使用までの時間が5秒になる。",
+    "icon": "assets/inline-art/skills/characters/white_target.webp"
+   }
+  }
+ },
+ {
+  "id": "bjorn",
+  "name": "ビヨルン",
+  "species": "ウサギ",
+  "weapon": "hammer",
+  "mastery": "鈍器 D+",
+  "summary": "薬草を採集し、強打で敵に怪我を負わせる。",
+  "startArea": "住宅区画",
+  "art": "assets/characters/bjorn_encounter_transparent.webp",
+  "emoji": "🐰",
+  "initialMastery": {
+   "hammer": 20
+  },
+  "statTargets": [
+   17,
+   54,
+   19,
+   58,
+   145,
+   240,
+   130,
+   190
+  ],
+  "weaponTypes": [
+   "hammer"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "pharmacist",
+    "name": "薬剤師ビヨルン",
+    "art": "assets/skins/bjorn_pharmacist.webp"
+   }
+  ],
+  "skills": {
+   "field": {
+    "id": "herb_gathering",
+    "name": "薬草採集",
+    "cooldownMs": 45000,
+    "description": "薬草か小さい花を1個採集する。どちらが手に入るかは半々。",
+    "icon": "assets/inline-art/skills/characters/herb_gathering.webp"
+   },
+   "active": {
+    "id": "physics_blow",
+    "name": "物理学的殴打",
+    "cooldownMs": 100000,
+    "description": "通常攻撃の1.1倍のダメージを与える。攻撃後の敵のHPが最大HPの半分以下なら、ランダムな部位に怪我を負わせる。怪我は治療するまで残る。",
+    "icon": "assets/inline-art/skills/characters/physics_blow.webp"
+   }
+  }
+ },
+ {
+  "id": "flugel",
+  "name": "フリューゲル",
+  "species": "キツネ",
+  "weapon": "slash",
+  "mastery": "斬り D+",
+  "summary": "6回目の探索で3個発見。姿勢崩しから追撃。",
+  "startArea": "港湾区画",
+  "art": "assets/characters/flugel_encounter_transparent.webp",
+  "emoji": "🦊",
+  "initialMastery": {
+   "slash": 20
+  },
+  "statTargets": [
+   19,
+   59,
+   16,
+   52,
+   130,
+   215,
+   140,
+   210
+  ],
+  "weaponTypes": [
+   "slash"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "royal_guard",
+    "name": "近衛騎士フリューゲル",
+    "art": "assets/skins/flugel_royal_guard.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "efficiency",
+    "name": "効率重視",
+    "searchInterval": 6,
+    "description": "探索するたびにスタックが1たまる（最大6）。6の状態で通常探索すると、全スタックを消費してアイテムを3個発見する。ストック探索でもたまるが、消費はせず次の通常探索に持ち越す。",
+    "icon": "assets/inline-art/skills/characters/efficiency.webp"
+   },
+   "active": {
+    "id": "une_deux",
+    "name": "ユヌードゥ",
+    "cooldownMs": 80000,
+    "description": "通常攻撃の0.75倍のダメージを与える。その後6秒間、自分がその敵に与えるダメージが1.7倍になり、クリティカル率に25%を加算する（例：3%→28%）。",
+    "icon": "assets/inline-art/skills/characters/une_deux.webp"
+   }
+  }
+ },
+ {
+  "id": "jerk",
+  "name": "ジャーク",
+  "species": "シャチ",
+  "weapon": "hammer",
+  "mastery": "鈍器・拳 D",
+  "summary": "水辺で攻防が上昇。喰らいつきで移動を封じる。",
+  "startArea": "山岳区画",
+  "art": "assets/characters/jerk_encounter_transparent.webp",
+  "emoji": "🐋",
+  "initialMastery": {
+   "hammer": 14,
+   "fist": 14
+  },
+  "statTargets": [
+   20,
+   60,
+   17,
+   54,
+   150,
+   250,
+   120,
+   180
+  ],
+  "weaponTypes": [
+   "hammer",
+   "fist"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "pirate",
+    "name": "海賊ジャーク",
+    "art": "assets/skins/jerk_pirate.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "marine_gang",
+    "name": "マリンギャング",
+    "description": "水辺の区域にいる間、攻撃力と防御力がそれぞれ1.1倍になる。魚型ドローンを倒すとHPを150回復する。",
+    "icon": "assets/inline-art/skills/characters/marine_gang.webp"
+   },
+   "active": {
+    "id": "outlaw_bite",
+    "name": "アウトローバイト",
+    "cooldownMs": 90000,
+    "description": "通常攻撃の1.1倍のダメージを与え、相手の区域移動を3秒間封じる。水辺の区域ではダメージが1.3倍になる。",
+    "icon": "assets/inline-art/skills/characters/outlaw_bite.webp"
+   }
+  }
+ },
+ {
+  "id": "bat",
+  "name": "ノクス",
+  "species": "コウモリ",
+  "weapon": "bow",
+  "mastery": "弓・銃 D",
+  "summary": "夜に強い狩人。弓か銃で連射攻撃。",
+  "startArea": "戦闘演習区画",
+  "art": "assets/characters/bat_encounter_transparent.webp",
+  "emoji": "🦇",
+  "initialMastery": {
+   "bow": 14,
+   "gun": 14
+  },
+  "statTargets": [
+   18,
+   56,
+   15,
+   50,
+   120,
+   200,
+   150,
+   220
+  ],
+  "weaponTypes": [
+   "bow",
+   "gun"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "bounty_hunter",
+    "name": "賞金稼ぎノクス",
+    "art": "assets/skins/bat_bounty_hunter.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "night_hunter",
+    "name": "夜の狩人",
+    "description": "夜間、発見される確率から7%を差し引く（例：30%→23%）。クリティカル率には2%を加算する（例：3%→5%）。",
+    "icon": "assets/inline-art/skills/characters/night_hunter.webp"
+   },
+   "active": {
+    "id": "danse_macabre",
+    "name": "ダンスマカブル",
+    "cooldownMs": 60000,
+    "description": "弓か銃を装備しているときに使用可能。昼は通常攻撃の0.25倍で6連射、夜は0.2倍で8連射する。途中で弾切れになるか敵を倒すと終了する。",
+    "icon": "assets/inline-art/skills/characters/danse_macabre.webp"
+   }
+  }
+ },
+ {
+  "id": "zakuro",
+  "name": "ザクロ",
+  "species": "トカゲ",
+  "weapon": "slash",
+  "mastery": "斬り・弓 D",
+  "summary": "鉱物を食べて防御を強化し、宝石の力を纏う。",
+  "startArea": "地下機構区画",
+  "art": "assets/characters/zakuro_encounter_transparent.webp",
+  "emoji": "🦎",
+  "initialMastery": {
+   "slash": 14,
+   "bow": 14
+  },
+  "statTargets": [
+   16,
+   52,
+   20,
+   60,
+   135,
+   225,
+   135,
+   200
+  ],
+  "weaponTypes": [
+   "slash",
+   "bow"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "assassin",
+    "name": "暗殺者ザクロ",
+    "art": "assets/skins/zakuro_assassin.webp"
+   }
+  ],
+  "skills": {
+   "field": {
+    "id": "mineral_feast",
+    "name": "鉱物喰らい",
+    "cooldownMs": 30000,
+    "description": "石・鉱石系の素材を1個食べ、防御力を永続的に上げる。上昇量は素材の等級に応じて1／2／3／5／8。合計20以上で通常攻撃による怪我を防ぐ。ルビーは与ダメージ＋2、サファイヤは消費スタミナ－1、ダイアモンドは被ダメージ－4の効果も得る。",
+    "icon": "assets/inline-art/skills/characters/mineral_feast.webp"
+   },
+   "active": {
+    "id": "jewel_hunt",
+    "name": "ジュエルハント",
+    "cooldownMs": 30000,
+    "description": "通常攻撃の1.05倍のダメージを与え、敵の持つ石・鉱石系素材を1個コピーして入手する。",
+    "icon": "assets/inline-art/skills/characters/jewel_hunt.webp"
+   }
+  }
+ },
+ {
+  "id": "kankan",
+  "name": "カンカン",
+  "species": "パンダ",
+  "weapon": "fist",
+  "mastery": "拳 D+",
+  "summary": "休憩と治療が得意。HPを攻撃力に変換する。",
+  "startArea": "公園区画",
+  "art": "assets/characters/kankan_encounter_transparent.webp",
+  "emoji": "🐼",
+  "initialMastery": {
+   "fist": 20
+  },
+  "statTargets": [
+   18,
+   56,
+   19,
+   58,
+   150,
+   250,
+   120,
+   180
+  ],
+  "weaponTypes": [
+   "fist"
+  ],
+  "randomWeaponMastery": null,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "monk",
+    "name": "修行僧カンカン",
+    "art": "assets/skins/kankan_monk.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "qigong",
+    "name": "練気法",
+    "description": "休憩によるスタミナ回復と、治療によるHP回復が、どちらも毎秒1増える。",
+    "icon": "assets/inline-art/skills/characters/qigong.webp"
+   },
+   "field": {
+    "id": "burning_spirit",
+    "name": "燃える闘魂",
+    "cooldownMs": 120000,
+    "description": "現在HPの40%を消費し、消費したHPと同じ数値の割合だけ攻撃力を30秒間上げる。例：HP100なら40消費し、攻撃力が1.4倍になる。",
+    "icon": "assets/inline-art/skills/characters/burning_spirit.webp"
+   }
+  }
+ },
+ {
+  "id": "raku",
+  "name": "ラク",
+  "species": "アライグマ",
+  "weapon": null,
+  "mastery": "ランダム1種 D+",
+  "summary": "ドローンを解体して強化し、武器を改造する。",
+  "startArea": "遺跡区画",
+  "art": "assets/characters/raku_encounter_transparent.webp",
+  "emoji": "🦝",
+  "initialMastery": {},
+  "statTargets": [
+   15,
+   50,
+   18,
+   56,
+   135,
+   225,
+   145,
+   215
+  ],
+  "weaponTypes": [],
+  "randomWeaponMastery": 20,
+  "skins": [
+   {
+    "id": "default",
+    "name": "オリジナル",
+    "art": null
+   },
+   {
+    "id": "mechanic",
+    "name": "整備士ラク",
+    "art": "assets/skins/raku_mechanic.webp"
+   }
+  ],
+  "skills": {
+   "passive": {
+    "id": "dismantler",
+    "name": "解体屋",
+    "description": "ドローンを倒すと改造スタックがたまる（小型1、中型2、大型4、ドラゴン10）。1スタックにつきドローンへのダメージが2%増える（最大1.6倍）。7スタックで追加ドロップ＋1個、15スタックで合計＋2個。",
+    "icon": "assets/inline-art/skills/characters/dismantler.webp"
+   },
+   "field": {
+    "id": "weapon_modification",
+    "name": "改造",
+    "cooldownMs": 90000,
+    "description": "装備中の武器を、同じ武器種で1等級上の武器にランダムで変える。必要な改造スタックは、コモンから順に1／5／10／45。条件を満たせば使え、スタックは消費しない。",
+    "icon": "assets/inline-art/skills/characters/weapon_modification.webp"
+   }
+  }
+ }
 ];
+function validateCharacterDefinitions(definitions){
+ const ids=new Set(),skillIds=new Set();
+ for(const c of definitions){
+  if(!c.id||ids.has(c.id))throw new Error('Duplicate or missing character id: '+c.id);ids.add(c.id);
+  if(!c.name||!c.art||!c.emoji)throw new Error('Missing character presentation: '+c.id);
+  if(!Array.isArray(c.statTargets)||c.statTargets.length!==8||!c.statTargets.every(n=>Number.isFinite(n)&&n>0))throw new Error('Invalid character stats: '+c.id);
+  if(!Array.isArray(c.weaponTypes)||c.weaponTypes.some(t=>!['fist','slash','hammer','bow','gun'].includes(t))||(c.weapon&&!c.weaponTypes.includes(c.weapon)))throw new Error('Invalid character weapon types: '+c.id);
+  if(Object.entries(c.initialMastery||{}).some(([t,n])=>!c.weaponTypes.includes(t)||!Number.isFinite(n)||n<0))throw new Error('Invalid initial mastery: '+c.id);
+  if(c.randomWeaponMastery!=null&&(!Number.isFinite(c.randomWeaponMastery)||c.randomWeaponMastery<0))throw new Error('Invalid random mastery: '+c.id);
+  if(!Array.isArray(c.skins)||!c.skins.some(s=>s.id==='default')||new Set(c.skins.map(s=>s.id)).size!==c.skins.length||c.skins.some(s=>!s.id||!s.name||(s.id!=='default'&&!s.art)))throw new Error('Invalid character skins: '+c.id);
+  for(const [kind,skill] of Object.entries(c.skills||{})){
+   if(!['passive','field','active'].includes(kind)||!skill.id||skillIds.has(skill.id)||!skill.name||!skill.description||!skill.icon||(kind!=='passive'&&!(skill.cooldownMs>0)))throw new Error('Invalid character skill: '+c.id+'/'+kind);
+   skillIds.add(skill.id);
+  }
+ }
+ return true;
+}
+validateCharacterDefinitions(CHARACTER_DEFS);
+const CHARACTER_BY_ID=Object.fromEntries(CHARACTER_DEFS.map(c=>[c.id,c]));
+const PLAYABLE_CHARACTERS=CHARACTER_DEFS;
+const CHARACTER_SKINS=Object.fromEntries(CHARACTER_DEFS.map(c=>[c.id,c.skins]));
+const INITIAL_MASTERY=Object.fromEntries(CHARACTER_DEFS.map(c=>[c.id,c.initialMastery]));
+const CHARACTER_STAT_TARGETS=Object.fromEntries(CHARACTER_DEFS.map(c=>[c.id,c.statTargets]));
+const CHARACTER_SKILLS=Object.fromEntries(CHARACTER_DEFS.map(c=>[c.id,c.skills]));
+const CHARACTER_SKILL_BY_ID=Object.fromEntries(CHARACTER_DEFS.flatMap(c=>Object.values(c.skills).map(skill=>[skill.id,skill])));
+const SELECTION_SKILL_DESCRIPTIONS=Object.fromEntries(Object.values(CHARACTER_SKILL_BY_ID).map(skill=>[skill.id,skill.description]));
 let selectedCharacter='kaito',matchStarted=false,characterSelectionTab='characters';
-// Add skins here with a unique id, display name and transparent art URL.
-const CHARACTER_SKINS=Object.fromEntries(PLAYABLE_CHARACTERS.map(c=>[c.id,[{id:'default',name:'オリジナル',art:null}]]));
-CHARACTER_SKINS.kaito.push({"id": "fighter", "name": "格闘家カイト", "art": "assets/skins/kaito_fighter.webp"});
-CHARACTER_SKINS.hayate.push({"id": "hunter", "name": "狩人ハヤテ", "art": "assets/skins/hayate_hunter.webp"});
-CHARACTER_SKINS.snow_leopard.push({"id": "sniper", "name": "狙撃手ヒョウガ", "art": "assets/skins/snow_leopard_sniper.webp"});
-CHARACTER_SKINS.bjorn.push({"id": "pharmacist", "name": "薬剤師ビヨルン", "art": "assets/skins/bjorn_pharmacist.webp"});
-CHARACTER_SKINS.flugel.push({"id": "royal_guard", "name": "近衛騎士フリューゲル", "art": "assets/skins/flugel_royal_guard.webp"});
-CHARACTER_SKINS.jerk.push({"id": "pirate", "name": "海賊ジャーク", "art": "assets/skins/jerk_pirate.webp"});
-CHARACTER_SKINS.bat.push({"id": "bounty_hunter", "name": "賞金稼ぎノクス", "art": "assets/skins/bat_bounty_hunter.webp"});
-CHARACTER_SKINS.zakuro.push({"id": "assassin", "name": "暗殺者ザクロ", "art": "assets/skins/zakuro_assassin.webp"});
-CHARACTER_SKINS.kankan.push({"id": "monk", "name": "修行僧カンカン", "art": "assets/skins/kankan_monk.webp"});
-CHARACTER_SKINS.raku.push({"id": "mechanic", "name": "整備士ラク", "art": "assets/skins/raku_mechanic.webp"});
 function randomComSkin(character){const skins=(CHARACTER_SKINS[character]||[]).filter(s=>s.id!=='default');return skins.length&&Math.random()<0.25?skins[rand(skins.length)].id:'default'}
 const selectedCharacterSkins={};
-const SELECTION_SKILL_DESCRIPTIONS={
- "fighting_instinct": "同じ敵を続けて攻撃すると、攻撃時に獲得する熟練度が1ずつ増える（通常1、最大4）。相手を変えたり逃走したりするとリセットされる。",
- "spirit_breeze": "区域を移動するたびに薫風が1たまる（最大4）。最後の移動から30秒間持続。薫風が2〜3なら移動時の消費スタミナ－2、4なら－4。",
- "footwork": "探索を10回行うたびに、スタミナを10回復する。",
- "efficiency": "探索するたびにスタックが1たまる（最大6）。6の状態で通常探索すると、全スタックを消費してアイテムを3個発見する。ストック探索でもたまるが、消費はせず次の通常探索に持ち越す。",
- "marine_gang": "水辺の区域にいる間、攻撃力と防御力がそれぞれ1.1倍になる。魚型ドローンを倒すとHPを150回復する。",
- "night_hunter": "夜間、発見される確率から7%を差し引く（例：30%→23%）。クリティカル率には2%を加算する（例：3%→5%）。",
- "qigong": "休憩によるスタミナ回復と、治療によるHP回復が、どちらも毎秒1増える。",
- "dismantler": "ドローンを倒すと改造スタックがたまる（小型1、中型2、大型4、ドラゴン10）。1スタックにつきドローンへのダメージが2%増える（最大1.6倍）。7スタックで追加ドロップ＋1個、15スタックで合計＋2個。",
- "herb_gathering": "薬草か小さい花を1個採集する。どちらが手に入るかは半々。",
- "mineral_feast": "石・鉱石系の素材を1個食べ、防御力を永続的に上げる。上昇量は素材の等級に応じて1／2／3／5／8。合計20以上で通常攻撃による怪我を防ぐ。ルビーは与ダメージ＋2、サファイヤは消費スタミナ－1、ダイアモンドは被ダメージ－4の効果も得る。",
- "burning_spirit": "現在HPの40%を消費し、消費したHPと同じ数値の割合だけ攻撃力を30秒間上げる。例：HP100なら40消費し、攻撃力が1.4倍になる。",
- "weapon_modification": "装備中の武器を、同じ武器種で1等級上の武器にランダムで変える。必要な改造スタックは、コモンから順に1／5／10／45。条件を満たせば使え、スタックは消費しない。",
- "step_break": "攻撃と同時に、相手の行動にかかる時間を5秒間、毎回0.5秒延ばす。ガードされても効果が発動する。",
- "gale_shoot": "薫風をすべて消費して攻撃する。ダメージは通常攻撃の1.15倍から、薫風1につき0.05倍ずつ増える（4なら1.35倍）。4消費した場合、実際に与えたダメージの25%分のスタミナを回復する。",
- "white_target": "通常攻撃の1.1倍のダメージを与える。敵の残りHPの割合が高いほどクリティカル率が上がり、HP満タンなら40%になる。この攻撃で倒すと、再使用までの時間が5秒になる。",
- "physics_blow": "通常攻撃の1.1倍のダメージを与える。攻撃後の敵のHPが最大HPの半分以下なら、ランダムな部位に怪我を負わせる。怪我は治療するまで残る。",
- "une_deux": "通常攻撃の0.75倍のダメージを与える。その後6秒間、自分がその敵に与えるダメージが1.7倍になり、クリティカル率に25%を加算する（例：3%→28%）。",
- "outlaw_bite": "通常攻撃の1.1倍のダメージを与え、相手の区域移動を3秒間封じる。水辺の区域ではダメージが1.3倍になる。",
- "danse_macabre": "弓か銃を装備しているときに使用可能。昼は通常攻撃の0.25倍で6連射、夜は0.2倍で8連射する。途中で弾切れになるか敵を倒すと終了する。",
- "jewel_hunt": "通常攻撃の1.05倍のダメージを与え、敵の持つ石・鉱石系素材を1個コピーして入手する。"
-};
+
 function cycleSelectedCharacter(direction){const i=PLAYABLE_CHARACTERS.findIndex(c=>c.id===selectedCharacter);showCharacterSelection(PLAYABLE_CHARACTERS[(i+direction+PLAYABLE_CHARACTERS.length)%PLAYABLE_CHARACTERS.length].id)}
 function setCharacterSelectionTab(tab){characterSelectionTab=tab==='skins'?'skins':'characters';showCharacterSelection()}
 function selectCharacterSkin(id){if(!(CHARACTER_SKINS[selectedCharacter]||[]).some(s=>s.id===id))return;selectedCharacterSkins[selectedCharacter]=id;showCharacterSelection()}
@@ -338,7 +884,6 @@ function startSelectedCharacter(){
  refresh();showMap(false);setInterval(tickMatchClock,250);
 }
 
-const INITIAL_MASTERY={kaito:{fist:9},hayate:{bow:20},snow_leopard:{gun:20},bjorn:{hammer:20},flugel:{slash:20},jerk:{hammer:14,fist:14},bat:{bow:14,gun:14},zakuro:{slash:14,bow:14},kankan:{fist:20}};
 function initialMastery(character){return {fist:0,slash:0,hammer:0,bow:0,gun:0,...INITIAL_MASTERY[character]};}
 
 const MASTERY_RANKS=['F','F+','E','E+','D','D+','C','C+','B','B+','A','A+','S','S+','SS'];
@@ -348,7 +893,6 @@ const MASTERY_THRESHOLDS=[0,2,5,9,14,20,27,34,42,50,60,72,85,102,120];
 const MASTERY_WEAPON_FACTORS=[.45,.48,.54,.60,.625,.65,.70,.75,.80,.85,.90,.94,.97,.99,1];
 const MASTERY_MULTIPLIERS=[.90,.92,.94,1,1,1,1.18,1.40,1.70,1.86,2.02,2.18,2.45,2.95,3.55];
 // Provisional per-character growth configuration; additional characters can be registered here.
-const CHARACTER_STAT_TARGETS={"kaito":[18,57,17,54,140,230,135,200],"hayate":[17,54,15,50,125,205,150,220],"snow_leopard":[20,60,15,50,125,210,140,205],"bjorn":[17,54,19,58,145,240,130,190],"flugel":[19,59,16,52,130,215,140,210],"jerk":[20,60,17,54,150,250,120,180],"bat":[18,56,15,50,120,200,150,220],"zakuro":[16,52,20,60,135,225,135,200],"kankan":[18,56,19,58,150,250,120,180],"raku":[15,50,18,56,135,225,145,215]};
 const CHARACTER_GROWTH=Object.fromEntries(Object.entries(CHARACTER_STAT_TARGETS).map(([id,[a,z,d,e,h,j,t,u]])=>[id,{baseAttack:a,attackGrowth:(z-a)/14,baseDefense:d,defenseGrowth:(e-d)/14,baseHp:h,hpGrowth:(j-h)/14,baseSt:t,stGrowth:(u-t)/14}]));
 function baseCharacterStat(actor,stat,level=actor.level){
  const g=CHARACTER_GROWTH[actor.character]||CHARACTER_GROWTH.kaito;
@@ -412,7 +956,6 @@ function presentSearchBatch(items){
 
 
 
-const CHARACTER_SKILLS={kaito:{passive:{id:'fighting_instinct',name:'闘争本能',maxStacks:3},active:{id:'step_break',name:'ステップブレイク',cooldownMs:60000,durationMs:5000,actionDelayMs:500}},hayate:{passive:{id:'spirit_breeze',name:'精霊の薫風',maxStacks:4,durationMs:30000},active:{id:'gale_shoot',name:'ゲイルシュート',cooldownMs:40000}},snow_leopard:{passive:{id:'footwork',name:'フットワーク',searchInterval:10},active:{id:'white_target',name:'ホワイトターゲット',cooldownMs:60000}},bjorn:{field:{id:'herb_gathering',name:'薬草採集',cooldownMs:45000},active:{id:'physics_blow',name:'物理学的殴打',cooldownMs:100000}},flugel:{passive:{id:'efficiency',name:'効率重視',searchInterval:6},active:{id:'une_deux',name:'ユヌードゥ',cooldownMs:80000}},jerk:{passive:{id:'marine_gang',name:'マリンギャング'},active:{id:'outlaw_bite',name:'アウトローバイト',cooldownMs:90000}},bat:{passive:{id:'night_hunter',name:'夜の狩人'},active:{id:'danse_macabre',name:'ダンスマカブル',cooldownMs:60000}},zakuro:{field:{id:'mineral_feast',name:'鉱物喰らい',cooldownMs:30000},active:{id:'jewel_hunt',name:'ジュエルハント',cooldownMs:30000}},kankan:{passive:{id:'qigong',name:'練気法'},field:{id:'burning_spirit',name:'燃える闘魂',cooldownMs:120000}},raku:{passive:{id:'dismantler',name:'解体屋'},field:{id:'weapon_modification',name:'改造',cooldownMs:90000}}};
 const delayedDroneCounters=[];
 function skillTargetKey(target){return target?.kind&&Number.isInteger(target.generation)?'drone:'+target.kind+':'+target.generation:'player:'+actorIdentity(target)}
 function resetFightingInstinct(actor){if(actor.fightingInstinct)actor.fightingInstinct=null}
@@ -668,9 +1211,9 @@ function resolveCharacterSkill(actor,target,skillId,hit,now,gale=null,dealt=0){
  if(actor===S)addLog(def.name+(applied?'！ 相手の行動を5秒間遅くした':hit?'で撃破！':'：効果なし'));
  return {id:skillId,applied};
 }
-const SKILL_ART_DATA={"assets/skills/characters/marine_gang.webp":"assets/inline-art/skills/characters/marine_gang.webp","assets/skills/characters/danse_macabre.webp":"assets/inline-art/skills/characters/danse_macabre.webp","assets/skills/characters/gale_shoot.webp":"assets/inline-art/skills/characters/gale_shoot.webp","assets/skills/characters/efficiency.webp":"assets/inline-art/skills/characters/efficiency.webp","assets/skills/characters/spirit_breeze.webp":"assets/inline-art/skills/characters/spirit_breeze.webp","assets/skills/characters/jewel_hunt.webp":"assets/inline-art/skills/characters/jewel_hunt.webp","assets/skills/characters/footwork.webp":"assets/inline-art/skills/characters/footwork.webp","assets/skills/characters/herb_gathering.webp":"assets/inline-art/skills/characters/herb_gathering.webp","assets/skills/characters/fighting_instinct.webp":"assets/inline-art/skills/characters/fighting_instinct.webp","assets/skills/characters/mineral_feast.webp":"assets/inline-art/skills/characters/mineral_feast.webp","assets/skills/characters/physics_blow.webp":"assets/inline-art/skills/characters/physics_blow.webp","assets/skills/characters/une_deux.webp":"assets/inline-art/skills/characters/une_deux.webp","assets/skills/characters/night_hunter.webp":"assets/inline-art/skills/characters/night_hunter.webp","assets/skills/characters/outlaw_bite.webp":"assets/inline-art/skills/characters/outlaw_bite.webp","assets/skills/characters/burning_spirit.webp":"assets/inline-art/skills/characters/burning_spirit.webp","assets/skills/characters/dismantler.webp":"assets/inline-art/skills/characters/dismantler.webp","assets/skills/characters/white_target.webp":"assets/inline-art/skills/characters/white_target.webp","assets/skills/characters/step_break.webp":"assets/inline-art/skills/characters/step_break.webp","assets/skills/characters/qigong.webp":"assets/inline-art/skills/characters/qigong.webp","assets/skills/characters/weapon_modification.webp":"assets/inline-art/skills/characters/weapon_modification.webp","assets/skills/equipment/judgment_thunder.webp":"assets/inline-art/skills/equipment/judgment_thunder.webp","assets/skills/equipment/eruption.webp":"assets/inline-art/skills/equipment/eruption.webp","assets/skills/equipment/electrification.webp":"assets/inline-art/skills/equipment/electrification.webp","assets/skills/equipment/steel_protection.webp":"assets/inline-art/skills/equipment/steel_protection.webp","assets/skills/equipment/mad_scalpel.webp":"assets/inline-art/skills/equipment/mad_scalpel.webp","assets/skills/equipment/wild_power.webp":"assets/inline-art/skills/equipment/wild_power.webp","assets/skills/equipment/stargazer.webp":"assets/inline-art/skills/equipment/stargazer.webp","assets/skills/equipment/divine_blessing.webp":"assets/inline-art/skills/equipment/divine_blessing.webp","assets/skills/equipment/deadly_balance.webp":"assets/inline-art/skills/equipment/deadly_balance.webp","assets/skills/equipment/happy_premonition.webp":"assets/inline-art/skills/equipment/happy_premonition.webp"};
+const SKILL_ART_DATA={"assets/skills/equipment/judgment_thunder.webp":"assets/inline-art/skills/equipment/judgment_thunder.webp","assets/skills/equipment/eruption.webp":"assets/inline-art/skills/equipment/eruption.webp","assets/skills/equipment/electrification.webp":"assets/inline-art/skills/equipment/electrification.webp","assets/skills/equipment/steel_protection.webp":"assets/inline-art/skills/equipment/steel_protection.webp","assets/skills/equipment/mad_scalpel.webp":"assets/inline-art/skills/equipment/mad_scalpel.webp","assets/skills/equipment/wild_power.webp":"assets/inline-art/skills/equipment/wild_power.webp","assets/skills/equipment/stargazer.webp":"assets/inline-art/skills/equipment/stargazer.webp","assets/skills/equipment/divine_blessing.webp":"assets/inline-art/skills/equipment/divine_blessing.webp","assets/skills/equipment/deadly_balance.webp":"assets/inline-art/skills/equipment/deadly_balance.webp","assets/skills/equipment/happy_premonition.webp":"assets/inline-art/skills/equipment/happy_premonition.webp"};
 function equipmentSkillArt(id){return SKILL_ART_DATA["assets/skills/equipment/"+EQUIPMENT_SKILL_ICONS[id]+".webp"]+"#"+EQUIPMENT_SKILL_ICONS[id]+".webp"}
-function characterSkillIconHTML(id){return '<img class="bp-skill-art" src="'+SKILL_ART_DATA['assets/skills/characters/'+id+'.webp']+'#'+id+'.webp" alt="">'}
+function characterSkillIconHTML(id){const icon=CHARACTER_SKILL_BY_ID[id]?.icon;return icon?'<img class="bp-skill-art" src="'+icon+'#'+id+'.webp" alt="">':''}
 function setCharacterSkillArt(element,id){const html=characterSkillIconHTML(id);if(element.dataset?.skillArt===id)return;const counter=element.querySelector?.('.bp-skill-count');element.innerHTML=html;if(counter)element.appendChild(counter);if(element.dataset)element.dataset.skillArt=id}
 function currentSkillTarget(){return S.enemyPlayerId?findActor(S.enemyPlayerId):S.enemy?drones[S.enemyKind]:null}
 function renderCharacterSkills(now=Date.now()){
@@ -816,7 +1359,7 @@ function addLog(s){let d=document.createElement('div');d.textContent='› '+s;$(
 let tt;function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('toast').classList.remove('show'),1400)}
 
 const stageArtRegistry={
- characters:{kaito:'assets/characters/kaito_stand.png'},
+ characters:Object.fromEntries(CHARACTER_DEFS.map(c=>[c.id,c.art])),
  backgrounds:{'山岳区画':'assets/backgrounds/mountain.png','遺跡区画':'assets/backgrounds/ruins.png','地下機構区画':'assets/backgrounds/underground.png','神殿区画':'assets/backgrounds/temple.png','工業区画':'assets/backgrounds/industrial.png','海岸区画':'assets/backgrounds/coast.png','港湾区画':'assets/backgrounds/port.png','湖畔区画':'assets/backgrounds/lakeside.png','水没施設区画':'assets/backgrounds/submerged_facility.png','射撃演習区画':'assets/backgrounds/shooting_range.webp','戦闘演習区画':'assets/backgrounds/combat_training.webp','住宅区画':'assets/backgrounds/residential.webp','公園区画':'assets/backgrounds/park.webp','医療区画':'assets/backgrounds/medical.webp','森林区画':'assets/backgrounds/forest.webp','密林区画':'assets/backgrounds/jungle.webp','商業区画':'assets/backgrounds/commercial.webp','海底研究区画':'assets/backgrounds/undersea_research.webp'}
 };
 const artLoaded=new Set(),artFailed=new Set(),artLoading=new Map();
@@ -933,7 +1476,7 @@ function renderCombat(){$('enemy').classList.toggle('is-dragon',!!S.enemy&&S.ene
  $('game').classList.toggle('in-combat',fighting);$('enemy').classList.toggle('on',fighting);
  const opponent=S.enemyPlayerId&&S.encounterSnapshot;
  const def=opponent?{name:actorName(opponent),hp:actorMax(opponent,'hp'),art:actorArt(opponent)}:DRONE_DEFS[S.enemyKind];
- $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?(opponent.character==='raku'?'🦝':opponent.character==='kankan'?'🐼':opponent.character==='zakuro'?'🦎':opponent.character==='bat'?'🦇':opponent.character==='jerk'?'🐋':opponent.character==='flugel'?'🦊':opponent.character==='bjorn'?'🐰':opponent.character==='snow_leopard'?'🐆':opponent.character==='kaito'?'🐕':'🦅'):'🛰️';
+ $('enemyName').textContent=def?.name||'';$('enemyFallback').textContent=opponent?(CHARACTER_BY_ID[opponent.character]?.emoji||'❔'):'🛰️';
  if(def&&$('enemyArt').getAttribute('src')!==def.art){$('enemyArt').hidden=false;$('enemyFallback').hidden=true;$('enemyArt').src=def.art;$('enemyArt').alt=def.name;}
  $('droneTraits').innerHTML=def?.shell?'<span>頑丈な殻</span><span>毒針</span>':def?.ink?'<span>ぬめぬめ</span><span>タコ墨ブレス</span>':'';
  if((drones[S.enemyKind]?.frozenUntil||0)>Date.now())$('droneTraits').innerHTML+='<span>❄ 凍結（'+Math.ceil((drones[S.enemyKind].frozenUntil-Date.now())/1000)+'秒）</span>';
@@ -1774,7 +2317,7 @@ function handleComCombatDecision(actor,target,now,kind){
 // Shared player combat. Encounters reveal only local actors; the AI never tracks a moved opponent.
 const PLAYER_DISCOVERY_RATE=0.90;
 function pvpEnabled(){return !!matchClock&&matchClock.competitive!==false&&matchClock.section>0&&!matchClock.ended}
-function actorArt(actor){const skin=actor?.skin&&CHARACTER_SKINS[actor.character]?.find(s=>s.id===actor.skin);if(skin?.art)return skin.art;return actor?.character==='raku'?'assets/characters/raku_encounter_transparent.webp':actor?.character==='kankan'?'assets/characters/kankan_encounter_transparent.webp':actor?.character==='zakuro'?'assets/characters/zakuro_encounter_transparent.webp':actor?.character==='bat'?'assets/characters/bat_encounter_transparent.webp':actor?.character==='jerk'?'assets/characters/jerk_encounter_transparent.webp':actor?.character==='flugel'?'assets/characters/flugel_encounter_transparent.webp':actor?.character==='bjorn'?'assets/characters/bjorn_encounter_transparent.webp':actor?.character==='snow_leopard'?'assets/characters/snow_leopard_encounter_transparent.webp':actor?.character==='kaito'?'assets/characters/kaito_stand.png':'assets/characters/hayate_encounter_transparent.webp'}
+function actorArt(actor){const character=CHARACTER_BY_ID[actor?.character];return character?.skins.find(s=>s.id===actor?.skin)?.art||character?.art||''}
 function comWantedAmmo(actor,plan){const goal=equipmentDef(plan?.id);return [...new Set([comAmmoType(actor),goal?.unlimitedAmmo?null:goal?.ammoType].filter(Boolean))]}
 function comRangedType(actor){const type=equipmentDef(actor.equipment?.weapon)?.weaponType||actor.preferredWeaponType;return ['bow','gun'].includes(type)?type:null}
 function comAmmoType(actor){
@@ -2770,13 +3313,13 @@ const COM_GUN_GOALS=['sniper_rifle','simple_armguard','rubber_suit','laser_rifle
 const COM_HAMMER_GOALS=['wood_hammer','simple_armguard','rubber_suit','steel_hammer','keraunos_hammer'];
 const COM_SLASH_GOALS=['iron_sword','simple_armguard','rubber_suit','steel_sword','hero_sword'];
 const COM_FIST_GOALS=['iron_knuckle','simple_armguard','rubber_suit','glass_knuckle','brilliant_knuckle'];
-const COM_COUNT=9;
+const COM_COUNT=PLAYABLE_CHARACTERS.length-1;
 const RAKU_WEAPON_TYPES=['fist','slash','hammer','bow','gun'];
 function initializeRakuMastery(actor,rng=Math.random){
- if(actor.character!=='raku'||actor.randomMasteryType)return;
+ const points=CHARACTER_BY_ID[actor.character]?.randomWeaponMastery;if(points==null||actor.randomMasteryType)return;
  const type=RAKU_WEAPON_TYPES[Math.min(RAKU_WEAPON_TYPES.length-1,Math.floor(rng()*RAKU_WEAPON_TYPES.length))];
  actor.randomMasteryType=type;actor.preferredWeaponType=type;
- actor.masteryAttacks={...initialMastery('raku'),[type]:20};
+ actor.masteryAttacks={...initialMastery(actor.character),[type]:points};
  actor.goals=[...({fist:COM_FIST_GOALS,slash:COM_SLASH_GOALS,hammer:COM_HAMMER_GOALS,bow:COM_GOALS,gun:COM_GUN_GOALS}[type])];
 }
 function payMovementCost(actor,now=Date.now()){
@@ -2848,7 +3391,7 @@ function comUpgradePlan(actor){
  }).filter(Boolean).sort((a,b)=>b.score-a.score);
  return choices[0]?.plan||null;
 }
-function comWeaponTypes(actor){return actor.character==='zakuro'?['slash','bow']:actor.character==='bat'?['bow','gun']:actor.character==='jerk'?['hammer','fist']:[actor.preferredWeaponType||'bow']}
+function comWeaponTypes(actor){const types=CHARACTER_BY_ID[actor.character]?.weaponTypes;return types?.length>1?[...types]:[actor.preferredWeaponType||types?.[0]||'bow']}
 function comWeaponNeedsReplacement(actor){
  const id=actor.equipment.weapon;
  return !!equipmentDef(id)&&!EQUIPMENT_SPECIAL_EFFECTS[id]?.durabilityLossImmune&&equipmentState(actor,'weapon').durability<=WEAPON_DURABILITY.max/2;
