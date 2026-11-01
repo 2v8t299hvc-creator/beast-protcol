@@ -6242,14 +6242,21 @@ function comDiscardRedundantWeapon(actor,plan,now){
  const index=actor.bag.findIndex(x=>equipmentDef(x.id)?.slot==='weapon'&&!plan.needed?.[x.id]);
  return index>=0&&comDrop(actor,index,now);
 }
-function comWeaponValue(actor,id){
+// Compare the actual equipped/owned instance against a fresh crafted candidate.
+function comWeaponValue(actor,id,instance=null){
  const def=equipmentDef(id);if(!def||def.slot!=='weapon'||!comWeaponTypes(actor).includes(def.weaponType))return 0;
- return (def.attack||0)*MASTERY_WEAPON_FACTORS[masteryRank(def.weaponType,actor)]*MASTERY_MULTIPLIERS[masteryRank(def.weaponType,actor)]*(0.5+0.5*MASTERY_ACCURACY[masteryRank(def.weaponType,actor)]/100)+(def.unlimitedAmmo?65:0);
+ const effect=EQUIPMENT_SPECIAL_EFFECTS[id]||{},state=instance??(actor.equipment.weapon===id?actor.equipmentEffects?.weapon:{}),rank=masteryRank(def.weaponType,actor);
+ const growth=(effect.growthInterval||effect.reloadGrowth)?Math.max(0,state?.bonusAttack||0):0;
+ const attack=((def.attack||0)*MASTERY_WEAPON_FACTORS[rank]+growth)*MASTERY_MULTIPLIERS[rank]*(0.5+0.5*Math.min(100,MASTERY_ACCURACY[rank]+(effect.accuracyBonus||0))/100);
+ const durability=state?.durability??WEAPON_DURABILITY.max;
+ // These are planning weights, not changes to damage or weapon stats.
+ const utility=(def.unlimitedAmmo?18:0)+(effect.durabilityLossImmune?12:0)+(effect.growthInterval?12:0)+(effect.reloadGrowth?6:0)+(effect.lifesteal||0)*60+(effect.droneDamageBonus||0)*8+(effect.criticalBonus||0)*80+(effect.freezeMs?4:0)+(effect.fixedDamage&&effect.attackInterval?effect.fixedDamage/effect.attackInterval:0);
+ return attack*(effect.durabilityLossImmune?1:.85+.15*durability/WEAPON_DURABILITY.max)+utility;
 }
 function comAdaptivePlan(actor,now=Date.now()){
  // Cache only personal/public inputs. No live regionObjects, enemy inventory or hidden stock counts.
  const areas=comMaterialAreas(actor,now);
- const key=JSON.stringify([actor.inventory,actor.equipment,actor.equipmentEffects?.weapon?.durability,actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4)]);
+ const key=JSON.stringify([actor.inventory,actor.equipment,actor.equipmentEffects?.weapon,actor.bag.map(x=>[x.id,x.effects]),actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4)]);
  if(actor.adaptivePlanCache?.key===key)return actor.adaptivePlanCache.plan;
  const rates={};
  for(const area of areas){
@@ -6263,11 +6270,11 @@ function comAdaptivePlan(actor,now=Date.now()){
  const replacement=comWeaponNeedsReplacement(actor),current=comWeaponValue(actor,actor.equipment.weapon),weaponTier=RECIPE_RARITY[actor.equipment.weapon],weakWeapon=!['rare','epic','legendary'].includes(weaponTier);
  const choices=[];
  for(const [id,def] of Object.entries(EQUIPMENT_DEFS)){
-  const replacing=replacement&&def.slot==='weapon'&&comWeaponValue(actor,id)>=current*.85&&recipes.some(r=>r.id===id);
+  const replacing=replacement&&def.slot==='weapon'&&comWeaponValue(actor,id,{})>=current*.85&&recipes.some(r=>r.id===id);
   if(actorOwned(actor,id)&&!(replacing&&id===actor.equipment.weapon&&totalIn(actor.bag,id)===0)||(actor.place==='待機所'&&def.slot!=='weapon'))continue;
   // A reliable weapon needs no accessory crafting detour; found/corpse upgrades are still evaluated.
   if(def.slot==='accessory'&&actor.equipment.accessory&&comReliableWeapon(actor))continue;
-  const gain=def.slot==='weapon'?Math.max(comWeaponValue(actor,id)-current,replacing?current*.7:0):comUpgradeValue(actor,id);
+  const gain=def.slot==='weapon'?Math.max(comWeaponValue(actor,id,{})-current,replacing?current*.7:0):comUpgradeValue(actor,id);
   if(gain<=0)continue;
   const plan=comPlan(actor,id,replacing?actorOwned(actor,id)+1:1);if(replacing)plan.replacement=true;
   let cost=plan.crafts.length*2+1,feasible=true;
@@ -6289,10 +6296,11 @@ function comAdaptivePlan(actor,now=Date.now()){
   choices.push({plan,score:gain/cost*(sustain?1.6:1)*priority*(1+Math.min(.3,local*.1))});
  }
  choices.sort((a,b)=>b.score-a.score);
- let best=choices[0];
+ const dragonRoute=(actorOwned(actor,'dragon_scale')||actorOwned(actor,'drago_core'))?choices.find(c=>EQUIPMENT_DEFS[c.plan.id]?.slot==='weapon'&&RECIPE_RARITY[c.plan.id]==='legendary'&&c.plan.needed.drago_core):null;
+ let best=dragonRoute||choices[0];
  const previous=choices.find(c=>c.plan.id===actor.goal);
  // Small hysteresis avoids oscillation; materially easier routes replace the old goal.
- if(previous&&best&&actor.noProgress<8&&previous.score>=best.score*0.65)best=previous;
+ if(!dragonRoute&&previous&&best&&actor.noProgress<8&&previous.score>=best.score*0.65)best=previous;
  const plan=best?.plan||{id:null,missing:{},needed:{},crafts:[]};
  actor.adaptivePlanCache={key,plan};return plan;
 }
@@ -6325,7 +6333,7 @@ function equipActor(actor,index,now=Date.now()){
 function comEquipBetter(actor,now){
  const candidates=actor.bag.map((x,index)=>{
   const d=equipmentDef(x.id);if(!d||(d.slot==='weapon'&&!comWeaponTypes(actor).includes(d.weaponType)))return {index,score:0};
-  const value=comWeaponValue(actor,x.id),current=comWeaponValue(actor,actor.equipment.weapon),fresh=equipmentInstanceEffects(x.id,x.effects).durability;
+  const value=comWeaponValue(actor,x.id,x.effects||{}),current=comWeaponValue(actor,actor.equipment.weapon),fresh=equipmentInstanceEffects(x.id,x.effects).durability;
   const replacement=d.slot==='weapon'&&comWeaponNeedsReplacement(actor)&&fresh>WEAPON_DURABILITY.max/2&&value>=current*.85;
   return {index,score:d.slot==='weapon'?Math.max(value-current,replacement?current*.7:0):comEquipmentValue(actor,x.id)-comEquipmentValue(actor,actor.equipment[d.slot])};
  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
@@ -6372,19 +6380,19 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
  comLog(actor,reason+(goal?'（目標：'+goal+'）':'')+' → '+actor.place,now);
  if(actor.hp<=0)eliminateCom(actor,'移動時のHP消費',now);return true;
 }
-function comWants(actor,id,plan){
+function comWants(actor,id,plan,metadata=null){
  if(['dragon_scale','drago_core'].includes(id))return actorOwned(actor,id)<1;
  if(plan.missing[id]>0||(plan.needed?.[id]||0)>actorOwned(actor,id))return true;
  if(id==='arrows'||id==='bullets')return comWantedAmmo(actor,plan).includes(id)&&(actor.inventory[id]||0)<comAmmoReserveTarget(actor);
  const recovery=RECOVERY_ITEMS[id];if(recovery)return comWantsRecovery(actor,id,plan);
- const def=equipmentDef(id);if(def?.slot==='weapon')return comWeaponValue(actor,id)>comWeaponValue(actor,actor.equipment.weapon)||comWeaponNeedsReplacement(actor)&&comWeaponValue(actor,id)>=comWeaponValue(actor,actor.equipment.weapon)*.85;if(def&&def.slot!=='weapon'){
+ const def=equipmentDef(id);if(def?.slot==='weapon')return comWeaponValue(actor,id,metadata?.effects||{})>comWeaponValue(actor,actor.equipment.weapon)||comWeaponNeedsReplacement(actor)&&comWeaponValue(actor,id,metadata?.effects||{})>=comWeaponValue(actor,actor.equipment.weapon)*.85;if(def&&def.slot!=='weapon'){
   return comEquipmentValue(actor,id)>comEquipmentValue(actor,actor.equipment[def.slot]);
  }
  return false;
 }
 function comLoot(actor,now,plan){
  const c=corpses.find(x=>x.id===actor.loot);if(!c||!corpseAvailable(c,now)||c.area!==actor.place||S.corpseVisit?.id===c.id){actor.loot=null;return false}
- const index=c.items.findIndex(x=>comWants(actor,x.id,plan));
+ const index=c.items.findIndex(x=>comWants(actor,x.id,plan,x));
  if(index<0){actor.loot=null;return false}
  const entry=c.items[index];
  if(!receive(entry.id,entry.count,entry,actor)){
@@ -6508,6 +6516,16 @@ function comLeaveUnderFire(actor,plan,now){
  if(comMove(actor,now,'被弾したため治療を中断して退避',plan,true)){bumpMatchStat(actor,'retreats');recordMatchEvent(actor,'retreat','被弾した場所を離れて立て直す',now);return true}
  comLog(actor,'被弾：移動可能になるのを待って退避',now);return true;
 }
+function comReadyWeaponTurn(actor,plan,now){
+ if(comEquipBetter(actor,now))return true;
+ if(EQUIPMENT_DEFS[plan.id]?.slot!=='weapon')return false;
+ for(const id of plan.crafts){
+  const r=recipes.find(r=>r.id===id);if(!r||!craftConsumption(r,actor))continue;
+  if(craftActor(actor,r,now)){actor.noProgress=0;actor.gearCraftsSinceReserve=(actor.gearCraftsSinceReserve||0)+1;comLog(actor,'武器更新を進めるため製作：'+names[id],now);return true}
+  if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return true;
+ }
+ return false;
+}
 function stepCom(actor,now){
  updateStatusEffects(now,actor);
  if(actor.place==='待機所'){
@@ -6549,6 +6567,7 @@ function stepCom(actor,now){
  }
  const stChoice=comSelectRecovery(actor,'stamina',now);
  if(actor.st<actorMax(actor,'stamina')*.3&&stChoice&&recoverActor(actor,stChoice.id,now)){actor.restMode=null;comLog(actor,names[stChoice.id]+'を使用',now);return}
+ if(comReadyWeaponTurn(actor,plan,now))return;
  if(actor.st<searchStaminaCost(actor)+5||actor.restMode==='stamina'&&actor.st<actorMax(actor,'stamina')*.5){
   actor.restMode='stamina';actor.st=Math.min(actorMax(actor,'stamina'),actor.st+restRecoveryRate(actor));comLog(actor,'行動できるスタミナまで休憩',now);return;
  }
@@ -6596,7 +6615,7 @@ function stepCom(actor,now){
  if(!items.length){actor.exhausted[actor.place]=true;comLog(actor,'探索して物資切れを確認',now);awardEmptySearchXp(actor,now);return}
  let madeRoom=false;
  for(const obj of items){
-  if(comWants(actor,obj.id,plan)){
+  if(comWants(actor,obj.id,plan,obj)){
    if(receive(obj.id,obj.count||1,obj,actor)){markObjectTaken(obj);actor.noProgress=0;comLog(actor,'探索・取得：'+names[obj.id]+' ×'+(obj.count||1),now);continue}
    // At most one discard per action; unclaimed physical objects stay in the region.
    if(!madeRoom)madeRoom=comMakeRoom(actor,obj.id,obj.count||1,plan,now);
