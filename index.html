@@ -574,7 +574,26 @@ function targetMaxHp(target){return target.kind?DRONE_DEFS[target.kind]?.hp||tar
 function whiteTargetCriticalChance(actor,target,now=Date.now()){const base=actorCriticalChance(actor,undefined,now);return Math.min(.4,base+(.4-base)*Math.max(0,Math.min(1,target.hp/targetMaxHp(target))))}
 function characterSkillDamage(damage,skill){return skill?Math.max(1,Math.floor(damage*skill.multiplier)):damage}
 function attackCritical(actor,type,skill,target,now){return skill?.criticalChance!=null||postureBonus(actor,target,now)?Math.random()>=1-attackCriticalChance(actor,type,skill,target,now):rollCritical(actor,type,now)}
-function comCharacterSkill(actor,now){const def=CHARACTER_SKILLS[actor.character]?.active;return ['step_break','gale_shoot','white_target','physics_blow','une_deux','outlaw_bite','danse_macabre','jewel_hunt'].includes(def?.id)&&now>=(actor.characterSkillReadyAt||0)&&(def.id!=='danse_macabre'||canDanse(actor))?def.id:null}
+function comCharacterSkill(actor,now,target=null,kind='player'){
+ const def=CHARACTER_SKILLS[actor.character]?.active;
+ if(!['step_break','gale_shoot','white_target','physics_blow','une_deux','outlaw_bite','danse_macabre','jewel_hunt'].includes(def?.id)||now<(actor.characterSkillReadyAt||0)||(def.id==='danse_macabre'&&!canDanse(actor)))return null;
+ if(def.id!=='physics_blow')return def.id;
+ if(!target||target.hp<=0)return null;
+ const estimate=evaluateCombat(actor,target,now,kind),normal=estimate.perHit;
+ // Save the long cooldown when a normal hit suffices; use the extra damage to finish.
+ if(target.hp<=normal)return null;
+ const active=Math.max(1,Math.floor(normal*1.1));
+ // Small drones are not worth a PvP injury cooldown.
+ if(kind==='drone'&&targetMaxHp(target)<250)return null;
+ if(target.hp<=active)return def.id;
+ const injuryWindow=target.hp-active<=targetMaxHp(target)/2&&Object.keys(BODY_INJURIES).some(part=>!hasBodyInjury(target,part));
+ const followup=estimate.action==='attack'&&actor.hp>Math.max(actorMax(actor,'hp')*.5,estimate.incoming*2)&&actor.st>=searchStaminaCost(actor)+5;
+ return injuryWindow&&followup?def.id:null;
+}
+function comShouldPressInjury(actor,now){
+ const pressure=actor.injuryPressure;
+ return !!(actor.character==='bjorn'&&pressure&&now>=pressure.at&&now-pressure.at<8000&&pressure.area===actor.place&&pressure.visit===(actor.locationVersion||0)&&actor.hp>Math.max(actorMax(actor,'hp')*.5,pressure.incoming*2)&&actor.st>=searchStaminaCost(actor)+5&&!Object.keys(BODY_INJURIES).some(part=>hasBodyInjury(actor,part)));
+}
 function gatherHerbs(actor,now=Date.now()){
  const def=CHARACTER_SKILLS[actor.character]?.field;
  if(def?.id!=='herb_gathering'||actor.hp<=0||now<(actor.characterFieldReadyAt||0))return false;
@@ -1518,7 +1537,7 @@ function recordExploration(actor,now){
  }
 }
 // Local-only observation log. It is evidence for later analysis, never an input to COM decisions.
-const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-11-01-volley-awareness-v4';
+const PLAY_RECORD_KEY='beast-protocol-play-records-v1',PLAY_RECORD_BUILD='2026-11-01-bjorn-tactics-v1';
 let playJournal=null,playRecordTimer=null,playRecordDepth=0,playRecordLastState='',playRecordLastObservation=0,playRecordStorageError=false;
 let playRecords=readPlayRecords();
 function readPlayRecords(){
@@ -1697,7 +1716,9 @@ function evaluateCombat(actor,target,now,kind='player'){
   const visibleWeapon=equipmentDef(target.equipment.weapon),enemyType=visibleWeapon?.weaponType||'fist';
   incoming=Math.max(1,Math.floor(damageAfterDefense(totalStat('attack',target,now,MASTERY_WEAPON_FACTORS[5]),totalStat('defense',actor,now))))+(EQUIPMENT_SPECIAL_EFFECTS[target.equipment.body]?.damageBonus||0);
   // Unobserved proficiency stays a public D+ estimate; do not inspect enemy mastery.
-  incoming=incoming*.85+guardDamage(incoming)*.15;
+  const knownHeadInjury=target.bodyInjuries?.head?.sourceId===actorIdentity(actor);
+  const enemyAccuracy=knownHeadInjury?.75:.85;
+  incoming=incoming*enemyAccuracy+guardDamage(incoming)*(1-enemyAccuracy);
   if(enemyType==='fist')incoming*=1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.fistDamageReduction||0);
   incoming*=(postureBonus(target,actor,now)?1.7:1)*(1+(CRITICAL_MULTIPLIER-1)*attackCriticalChance(target,enemyType,null,actor,now));incoming*=slashDamageMultiplier(actor,enemyType);if(enemyType==='gun')incoming*=1-(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.body]?.gunDamageReduction||0);
   const observed=actor.observedOpponents?.[target.id];if(observed&&observed.weapon===target.equipment.weapon&&observed.level===target.level&&observed.defense===totalStat('defense',actor,now)&&observed.body===actor.equipment.body&&(observed.head||null)===(actor.equipment.head||null)&&now-observed.at<30000)incoming=Math.max(incoming,observed.damage);
@@ -1820,6 +1841,7 @@ function actorAttack(attacker,target,now,preserveTargetActivity=false,skillId=nu
  if(attacker.hp>0)gainXp(1,attacker);
  const characterSkill=shotContext?null:resolveCharacterSkill(attacker,target,skillId,hit,now,gale,dealt);
  const result={hit,guarded,type,critical,damage,dealt,bodyInjury,healing,reflected,reflectedTaken,effect,characterSkill,durabilityLoss};trackActorAttack(attacker,target,result,now,'player');
+ if(bodyInjury&&attacker!==S&&attacker.character==='bjorn')attacker.injuryPressure={at:now,area:attacker.place,visit:attacker.locationVersion||0,incoming:evaluateCombat(attacker,target,now,'player').incoming};
  if(!shotContext){recordWeaponUse(attacker,type,now,durabilityLoss);recoverOnAction(attacker,now)}return result;
 }
 let incomingNoticeTimer,incomingNoticeVersion=0;
@@ -1936,7 +1958,7 @@ function comFightOpponent(actor,now){
  actor.pvpAction=null;
  if(handleComCombatDecision(actor,target,now,'player'))return;
  // Incoming COM attacks apply damage without replacing the player's current action or screen.
- const result=playerCombatRound(actor,target,now,target===S,comCharacterSkill(actor,now));if(!result||matchClock.ended)return;
+ const result=playerCombatRound(actor,target,now,target===S,comCharacterSkill(actor,now,target,'player'));if(!result||matchClock.ended)return;
  if(target===S){showIncomingDamage(actor,result.first,now);if(S.enemyPlayerId===actor.id)S.ehp=actor.hp;refresh()}
 }
 
@@ -2992,7 +3014,7 @@ function comFight(actor,now){
  const ref=actor.enemy,d=drones[ref.kind],def=DRONE_DEFS[ref.kind];
  if(!d?.spawned||d.generation!==ref.generation||d.area!==actor.place||d.hp<=0){actor.enemy=null;comLog(actor,'発見した敵は既にいない',now);return}
  if(handleComCombatDecision(actor,d,now,'drone'))return;
- const result=strikeDrone(actor,d,now,comCharacterSkill(actor,now));actor.enemy=null;if(!result)return;
+ const result=strikeDrone(actor,d,now,comCharacterSkill(actor,now,d,'drone'));actor.enemy=null;if(!result)return;
  applyComCombatFeedback(actor,now);
  if(S.enemy&&S.enemyKind===d.kind&&S.place===actor.place){S.ehp=d.hp;if(result.defeated&&!S.busy)S.enemy=false;}
  comLog(actor,def.name+'へ'+result.damage+'ダメージ'+(result.shots?'／'+result.shots.length+'連射':'')+(result.guarded?'／ガード（50%）':'')+(result.defeated?'・撃破':'／反撃'+result.counter)+(result.healing?'／愛の矢でHP＋'+result.healing:'')+(result.effect.frozen?'／凍結付与':''),now);
@@ -3119,6 +3141,8 @@ function stepCom(actor,now){
  if(nextClosingAreas().includes(actor.place)&&matchClock.sectionEndsAt-now<=COM_POLICY.warningMs){if(comMove(actor,now,'封鎖予告を見て退避',plan))return}
  if(pvpEnabled()&&actor.opponent){actor.restMode=null;cancelBodyTreatment(actor);comFightOpponent(actor,now);return}
  if(pvpEnabled()&&comFinalArea()){comFinalSearch(actor,now);return}
+ // A recent personally inflicted injury favors another paid, random search, never free sight.
+ if(comShouldPressInjury(actor,now)){comFinalSearch(actor,now);return}
  if(comLeaveUnderFire(actor,plan,now))return;
  // Damage gives urgency, never a target: pay for a fresh, random local search.
  if(comUnderFire(actor,now)){comFinalSearch(actor,now);return}
