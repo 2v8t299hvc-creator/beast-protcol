@@ -3807,7 +3807,7 @@ function renderCharacterSkills(now=Date.now()){
  if(!definition.field){field.textContent='';field.title='';field.disabled=true}
  if(definition.field){
   const behavior=characterSkillBehavior(S,'field'),wait=Math.max(0,(S.characterFieldReadyAt||0)-now);
-  field.innerHTML=characterSkillIconHTML(definition.field.id)+'<span class="bp-skill-count">'+(wait?Math.ceil(wait/1000)+'秒':behavior?.count?.(S)||'発動')+'</span>';field.ariaLabel=definition.field.name+(wait?' あと'+Math.ceil(wait/1000)+'秒':'');field.title=behavior?.tooltip||definition.field.description;
+  field.innerHTML=characterSkillIconHTML(definition.field.id)+'<span class="bp-skill-count">'+(wait?Math.ceil(wait/1000)+'秒':behavior?.count?.(S)||'発動')+'</span>';field.ariaLabel=definition.field.name+(wait?' あと'+Math.ceil(wait/1000)+'秒':'');field.title=definition.field.description+'\n再使用：'+definition.field.cooldownMs/1000+'秒';
   field.disabled=!!wait||behavior?.canUse?.(S)===false||!!S.enemy||!!S.busy||!!S.pendingFound||!!S.corpseVisit||S.hp<=0||matchClock.ended||!!matchClock.result;
  }
  if(definition.passive){
@@ -3818,7 +3818,7 @@ function renderCharacterSkills(now=Date.now()){
  const button=$('characterSkillBtn');button.hidden=!definition.active;if(!definition.active){button.disabled=true;button.title='';button.ariaLabel='';return}
  const behavior=characterSkillBehavior(S,'active'),wait=Math.max(0,(S.characterSkillReadyAt||0)-now);
  $('characterSkillCount').textContent=wait?Math.ceil(wait/1000)+'秒':'発動';button.ariaLabel=definition.active.name+(wait?' あと'+Math.ceil(wait/1000)+'秒':'');
- button.title=behavior?.tooltip||definition.active.description;
+ button.title=definition.active.description+'\n再使用：'+definition.active.cooldownMs/1000+'秒';
  button.disabled=!!wait||!S.enemy||!!S.busy||S.hp<=0||behavior?.canUse?.(S)===false||matchClock.ended||!!matchClock.result;
 }
 function useCharacterSkill(){
