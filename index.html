@@ -196,70 +196,2541 @@
 #enemy.is-dragon .monster{left:-12%;width:98%;height:125%}
 
 .bp-equipment-log{position:absolute;left:26%;bottom:2%;width:36%;height:17%;display:flex;gap:5px;z-index:2;pointer-events:none}.bp-equipment-log .log{position:static;flex:1;min-width:0;width:auto;height:100%;pointer-events:auto}.bp-equipment-rail{width:clamp(62px,8.5vw,100px);flex-shrink:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:end;gap:3px;pointer-events:auto}.bp-equipment-rail[hidden]{display:none}.bp-equipment-icon{position:relative;aspect-ratio:1;padding:0;overflow:hidden;border-radius:3px;border:1px solid #8c9bad;background:#101824;min-width:0}.bp-equipment-icon img{width:100%;height:100%;object-fit:cover;display:block}.bp-equipment-icon.cooling img{filter:brightness(.4)}.bp-equipment-icon span{position:absolute;bottom:0;left:0;right:0;background:#071019c9;color:white;font-size:clamp(9px,1.15vw,13px);line-height:1.25;text-align:center;text-shadow:0 1px 2px #000}.bp-equipment-icon.triggered{border-color:#ffe29a;box-shadow:0 0 7px #ffd36d}.bp-equipment-icon.blocked{border-color:#eaa36e}.bp-equipment-detail{display:flex;align-items:center;gap:12px}.bp-equipment-detail img{width:72px;height:72px;border-radius:4px}
-.bp-skill-icon .bp-skill-art{width:100%;height:100%;object-fit:cover;border-radius:5px;display:block}.bp-select-skill>.bp-skill-art{width:48px;height:48px;object-fit:cover;float:left;margin:0 10px 6px 0;border:1px solid #9c885f;border-radius:6px}</style></head><body><div id="game"><div id="closureWarning" class="bp-closure-warning" role="status" aria-live="polite" hidden></div><div id="deathFeed" class="bp-death-feed" role="status" aria-live="polite"></div><div id="skillFeed" class="bp-skill-feed" role="status" aria-live="polite" aria-atomic="false"></div><div id="incomingNotice" class="bp-incoming" role="status" aria-live="polite"><span class="bp-incoming-face"><img id="incomingFace" src="assets/characters/hayate_encounter_transparent.webp" alt=""></span><span id="incomingText" class="bp-incoming-text"></span></div><div id="shade"></div><div class="top"><div class="logo">BEAST <em>PROTOCOL</em></div><div class="topmid" id="place">📍 山岳区画</div><div><span class="bp-daynight"><span id="dayNightLabel">準備中</span><small id="dayNightClock">昼から開始</small></span>　<span id="sectionLabel">開始前</span>　<span id="clock">00:30</span></div><div id="survivalStatus">生存中</div><div class="tophigh" id="participantCount">生存 10/10</div></div><div class="notice" id="notice">演習エリア：山岳区画　｜　素材を集めよう</div><div class="leftchar"><img id="kaitoArt" alt="カイト" src="assets/inline-art/kaito-original.png"></div><div class="status panel"><div class="statusLine"><strong><span id="playerName">カイト</span> <span class="lv" id="playerLevel">Lv.1</span></strong><button class="equipOpen" onclick="showEquipment()" title="装備を確認">🥊 装備 ›</button></div><div class="vitals"><span>❤️ <span id="hpval">180/180</span></span><div class="bar"><div id="hpbar" style="width:100%"></div></div><span>⚡ <span id="stval">120/120</span></span><div class="bar blue"><div id="stbar" style="width:100%"></div></div></div><div id="recoveryModeStatus" class="bp-recovery-mode"></div><div id="statusEffects" class="bp-status-effects"></div><div class="masterLine"><span id="levelProgress">Lv.1 (0/20)</span>　👊 <span id="master">0</span><span class="visuallyHidden">　武器：<span id="weapon">素手</span>　防具：<span id="armor">なし</span></span></div></div><div id="enemy" class="enemy" aria-label="接敵中"><div class="bp-enemy-heading"><span class="bp-contact-label">ENEMY CONTACT</span><strong id="enemyName"></strong><div class="ebar" role="img" aria-label="敵の残り体力の目安"><div id="ebar" style="width:100%"></div></div></div><div class="monster"><img id="enemyArt" alt="敵ドローン" onerror="this.hidden=true;document.getElementById('enemyFallback').hidden=false"><span id="enemyFallback" hidden>🤖</span></div><div id="combatWeapon" class="bp-combat-weapon"></div><div id="enemyEquipment" class="bp-enemy-equipment" aria-label="相手の装備" hidden></div><div id="droneTraits" class="bp-drone-traits"></div></div><div id="characterSkills" class="bp-character-skills"><span id="characterPassive" class="bp-skill-icon bp-character-passive" role="img" aria-label="闘争本能 0/3"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 23 5 7l13 8 6-5 6 5L43 7l-4 16-4 13-11 7-11-7Z" fill="#5c3521" stroke="currentColor" stroke-width="2"/><path d="m10 22 11 3-5 6Zm28 0-11 3 5 6Z" fill="#ffcb58"/><path d="m20 34 4 3 4-3M24 14v6" fill="none" stroke="currentColor" stroke-width="2"/></svg><span id="characterPassiveCount" class="bp-skill-count">0/3</span></span><button id="characterFieldBtn" class="bp-skill-icon" onclick="useCharacterFieldSkill()" hidden>薬草採集</button><button id="characterSkillBtn" class="bp-skill-icon" onclick="useCharacterSkill()" aria-label="ステップブレイク"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="m22 5 11 3-5 17 11 7-3 7-19-6 1-10Z" fill="#427992" stroke="currentColor" stroke-width="2"/><path d="m7 24 6 6-7 4 10 3-3 8M34 18l8-7M36 24l9-2" fill="none" stroke="#fff0b5" stroke-width="3" stroke-linecap="round"/></svg><span id="characterSkillCount" class="bp-skill-count">発動</span></button></div><div id="toast" class="toast"></div><div class="bp-equipment-log"><div id="equipmentSkillRail" class="bp-equipment-rail" aria-label="装備スキル" hidden></div><div id="log" class="log panel"></div></div><div class="right"><div class="quick"><button id="stockBtn" onclick="showStock()">📦 ストック<br><b id="stockCount">0/3</b></button><button id="craftTargetBtn" onclick="showCraftTarget()"><small>📌 製作目標</small><b id="craftTargetSummary">未設定</b></button></div><div class="inventoryMini" id="inventoryMini"></div><div class="spacer"></div><div class="row"><button id="moveBtn" onclick="showMap()">📍 移動</button><button id="restBtn" onclick="rest()">🛏️ 休憩</button></div><div class="row"><button onclick="showCraft()">🔧 製作</button><button id="skillBtn" onclick="skill()">🩹 治療</button></div><button class="main" id="mainBtn" onclick="primary()">⌕ 探索</button></div><div class="hint">画面横向き推奨・試作版</div><div class="modalback" id="back"><div class="modal"><header><span id="modalTitle">メニュー</span><button id="modalCloseBtn" onclick="closeModal()">✕ 閉じる</button></header><div id="modalBody"></div></div></div></div><div id="rotate">📱 ↻<br>iPhoneを横向きにして遊んでね！</div><section id="characterSelect" class="bp-character-select" aria-label="キャラクター選択"><div id="characterSelectContent"></div></section><script>
+.bp-skill-icon .bp-skill-art{width:100%;height:100%;object-fit:cover;border-radius:5px;display:block}.bp-select-skill>.bp-skill-art{width:48px;height:48px;object-fit:cover;float:left;margin:0 10px 6px 0;border:1px solid #9c885f;border-radius:6px}</style></head><body><div id="game"><div id="closureWarning" class="bp-closure-warning" role="status" aria-live="polite" hidden></div><div id="deathFeed" class="bp-death-feed" role="status" aria-live="polite"></div><div id="skillFeed" class="bp-skill-feed" role="status" aria-live="polite" aria-atomic="false"></div><div id="incomingNotice" class="bp-incoming" role="status" aria-live="polite"><span class="bp-incoming-face"><img id="incomingFace" src="assets/characters/hayate_encounter_transparent.webp" alt=""></span><span id="incomingText" class="bp-incoming-text"></span></div><div id="shade"></div><div class="top"><div class="logo">BEAST <em>PROTOCOL</em></div><div class="topmid" id="place">📍 山岳区画</div><div><span class="bp-daynight"><span id="dayNightLabel">準備中</span><small id="dayNightClock">昼から開始</small></span>　<span id="sectionLabel">開始前</span>　<span id="clock">00:30</span></div><div id="survivalStatus">生存中</div><div class="tophigh" id="participantCount">生存 10/10</div></div><div class="notice" id="notice">演習エリア：山岳区画　｜　素材を集めよう</div><div class="leftchar"><img id="kaitoArt" alt="カイト" src="assets/inline-art/kaito-original.png"></div><div class="status panel"><div class="statusLine"><strong><span id="playerName">カイト</span> <span class="lv" id="playerLevel">Lv.1</span></strong><button class="equipOpen" onclick="showEquipment()" title="装備を確認">🥊 装備 ›</button></div><div class="vitals"><span>❤️ <span id="hpval">180/180</span></span><div class="bar"><div id="hpbar" style="width:100%"></div></div><span>⚡ <span id="stval">120/120</span></span><div class="bar blue"><div id="stbar" style="width:100%"></div></div></div><div id="recoveryModeStatus" class="bp-recovery-mode"></div><div id="statusEffects" class="bp-status-effects"></div><div class="masterLine"><span id="levelProgress">Lv.1 (0/20)</span>　👊 <span id="master">0</span><span class="visuallyHidden">　武器：<span id="weapon">素手</span>　防具：<span id="armor">なし</span></span></div></div><div id="enemy" class="enemy" aria-label="接敵中"><div class="bp-enemy-heading"><span class="bp-contact-label">ENEMY CONTACT</span><strong id="enemyName"></strong><div class="ebar" role="img" aria-label="敵の残り体力の目安"><div id="ebar" style="width:100%"></div></div></div><div class="monster"><img id="enemyArt" alt="敵ドローン" onerror="this.hidden=true;document.getElementById('enemyFallback').hidden=false"><span id="enemyFallback" hidden>🤖</span></div><div id="combatWeapon" class="bp-combat-weapon"></div><div id="enemyEquipment" class="bp-enemy-equipment" aria-label="相手の装備" hidden></div><div id="droneTraits" class="bp-drone-traits"></div></div><div id="characterSkills" class="bp-character-skills"><span id="characterPassive" class="bp-skill-icon bp-character-passive" role="img" aria-label="闘争本能 0/3"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 23 5 7l13 8 6-5 6 5L43 7l-4 16-4 13-11 7-11-7Z" fill="#5c3521" stroke="currentColor" stroke-width="2"/><path d="m10 22 11 3-5 6Zm28 0-11 3 5 6Z" fill="#ffcb58"/><path d="m20 34 4 3 4-3M24 14v6" fill="none" stroke="currentColor" stroke-width="2"/></svg><span id="characterPassiveCount" class="bp-skill-count">0/3</span></span><button id="characterFieldBtn" class="bp-skill-icon" onclick="useCharacterFieldSkill()" hidden>薬草採集</button><button id="characterSkillBtn" class="bp-skill-icon" onclick="useCharacterSkill()" aria-label="ステップブレイク"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="m22 5 11 3-5 17 11 7-3 7-19-6 1-10Z" fill="#427992" stroke="currentColor" stroke-width="2"/><path d="m7 24 6 6-7 4 10 3-3 8M34 18l8-7M36 24l9-2" fill="none" stroke="#fff0b5" stroke-width="3" stroke-linecap="round"/></svg><span id="characterSkillCount" class="bp-skill-count">発動</span></button></div><div id="toast" class="toast"></div><div class="bp-equipment-log"><div id="equipmentSkillRail" class="bp-equipment-rail" aria-label="装備スキル" hidden></div><div id="log" class="log panel"></div></div><div class="right"><div class="quick"><button id="stockBtn" onclick="showStock()">📦 ストック<br><b id="stockCount">0/3</b></button><button id="craftTargetBtn" onclick="showCraftTarget()"><small>📌 製作目標</small><b id="craftTargetSummary">未設定</b></button></div><div class="inventoryMini" id="inventoryMini"></div><div class="spacer"></div><div class="row"><button id="moveBtn" onclick="showMap()">📍 移動</button><button id="restBtn" onclick="rest()">🛏️ 休憩</button></div><div class="row"><button onclick="showCraft()">🔧 製作</button><button id="skillBtn" onclick="skill()">🩹 治療</button></div><button class="main" id="mainBtn" onclick="primary()">⌕ 探索</button></div><div class="hint">画面横向き推奨・試作版</div><div class="modalback" id="back"><div class="modal"><header><span id="modalTitle">メニュー</span><button id="modalCloseBtn" onclick="closeModal()">✕ 閉じる</button></header><div id="modalBody"></div></div></div></div><div id="rotate">📱 ↻<br>iPhoneを横向きにして遊んでね！</div><section id="characterSelect" class="bp-character-select" aria-label="キャラクター選択"><div id="characterSelectContent"></div></section><script>// Item catalog: values below are the final approved runtime definitions.
+const ITEM_DEFS=[
+ {
+  id:"scrap",
+  name:"ガラクタ",
+  art:["materials",0],
+  fallback:"🔩"
+ },
+ {
+  id:"stone",
+  name:"石ころ",
+  art:["basic",0]
+ },
+ {
+  id:"wood",
+  name:"木材",
+  art:["basic",1]
+ },
+ {
+  id:"mystery",
+  name:"謎の鉱石",
+  art:["basic",2]
+ },
+ {
+  id:"pickaxe",
+  name:"ピッケル",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":10,"defense":0},
+  art:["tools",1]
+ },
+ {
+  id:"marble",
+  name:"大理石",
+  art:["basic",3]
+ },
+ {
+  id:"lighter",
+  name:"ライター",
+  art:["tools",0],
+  findCount:3
+ },
+ {
+  id:"bronze",
+  name:"青銅",
+  rarity:"uncommon",
+  art:["metal",0],
+  craftGroup:"mineral",
+  recipes:[{"order":0,"category":"item","icon":"🔩","desc":"アンコモン・金属素材","need":{"scrap":2}}]
+ },
+ {
+  id:"iron",
+  name:"鉄",
+  rarity:"uncommon",
+  art:["metal",1],
+  craftGroup:"mineral",
+  recipes:[{"order":1,"category":"item","icon":"🔩","desc":"アンコモン・金属素材","need":{"scrap":1,"charcoal":1}}]
+ },
+ {
+  id:"blackiron",
+  name:"黒鉄",
+  rarity:"rare",
+  art:["metal",2],
+  craftGroup:"mineral",
+  recipes:[{"order":3,"category":"item","icon":"🔩","desc":"レア・金属素材","need":{"iron":1,"charcoal":1}}]
+ },
+ {
+  id:"silver",
+  name:"銀",
+  rarity:"rare",
+  art:["advanced",0],
+  craftGroup:"mineral",
+  recipes:[{"order":5,"category":"item","icon":"🪙","desc":"レア・金属素材","need":{"mystery":1,"pickaxe":1}}]
+ },
+ {
+  id:"whitesilver",
+  name:"白銀",
+  rarity:"epic",
+  art:["metal",3],
+  craftGroup:"mineral",
+  recipes:[{"order":6,"category":"item","icon":"🪙","desc":"エピック・金属素材","need":{"silver":1,"whitestone":1}}]
+ },
+ {
+  id:"gold",
+  name:"金",
+  rarity:"epic",
+  art:["advanced",1],
+  craftGroup:"mineral",
+  recipes:[{"order":7,"category":"item","icon":"🥇","desc":"エピック・金属素材","need":{"mystery":1,"superpickaxe":1}}]
+ },
+ {
+  id:"wonderore",
+  name:"不思議な鉱石",
+  rarity:"rare",
+  art:["advanced",2],
+  craftGroup:"mineral",
+  recipes:[{"order":8,"category":"item","icon":"💎","desc":"レア・鉱石素材","need":{"mystery":2}}]
+ },
+ {
+  id:"wonderjewel",
+  name:"ワンダージュエル",
+  rarity:"epic",
+  art:["advanced",3],
+  craftGroup:"mineral",
+  recipes:[{"order":9,"category":"item","icon":"💎","desc":"エピック・宝石素材","need":{"wonderore":1,"greatpickaxe":1}}]
+ },
+ {
+  id:"ruby",
+  name:"ルビー",
+  rarity:"epic",
+  art:["gems",0],
+  craftGroup:"mineral",
+  recipes:[{"order":10,"category":"item","icon":"🔴","desc":"エピック・宝石素材","need":{"wonderjewel":1,"redstone":1}}]
+ },
+ {
+  id:"sapphire",
+  name:"サファイヤ",
+  rarity:"epic",
+  art:["gems",1],
+  craftGroup:"mineral",
+  recipes:[{"order":11,"category":"item","icon":"🔵","desc":"エピック・宝石素材","need":{"wonderjewel":1,"bluestone":1}}]
+ },
+ {
+  id:"diamond",
+  name:"ダイヤモンド",
+  rarity:"epic",
+  art:["gems",2],
+  craftGroup:"mineral",
+  recipes:[{"order":12,"category":"item","icon":"💎","desc":"エピック・宝石素材","need":{"wonderjewel":1,"whitestone":1}}]
+ },
+ {
+  id:"superpickaxe",
+  name:"スーパーピッケル",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":20,"defense":0},
+  rarity:"rare",
+  art:["tools",2],
+  recipes:[{"order":13,"category":"weapon","icon":"⛏️","desc":"レア・片手剣武器（暫定攻撃力）","need":{"pickaxe":1,"bronze":1}}]
+ },
+ {
+  id:"greatpickaxe",
+  name:"グレートピッケル",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":20,"defense":0},
+  rarity:"rare",
+  art:["tools",3],
+  recipes:[{"order":14,"category":"weapon","icon":"⛏️","desc":"レア・片手剣武器（暫定攻撃力）","need":{"pickaxe":1,"iron":1}}]
+ },
+ {
+  id:"redstone",
+  name:"赤い石",
+  art:["stones",0],
+  craftGroup:"mineral",
+  recipes:[{"order":182,"category":"item","need":{"stone":1,"minefish":1},"desc":"鉱石系素材"}]
+ },
+ {
+  id:"bluestone",
+  name:"青い石",
+  art:["stones",1],
+  craftGroup:"mineral",
+  recipes:[{"order":181,"category":"item","need":{"stone":1,"fish_scale":1},"desc":"鉱石系素材"}]
+ },
+ {
+  id:"whitestone",
+  name:"白い石",
+  art:["stones",2],
+  craftGroup:"mineral",
+  recipes:[{"order":180,"category":"item","need":{"stone":1,"marble":1},"desc":"鉱石系素材"}]
+ },
+ {
+  id:"obsidian",
+  name:"黒曜石",
+  art:["gems",3]
+ },
+ {
+  id:"meteorite",
+  name:"メテオライト",
+  art:["stones",3]
+ },
+ {
+  id:"cloth",
+  name:"布",
+  art:["materials",1],
+  fallback:"🧵"
+ },
+ {
+  id:"cell",
+  name:"エネルギーセル",
+  art:["energy",1],
+  fallback:"🔋"
+ },
+ {
+  id:"ragglove",
+  name:"ボロ手袋",
+  equipment:{"slot":"weapon","weaponType":"fist","attack":5,"defense":0},
+  art:["gloves",0],
+  fallback:"🧤"
+ },
+ {
+  id:"scissors",
+  name:"ハサミ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":8,"defense":0},
+  art:["materials",2],
+  fallback:"✂️"
+ },
+ {
+  id:"charcoal",
+  name:"木炭",
+  rarity:"common",
+  art:["materials",3],
+  fallback:"⚫",
+  craftGroup:"plant",
+  recipes:[{"order":4,"category":"item","icon":"⚫","desc":"木材とライターから製作","need":{"wood":1,"lighter":1}}]
+ },
+ {
+  id:"core",
+  name:"プラズマコア",
+  art:["energy",0],
+  fallback:"🔮"
+ },
+ {
+  id:"glove",
+  name:"グローブ",
+  equipment:{"slot":"weapon","weaponType":"fist","attack":12,"defense":0},
+  rarity:"uncommon",
+  art:["gloves",1],
+  fallback:"🥊",
+  recipes:[{"order":15,"category":"weapon","icon":"🥊","desc":"拳武器・攻撃力 +12","need":{"ragglove":1,"cloth":1}}]
+ },
+ {
+  id:"reinforced",
+  name:"強化グローブ",
+  equipment:{"slot":"weapon","weaponType":"fist","attack":24,"defense":0},
+  rarity:"rare",
+  art:["gloves",2],
+  fallback:"🥊",
+  recipes:[{"order":16,"category":"weapon","icon":"🥊","desc":"拳武器・攻撃力 +24","need":{"glove":1,"scissors":1}}]
+ },
+ {
+  id:"steel",
+  name:"鋼鉄",
+  rarity:"rare",
+  art:["energy",2],
+  fallback:"🔧",
+  craftGroup:"mineral",
+  recipes:[{"order":2,"category":"item","icon":"🔩","desc":"レア・金属素材","need":{"iron":2}}]
+ },
+ {
+  id:"discharger",
+  name:"放電装置",
+  rarity:"rare",
+  art:["energy",3],
+  fallback:"⚡",
+  craftGroup:"other",
+  recipes:[{"order":17,"category":"item","icon":"⚡","desc":"製作素材","need":{"steel":1,"core":1}}]
+ },
+ {
+  id:"plasma",
+  name:"プラズマグローブ",
+  equipment:{"slot":"weapon","weaponType":"fist","attack":46,"defense":0},
+  effect:{"name":"迸る電撃","description":"敵のスタミナが50以下なら追加5ダメージ。","lowStaminaThreshold":50,"lowStaminaDamage":5},
+  rarity:"epic",
+  art:["gloves",3],
+  fallback:"⚡",
+  recipes:[{"order":18,"category":"weapon","icon":"⚡","desc":"拳武器・攻撃力 +46","need":{"reinforced":1,"discharger":1}}]
+ },
+ {
+  id:"armguard",
+  name:"アームガード",
+  equipment:{"slot":"arm","attack":0,"defense":18},
+  rarity:"uncommon",
+  art:["equipment_06",1],
+  fallback:"🛡️",
+  recipes:[{"order":78,"category":"armor","icon":"🛡️","desc":"腕装備","need":{"simple_armguard":1,"bronze":1}}]
+ },
+ {
+  id:"kit",
+  name:"応急キット",
+  rarity:"common",
+  recovery:{"group":"hp","amount":60},
+  art:["gear",3],
+  fallback:"🩹",
+  craftGroup:"recovery",
+  recipes:[{"order":20,"category":"item","icon":"🩹","desc":"HPを60回復","need":{"cloth":1,"cell":1}}]
+ },
+ {
+  id:"ration",
+  name:"レーション",
+  recovery:{"group":"hp","amount":20},
+  art:["gear",1],
+  fallback:"🥪"
+ },
+ {
+  id:"drink",
+  name:"ドリンク",
+  recovery:{"group":"stamina","amount":20},
+  art:["gear",2],
+  fallback:"🧃",
+  craftGroup:"recovery",
+  recipes:[{"order":130,"category":"item","desc":"コモン・スタミナ20回復","need":{"energy_fruit":1,"water":1},"count":2}]
+ },
+ {
+  id:"water",
+  name:"水",
+  recovery:{"group":"stamina","amount":10},
+  art:["water_1",0],
+  fallback:"💧",
+  findCount:3
+ },
+ {
+  id:"seaweed",
+  name:"海草",
+  recovery:{"group":"hp","amount":10},
+  art:["water_1",1],
+  fallback:"🌿"
+ },
+ {
+  id:"swimsuit",
+  name:"水着",
+  equipment:{"slot":"body","attack":0,"defense":8},
+  art:["water_gear_1",0],
+  fallback:"🩳"
+ },
+ {
+  id:"rubber",
+  name:"ゴム",
+  art:["water_1",3],
+  fallback:"⚫"
+ },
+ {
+  id:"oil",
+  name:"オイル",
+  art:["water_1",2],
+  fallback:"🛢️"
+ },
+ {
+  id:"swordfish",
+  name:"ソードフィッシュ",
+  art:["water_2",0],
+  fallback:"🐟",
+  singleStack:true
+ },
+ {
+  id:"minefish",
+  name:"ジライギョ",
+  art:["water_2",1],
+  fallback:"🐡",
+  singleStack:true
+ },
+ {
+  id:"porcupinefish",
+  name:"ハリセンボン",
+  art:["water_2",2],
+  fallback:"🐡",
+  singleStack:true
+ },
+ {
+  id:"paradisefish",
+  name:"ラクエンウオ",
+  art:["water_2",3],
+  fallback:"🐠",
+  singleStack:true
+ },
+ {
+  id:"wood_sword",
+  name:"木剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":12,"defense":0},
+  art:["water_5",2],
+  fallback:"🗡️"
+ },
+ {
+  id:"survival_knife",
+  name:"サバイバルナイフ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":18,"defense":0},
+  art:["water_5",3],
+  fallback:"🔪"
+ },
+ {
+  id:"hotwater",
+  name:"熱湯",
+  rarity:"common",
+  art:["water_3",0],
+  fallback:"♨️",
+  craftGroup:"other",
+  recipes:[{"order":21,"category":"item","desc":"コモン・製作素材","need":{"water":1,"lighter":1}}]
+ },
+ {
+  id:"seaweed_soup",
+  name:"海草スープ",
+  rarity:"common",
+  recovery:{"group":"hp","amount":30},
+  art:["water_3",3],
+  fallback:"🍲",
+  craftGroup:"recovery",
+  recipes:[{"order":22,"category":"item","desc":"コモン・HP30回復","need":{"seaweed":1,"hotwater":1},"count":3}]
+ },
+ {
+  id:"bikini_pants",
+  name:"ビキニパンツ",
+  equipment:{"slot":"body","attack":0,"defense":15},
+  rarity:"uncommon",
+  art:["water_gear_1",1],
+  fallback:"🩳",
+  recipes:[{"order":23,"category":"armor","desc":"アンコモン・身体装備","need":{"swimsuit":1,"scissors":1}}]
+ },
+ {
+  id:"passion_bikini",
+  name:"情熱のビキニ",
+  equipment:{"slot":"body","attack":0,"defense":48},
+  effect:{"name":"情熱の紅","description":"与ダメージ＋2・被発見率＋5%","damageBonus":2,"discoveryRateBonus":0.05},
+  rarity:"epic",
+  art:["water_gear_1",2],
+  fallback:"🩳",
+  recipes:[{"order":24,"category":"armor","desc":"エピック・身体装備","need":{"bikini_pants":1,"ruby":1}}]
+ },
+ {
+  id:"rubber_gloves",
+  name:"ゴム手袋",
+  equipment:{"slot":"weapon","weaponType":"fist","attack":24,"defense":0},
+  rarity:"uncommon",
+  art:["water_gear_1",3],
+  fallback:"🧤",
+  recipes:[{"order":25,"category":"weapon","desc":"アンコモン・拳武器","need":{"rubber":1,"ragglove":1}}]
+ },
+ {
+  id:"rubber_suit",
+  name:"ラバースーツ",
+  equipment:{"slot":"body","attack":0,"defense":20},
+  rarity:"uncommon",
+  art:["water_gear_2",0],
+  fallback:"🦺",
+  recipes:[{"order":26,"category":"armor","desc":"アンコモン・身体装備","need":{"rubber":1,"swimsuit":1}}]
+ },
+ {
+  id:"insulated_suit",
+  name:"耐電スーツ",
+  equipment:{"slot":"body","attack":0,"defense":30},
+  rarity:"rare",
+  art:["water_gear_2",1],
+  fallback:"🦺",
+  recipes:[{"order":27,"category":"armor","desc":"レア・身体装備","need":{"rubber_suit":2}}]
+ },
+ {
+  id:"charged_suit",
+  name:"帯電スーツ",
+  equipment:{"slot":"body","attack":0,"defense":46},
+  effect:{"name":"帯電","description":"銃で被ダメージ時、攻撃者の銃耐久値－1（クールタイム90秒）","gunDurabilityRetaliation":1,"cooldownSeconds":90},
+  rarity:"epic",
+  art:["water_gear_2",2],
+  fallback:"⚡",
+  recipes:[{"order":28,"category":"armor","desc":"エピック・身体装備","need":{"insulated_suit":1,"discharger":1}}],
+  skillIcon:{"id":"electrification","art":"assets/inline-art/skills/equipment/electrification.webp"}
+ },
+ {
+  id:"glue",
+  name:"接着剤",
+  rarity:"uncommon",
+  art:["water_3",2],
+  fallback:"🧴",
+  craftGroup:"other",
+  recipes:[{"order":29,"category":"item","desc":"アンコモン・製作素材","need":{"rubber":1,"hotwater":1}}]
+ },
+ {
+  id:"heated_oil",
+  name:"熱したオイル",
+  rarity:"uncommon",
+  art:["water_3",1],
+  fallback:"🫕",
+  craftGroup:"other",
+  recipes:[{"order":30,"category":"item","desc":"アンコモン・製作素材","need":{"lighter":1,"oil":1}}]
+ },
+ {
+  id:"sea_sword",
+  name:"海魚剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":33,"defense":0},
+  rarity:"rare",
+  art:["water_gear_2",3],
+  fallback:"⚔️",
+  recipes:[{"order":31,"category":"weapon","desc":"レア・斬り武器","need":{"swordfish":1,"wood_sword":1}}]
+ },
+ {
+  id:"fried_swordfish",
+  name:"剣魚の素揚げ",
+  rarity:"rare",
+  recovery:{"group":"hp","amount":40},
+  art:["water_4",0],
+  fallback:"🍤",
+  craftGroup:"recovery",
+  recipes:[{"order":32,"category":"item","desc":"レア・HP40回復","need":{"swordfish":1,"heated_oil":1},"count":5}]
+ },
+ {
+  id:"swordfish_sashimi",
+  name:"剣魚の刺身",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":30},
+  art:["water_4",1],
+  fallback:"🍣",
+  craftGroup:"recovery",
+  recipes:[{"order":33,"category":"item","desc":"アンコモン・HP30回復","need":{"swordfish":1,"survival_knife":1},"count":5}]
+ },
+ {
+  id:"minefish_sashimi",
+  name:"地雷魚の刺身",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":25},
+  art:["water_4",2],
+  fallback:"🍣",
+  craftGroup:"recovery",
+  recipes:[{"order":34,"category":"item","desc":"アンコモン・HP25回復","need":{"minefish":1,"survival_knife":1},"count":5}]
+ },
+ {
+  id:"needle_suit",
+  name:"ニードルスーツ",
+  equipment:{"slot":"body","attack":0,"defense":25},
+  effect:{"name":"トゲ","description":"拳で被ダメージ時、攻撃者に2ダメージ","fistCounterDamage":2},
+  rarity:"rare",
+  art:["water_gear_3",0],
+  fallback:"🦔",
+  recipes:[{"order":35,"category":"armor","desc":"レア・身体装備","need":{"rubber_suit":1,"porcupinefish":1}}]
+ },
+ {
+  id:"stinger_suit",
+  name:"スティンガースーツ",
+  equipment:{"slot":"body","attack":0,"defense":46},
+  effect:{"name":"鋭いトゲ","description":"拳で被ダメージ時、攻撃者に4ダメージ","fistCounterDamage":4},
+  rarity:"epic",
+  art:["water_gear_3",1],
+  fallback:"🦔",
+  recipes:[{"order":36,"category":"armor","desc":"エピック・身体装備","need":{"needle_suit":1,"blackiron":1}}]
+ },
+ {
+  id:"onyx_suit",
+  name:"オニキススーツ",
+  equipment:{"slot":"body","attack":0,"defense":52},
+  effect:{"name":"黒曜のトゲ","description":"拳の被ダメージ－10%・攻撃者に2ダメージ","fistDamageReduction":0.1,"fistCounterDamage":2},
+  rarity:"epic",
+  art:["water_gear_3",2],
+  fallback:"🛡️",
+  recipes:[{"order":37,"category":"armor","desc":"エピック・身体装備","need":{"needle_suit":1,"obsidian":1}}]
+ },
+ {
+  id:"paradise_sashimi",
+  name:"楽園魚の刺身",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":20},
+  art:["water_4",3],
+  fallback:"🍣",
+  craftGroup:"recovery",
+  recipes:[{"order":38,"category":"item","desc":"アンコモン・HP20回復","need":{"paradisefish":1,"survival_knife":1},"count":5}]
+ },
+ {
+  id:"paradise_platter",
+  name:"楽園魚の造り",
+  rarity:"rare",
+  recovery:{"group":"hp","amount":100},
+  art:["water_5",0],
+  fallback:"🍱",
+  craftGroup:"recovery",
+  recipes:[{"order":39,"category":"item","desc":"レア・HP100回復","need":{"paradise_sashimi":1,"wood":1}}]
+ },
+ {
+  id:"paradise_broth",
+  name:"極楽湯",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":30},
+  art:["water_5",1],
+  fallback:"🍵",
+  craftGroup:"recovery",
+  recipes:[{"order":40,"category":"item","desc":"アンコモン・HP30回復・怪我治癒（状態異常未実装）","need":{"paradisefish":1,"hotwater":1},"count":2}]
+ },
+ {
+  id:"handgun",
+  name:"ハンドガン",
+  equipment:{"slot":"weapon","attack":18,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},
+  rarity:"uncommon",
+  art:["guns_1",0],
+  fallback:"🔫"
+ },
+ {
+  id:"hand_blaster",
+  name:"ハンドブラスター",
+  equipment:{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},
+  rarity:"rare",
+  art:["guns_1",1],
+  fallback:"🔫",
+  recipes:[{"order":41,"category":"weapon","desc":"レア・銃・攻撃＋0／防御＋0","need":{"handgun":1,"gunpowder":1}}]
+ },
+ {
+  id:"magma_blaster",
+  name:"マグマブラスター",
+  equipment:{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},
+  effect:{"name":"噴火","description":"ガードを含め3回攻撃するごとに固定15ダメージ","attackInterval":3,"fixedDamage":15},
+  rarity:"epic",
+  art:["guns_1",2],
+  fallback:"🔫",
+  recipes:[{"order":42,"category":"weapon","desc":"エピック・銃・攻撃＋0／防御＋0","need":{"hand_blaster":1,"ruby":1}}],
+  skillIcon:{"id":"eruption","art":"assets/inline-art/skills/equipment/eruption.webp"}
+ },
+ {
+  id:"rifle",
+  name:"ライフル",
+  equipment:{"slot":"weapon","attack":19,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},
+  rarity:"uncommon",
+  art:["guns_1",3],
+  fallback:"🔫"
+ },
+ {
+  id:"sniper_rifle",
+  name:"スナイパーライフル",
+  equipment:{"slot":"weapon","attack":32,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},
+  effect:{"name":"ガード突破","description":"ガードされる確率－5ポイント","accuracyBonus":5},
+  rarity:"rare",
+  art:["guns_2",0],
+  fallback:"🔫",
+  recipes:[{"order":43,"category":"weapon","desc":"レア・銃・攻撃＋0／防御＋0","need":{"rifle":1,"optical_sight":1}}]
+ },
+ {
+  id:"laser_rifle",
+  name:"レーザーライフル",
+  equipment:{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":Infinity,"unlimitedAmmo":true},
+  effect:{"name":"ガード突破","description":"ガードされる確率－5ポイント。弾薬・リロード不要","accuracyBonus":5},
+  rarity:"epic",
+  art:["guns_2",1],
+  fallback:"🔫",
+  recipes:[{"order":44,"category":"weapon","desc":"エピック・銃・攻撃＋0／防御＋0","need":{"sniper_rifle":1,"diamond":1}}]
+ },
+ {
+  id:"cannon",
+  name:"キャノン",
+  equipment:{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},
+  rarity:"rare",
+  art:["guns_2",2],
+  fallback:"🔫",
+  recipes:[{"order":45,"category":"weapon","desc":"レア・銃・攻撃＋0／防御＋0","need":{"steel":1,"gunpowder":1}}]
+ },
+ {
+  id:"blizzard_cannon",
+  name:"ブリザードキャノン",
+  equipment:{"slot":"weapon","attack":48,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},
+  effect:{"name":"豪雪","description":"攻撃時（ガードでも発動）に凍結を付与：4秒間回復アイテム使用不可（CT45秒・自動発動）","freezeMs":4000,"cooldownMs":45000},
+  rarity:"epic",
+  art:["guns_2",3],
+  fallback:"🔫",
+  recipes:[{"order":46,"category":"weapon","desc":"エピック・銃・攻撃＋0／防御＋0","need":{"cannon":1,"sapphire":1}}]
+ },
+ {
+  id:"telescope",
+  name:"望遠鏡",
+  equipment:{"slot":"accessory","attack":0,"defense":10},
+  rarity:"uncommon",
+  art:["optics",0],
+  fallback:"🔭"
+ },
+ {
+  id:"optical_sight",
+  name:"光学照準器",
+  equipment:{"slot":"accessory","attack":0,"defense":12},
+  effect:{"name":"ガード突破","description":"ガードされる確率－5ポイント","accuracyBonus":5},
+  rarity:"uncommon",
+  art:["optics",1],
+  fallback:"🔭",
+  recipes:[{"order":47,"category":"armor","desc":"アンコモン・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"telescope":1,"cell":1}}]
+ },
+ {
+  id:"stargazing_telescope",
+  name:"星見望遠鏡",
+  equipment:{"slot":"accessory","attack":0,"defense":16},
+  effect:{"name":"スターゲイザー","description":"15回探索ごとに空き枠があれば石・鉱石系素材を1個取得（低等級ほど高確率）","searchInterval":15},
+  rarity:"rare",
+  art:["optics",2],
+  fallback:"🔭",
+  recipes:[{"order":48,"category":"armor","desc":"レア・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"telescope":1,"whitestone":1}}],
+  skillIcon:{"id":"stargazer","art":"assets/inline-art/skills/equipment/stargazer.webp"}
+ },
+ {
+  id:"mythic_telescope",
+  name:"神話の望遠鏡",
+  equipment:{"slot":"accessory","attack":0,"defense":22},
+  effect:{"name":"神の恵み","description":"10回探索ごとに空き枠があればレア以上の石・鉱石系素材を1個取得","searchInterval":10,"mineralMinTier":"rare"},
+  rarity:"epic",
+  art:["optics",3],
+  fallback:"🔭",
+  recipes:[{"order":49,"category":"armor","desc":"エピック・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"stargazing_telescope":1,"diamond":1}}],
+  skillIcon:{"id":"divine_blessing","art":"assets/inline-art/skills/equipment/divine_blessing.webp"}
+ },
+ {
+  id:"japanese_bow",
+  name:"和弓",
+  equipment:{"slot":"weapon","attack":12,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
+  rarity:"common",
+  art:["bows_1",0],
+  fallback:"🏹"
+ },
+ {
+  id:"strong_bow",
+  name:"強弓",
+  equipment:{"slot":"weapon","attack":18,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
+  rarity:"uncommon",
+  art:["bows_1",1],
+  fallback:"🏹",
+  recipes:[{"order":50,"category":"weapon","desc":"アンコモン・弓・攻撃＋0／防御＋0","need":{"japanese_bow":1,"wood":1}}]
+ },
+ {
+  id:"reinforced_wire",
+  name:"強化ワイヤー",
+  rarity:"uncommon",
+  art:["ranged_materials",2],
+  fallback:"➰",
+  recipes:[{"order":51,"category":"item","desc":"アンコモン・素材","need":{"wire":1,"scrap":1}}]
+ },
+ {
+  id:"mighty_bow",
+  name:"剛弓",
+  equipment:{"slot":"weapon","attack":30,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
+  rarity:"rare",
+  art:["bows_1",2],
+  fallback:"🏹",
+  recipes:[{"order":52,"category":"weapon","desc":"レア・弓・攻撃＋0／防御＋0","need":{"strong_bow":1,"reinforced_wire":1}}]
+ },
+ {
+  id:"azusa_bow",
+  name:"梓弓",
+  equipment:{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":20},
+  rarity:"epic",
+  art:["bows_1",3],
+  fallback:"🏹",
+  recipes:[{"order":53,"category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"mighty_bow":1,"strong_bow":1}}]
+ },
+ {
+  id:"unerring_bow",
+  name:"名弓・百発百中",
+  equipment:{"slot":"weapon","attack":46,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},
+  effect:{"name":"ガード突破","description":"ガードされる確率－5ポイント","accuracyBonus":5},
+  rarity:"epic",
+  art:["bows_2",0],
+  fallback:"🏹",
+  recipes:[{"order":54,"category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"mighty_bow":1,"optical_sight":1}}]
+ },
+ {
+  id:"western_bow",
+  name:"洋弓",
+  equipment:{"slot":"weapon","attack":14,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
+  rarity:"common",
+  art:["bows_2",1],
+  fallback:"🏹"
+ },
+ {
+  id:"longbow",
+  name:"ロングボウ",
+  equipment:{"slot":"weapon","attack":20,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
+  rarity:"uncommon",
+  art:["bows_2",2],
+  fallback:"🏹",
+  recipes:[{"order":55,"category":"weapon","desc":"アンコモン・弓・攻撃＋0／防御＋0","need":{"western_bow":1,"bronze":1}}]
+ },
+ {
+  id:"silver_bow",
+  name:"白銀の弓",
+  equipment:{"slot":"weapon","attack":32,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},
+  rarity:"rare",
+  art:["bows_2",3],
+  fallback:"🏹",
+  recipes:[{"order":56,"category":"weapon","desc":"レア・弓・攻撃＋0／防御＋0","need":{"longbow":1,"silver":1}}]
+ },
+ {
+  id:"golden_bow",
+  name:"黄金の弓",
+  equipment:{"slot":"weapon","attack":35,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},
+  rarity:"rare",
+  art:["bows_3",0],
+  fallback:"🏹",
+  recipes:[{"order":57,"category":"weapon","desc":"レア・弓・攻撃＋0／防御＋0","need":{"silver_bow":1,"gold":1}}]
+ },
+ {
+  id:"angel_wing",
+  name:"天使の羽",
+  equipment:{"slot":"accessory","attack":0,"defense":16},
+  rarity:"rare",
+  art:["hides_feathers",0],
+  fallback:"🪽",
+  recipes:[{"order":58,"category":"armor","desc":"レア・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"feather":1,"whitestone":1}}]
+ },
+ {
+  id:"eros_bow",
+  name:"エロスの弓",
+  equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},
+  effect:{"name":"愛の矢","description":"与えた実ダメージの5%分HP回復（切り上げ）","lifesteal":0.05},
+  rarity:"epic",
+  art:["bows_3",1],
+  fallback:"🏹",
+  recipes:[{"order":59,"category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"golden_bow":1,"angel_wing":1}}]
+ },
+ {
+  id:"amalgam_bow",
+  name:"アマルガムボウ",
+  equipment:{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},
+  effect:{"name":"合成皮質","description":"この武器は耐久値が下がらない","durabilityLossImmune":true},
+  rarity:"epic",
+  art:["bows_3",2],
+  fallback:"🏹",
+  recipes:[{"order":60,"category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"golden_bow":1,"rubbery_hide":1}}]
+ },
+ {
+  id:"apollo_bow",
+  name:"アポロンの弓",
+  equipment:{"slot":"weapon","attack":50,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},
+  rarity:"epic",
+  art:["bows_3",3],
+  fallback:"🏹",
+  recipes:[{"order":61,"category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"golden_bow":1,"laurel":1}}]
+ },
+ {
+  id:"rubbery_hide",
+  name:"ゴム質の皮",
+  rarity:"uncommon",
+  art:["hides_feathers",3],
+  fallback:"🟤",
+  recipes:[{"order":62,"category":"item","desc":"アンコモン・素材","need":{"rubber":1,"fur":1}}]
+ },
+ {
+  id:"gunpowder",
+  name:"火薬",
+  rarity:"common",
+  art:["ranged_materials",0],
+  fallback:"💥"
+ },
+ {
+  id:"wire",
+  name:"ワイヤー",
+  rarity:"common",
+  art:["ranged_materials",1],
+  fallback:"➰"
+ },
+ {
+  id:"feather",
+  name:"羽",
+  rarity:"common",
+  art:["hides_feathers",1],
+  fallback:"🪶"
+ },
+ {
+  id:"fur",
+  name:"毛皮",
+  rarity:"common",
+  art:["hides_feathers",2],
+  fallback:"🐾"
+ },
+ {
+  id:"laurel",
+  name:"月桂樹",
+  rarity:"epic",
+  art:["ranged_materials",3],
+  fallback:"🌿"
+ },
+ {
+  id:"bullets",
+  name:"銃弾",
+  rarity:"common",
+  art:["ammo",0],
+  fallback:"▥",
+  carryLimit:99,
+  findCount:20
+ },
+ {
+  id:"arrows",
+  name:"矢",
+  rarity:"common",
+  art:["ammo",1],
+  fallback:"➶",
+  carryLimit:99,
+  findCount:20
+ },
+ {
+  id:"egg",
+  name:"卵",
+  recovery:{"group":"hp","amount":10},
+  art:["drone_drops_1",0],
+  fallback:"🥚"
+ },
+ {
+  id:"fish_scale",
+  name:"魚鱗",
+  art:["drone_drops_1",1],
+  fallback:"🔹"
+ },
+ {
+  id:"beast_meat",
+  name:"獣肉",
+  recovery:{"group":"hp","amount":30},
+  art:["drone_drops_1",2],
+  fallback:"🥩"
+ },
+ {
+  id:"premium_ration",
+  name:"高級レーション",
+  rarity:"rare",
+  recovery:{"group":"hp","amount":80},
+  art:["drone_drops_1",3],
+  fallback:"🥫",
+  craftGroup:"recovery",
+  recipes:[{"order":123,"category":"item","desc":"レア・HP80回復","need":{"medium_ration":1,"salted_meat":1},"count":3}]
+ },
+ {
+  id:"energy_drink",
+  name:"エナジードリンク",
+  rarity:"uncommon",
+  recovery:{"group":"stamina","amount":50},
+  art:["drone_drops_2",0],
+  fallback:"🥤",
+  craftGroup:"recovery",
+  recipes:[{"order":131,"category":"item","desc":"アンコモン・スタミナ50回復","need":{"drink":1,"fish_scale":1},"count":3}]
+ },
+ {
+  id:"goggles",
+  name:"ゴーグル",
+  equipment:{"slot":"head","attack":0,"defense":6},
+  rarity:"common",
+  art:["equipment_01",0],
+  fallback:"🥽"
+ },
+ {
+  id:"night_goggles",
+  name:"暗視ゴーグル",
+  equipment:{"slot":"head","attack":0,"defense":26},
+  rarity:"rare",
+  art:["equipment_01",2],
+  fallback:"🥽",
+  recipes:[{"order":63,"category":"armor","icon":"🥽","desc":"頭装備","need":{"goggles":1,"optical_sight":1}}]
+ },
+ {
+  id:"xray_goggles",
+  name:"透視ゴーグル",
+  equipment:{"slot":"head","attack":0,"defense":46},
+  effect:{"name":"ガード突破","description":"ガードされる確率－7ポイント","accuracyBonus":7},
+  rarity:"epic",
+  art:["equipment_01",3],
+  fallback:"🥽",
+  recipes:[{"order":64,"category":"armor","icon":"🥽","desc":"頭装備","need":{"night_goggles":1,"stargazing_telescope":1}}]
+ },
+ {
+  id:"machine_goggles",
+  name:"機械ゴーグル",
+  equipment:{"slot":"head","attack":0,"defense":14},
+  rarity:"uncommon",
+  art:["equipment_01",1],
+  fallback:"🥽",
+  recipes:[{"order":65,"category":"armor","icon":"🥽","desc":"頭装備","need":{"goggles":1,"scrap":1}}]
+ },
+ {
+  id:"mechanic_goggles",
+  name:"メカニックゴーグル",
+  equipment:{"slot":"head","attack":0,"defense":30},
+  rarity:"rare",
+  art:["equipment_02",0],
+  fallback:"🥽",
+  recipes:[{"order":66,"category":"armor","icon":"🥽","desc":"頭装備","need":{"machine_goggles":1,"monitor":1}}]
+ },
+ {
+  id:"steampunk_goggles",
+  name:"スチームパンクゴーグル",
+  equipment:{"slot":"head","attack":0,"defense":48},
+  rarity:"epic",
+  art:["equipment_02",1],
+  fallback:"🥽",
+  recipes:[{"order":67,"category":"armor","icon":"🥽","desc":"頭装備","need":{"mechanic_goggles":1,"steel":1}}]
+ },
+ {
+  id:"hat",
+  name:"帽子",
+  equipment:{"slot":"head","attack":0,"defense":7},
+  rarity:"common",
+  art:["equipment_02",2],
+  fallback:"🎩"
+ },
+ {
+  id:"cloth_hat",
+  name:"布の帽子",
+  equipment:{"slot":"head","attack":0,"defense":14},
+  rarity:"uncommon",
+  art:["equipment_02",3],
+  fallback:"🎩",
+  recipes:[{"order":68,"category":"armor","icon":"🎩","desc":"頭装備","need":{"hat":1,"cloth":1}}]
+ },
+ {
+  id:"fur_hat",
+  name:"毛皮の帽子",
+  equipment:{"slot":"head","attack":0,"defense":26},
+  rarity:"rare",
+  art:["equipment_03",0],
+  fallback:"🎩",
+  recipes:[{"order":69,"category":"armor","icon":"🎩","desc":"頭装備","need":{"cloth_hat":1,"fur":1}}]
+ },
+ {
+  id:"leather_hat",
+  name:"レザーハット",
+  equipment:{"slot":"head","attack":0,"defense":38},
+  effect:{"name":"斬撃軽減","description":"斬りの被ダメージ－10%（軽減後切り捨て・最低1）","slashDamageReduction":0.1},
+  rarity:"epic",
+  art:["equipment_03",1],
+  fallback:"🎩",
+  recipes:[{"order":70,"category":"armor","icon":"🎩","desc":"頭装備","need":{"fur_hat":1,"rubbery_hide":1}}]
+ },
+ {
+  id:"feather_hat",
+  name:"羽付き帽子",
+  equipment:{"slot":"head","attack":0,"defense":12},
+  rarity:"uncommon",
+  art:["equipment_03",2],
+  fallback:"🎩",
+  recipes:[{"order":71,"category":"armor","icon":"🎩","desc":"頭装備","need":{"hat":1,"feather":1}}]
+ },
+ {
+  id:"bluebird_hat",
+  name:"青い鳥の帽子",
+  equipment:{"slot":"head","attack":0,"defense":44},
+  effect:{"name":"幸福の予感","description":"4回探索するごとにスタミナを6回復","searchInterval":4,"staminaRecovery":6},
+  rarity:"epic",
+  art:["equipment_03",3],
+  fallback:"🎩",
+  recipes:[{"order":72,"category":"armor","icon":"🎩","desc":"頭装備","need":{"feather_hat":1,"sapphire":1}}],
+  skillIcon:{"id":"happy_premonition","art":"assets/inline-art/skills/equipment/happy_premonition.webp"}
+ },
+ {
+  id:"glass_shard",
+  name:"ガラス片",
+  rarity:"common",
+  art:["equipment_04",0],
+  fallback:"🔹"
+ },
+ {
+  id:"monitor",
+  name:"モニター",
+  rarity:"uncommon",
+  art:["equipment_04",1],
+  fallback:"🖥️",
+  recipes:[{"order":73,"category":"item","icon":"🖥️","desc":"アンコモン・素材","need":{"glass_shard":1,"glue":1}}]
+ },
+ {
+  id:"bracelet",
+  name:"ブレスレット",
+  equipment:{"slot":"arm","attack":0,"defense":8},
+  rarity:"common",
+  art:["equipment_05",0],
+  fallback:"💍"
+ },
+ {
+  id:"ruby_bracelet",
+  name:"紅玉のブレスレット",
+  equipment:{"slot":"arm","attack":0,"defense":36},
+  effect:{"name":"ルビーの輝き","description":"HP・スタミナ回復アイテムの効果＋10%（端数切り上げ）","recoveryBonus":0.1},
+  rarity:"epic",
+  art:["equipment_05",1],
+  fallback:"💍",
+  recipes:[{"order":74,"category":"armor","icon":"💍","desc":"腕装備","need":{"bracelet":1,"ruby":1}}]
+ },
+ {
+  id:"gold_bracelet",
+  name:"金のブレスレット",
+  equipment:{"slot":"arm","attack":0,"defense":25},
+  rarity:"rare",
+  art:["equipment_05",2],
+  fallback:"💍",
+  recipes:[{"order":75,"category":"armor","icon":"💍","desc":"腕装備","need":{"bracelet":1,"gold":1}}]
+ },
+ {
+  id:"silver_bracelet",
+  name:"白銀のブレスレット",
+  equipment:{"slot":"arm","attack":0,"defense":35},
+  effect:{"name":"純然たる輝き","description":"アクティブスキルによって受けるダメージ－20%（軽減後切り捨て・最低1）。","activeDamageReduction":0.2},
+  rarity:"epic",
+  art:["equipment_05",3],
+  fallback:"💍",
+  recipes:[{"order":76,"category":"armor","icon":"💍","desc":"腕装備","need":{"gold_bracelet":1,"whitesilver":1}}]
+ },
+ {
+  id:"hermes_bracelet",
+  name:"ヘルメスのブレスレット",
+  equipment:{"slot":"arm","attack":0,"defense":40},
+  effect:{"name":"伝令神の証","description":"区域移動時の消費スタミナ－1","movementDiscount":1},
+  rarity:"epic",
+  art:["equipment_06",0],
+  fallback:"💍",
+  recipes:[{"order":77,"category":"armor","icon":"💍","desc":"腕装備","need":{"gold_bracelet":1,"laurel":1}}]
+ },
+ {
+  id:"simple_armguard",
+  name:"簡易アームガード",
+  equipment:{"slot":"arm","attack":0,"defense":12},
+  rarity:"common",
+  art:["gear",0],
+  fallback:"🛡️",
+  recipes:[{"order":19,"category":"armor","icon":"🛡️","desc":"腕防具・防御力 +8（試作用）","need":{"cloth":1,"scrap":1}}]
+ },
+ {
+  id:"iron_armguard",
+  name:"鉄のアームガード",
+  equipment:{"slot":"arm","attack":0,"defense":25},
+  rarity:"rare",
+  art:["equipment_06",2],
+  fallback:"🛡️",
+  recipes:[{"order":79,"category":"armor","icon":"🛡️","desc":"腕装備","need":{"armguard":1,"iron":1}}]
+ },
+ {
+  id:"steel_armguard",
+  name:"鋼のアームガード",
+  equipment:{"slot":"arm","attack":0,"defense":35},
+  effect:{"name":"鋼鉄の護り","description":"斬り武器の攻撃を受けたとき相手の武器耐久値－1（CT60秒・自動発動）","slashDurabilityRetaliation":1,"cooldownSeconds":60},
+  rarity:"epic",
+  art:["equipment_06",3],
+  fallback:"🛡️",
+  recipes:[{"order":80,"category":"armor","icon":"🛡️","desc":"腕装備","need":{"iron_armguard":1,"steel":1}}],
+  skillIcon:{"id":"steel_protection","art":"assets/inline-art/skills/equipment/steel_protection.webp"}
+ },
+ {
+  id:"obsidian_armguard",
+  name:"黒曜石のアームガード",
+  equipment:{"slot":"arm","attack":0,"defense":40},
+  rarity:"epic",
+  art:["equipment_07",0],
+  fallback:"🛡️",
+  recipes:[{"order":81,"category":"armor","icon":"🛡️","desc":"腕装備","need":{"iron_armguard":1,"obsidian":1}}]
+ },
+ {
+  id:"boots",
+  name:"ブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":6},
+  rarity:"common",
+  art:["equipment_07",1],
+  fallback:"🥾"
+ },
+ {
+  id:"fur_boots",
+  name:"毛皮のブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":12},
+  rarity:"uncommon",
+  art:["equipment_07",2],
+  fallback:"🥾",
+  recipes:[{"order":82,"category":"armor","icon":"🥾","desc":"脚装備","need":{"boots":1,"fur":1}}]
+ },
+ {
+  id:"synthetic_boots",
+  name:"合皮ブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":25},
+  rarity:"rare",
+  art:["equipment_07",3],
+  fallback:"🥾",
+  recipes:[{"order":83,"category":"armor","icon":"🥾","desc":"脚装備","need":{"fur_boots":2}}]
+ },
+ {
+  id:"amalgam_boots",
+  name:"アマルガムブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":44},
+  rarity:"epic",
+  art:["equipment_08",0],
+  fallback:"🥾",
+  recipes:[{"order":84,"category":"armor","icon":"🥾","desc":"脚装備","need":{"synthetic_boots":1,"rubbery_hide":1}}]
+ },
+ {
+  id:"primal_boots",
+  name:"原生獣のブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":44},
+  effect:{"name":"野生の本能","description":"敵撃破時、その死体にレア以下のランダム報酬を1個追加","corpseBonus":true},
+  rarity:"epic",
+  art:["equipment_08",1],
+  fallback:"🥾",
+  recipes:[{"order":85,"category":"armor","icon":"🥾","desc":"脚装備","need":{"synthetic_boots":2}}]
+ },
+ {
+  id:"wing_boots",
+  name:"ウィングブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":11},
+  rarity:"common",
+  art:["equipment_08",2],
+  fallback:"🥾",
+  recipes:[{"order":86,"category":"armor","icon":"🥾","desc":"脚装備","need":{"boots":1,"feather":1}}]
+ },
+ {
+  id:"spike_boots",
+  name:"スパイクブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":22},
+  rarity:"rare",
+  art:["equipment_08",3],
+  fallback:"🥾",
+  recipes:[{"order":87,"category":"armor","icon":"🥾","desc":"脚装備","need":{"wing_boots":1,"porcupinefish":1}}]
+ },
+ {
+  id:"diamond_boots",
+  name:"金剛石のブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":55},
+  effect:{"name":"5カラット","description":"探索時の消費スタミナ＋1","searchCostBonus":1},
+  rarity:"epic",
+  art:["equipment_09",0],
+  fallback:"🥾",
+  recipes:[{"order":88,"category":"armor","icon":"🥾","desc":"脚装備","need":{"spike_boots":1,"diamond":1}}]
+ },
+ {
+  id:"gear_boots",
+  name:"ギアブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":24},
+  rarity:"rare",
+  art:["equipment_09",1],
+  fallback:"🥾",
+  recipes:[{"order":89,"category":"armor","icon":"🥾","desc":"脚装備","need":{"wing_boots":1,"small_gear":1}}]
+ },
+ {
+  id:"automation_boots",
+  name:"オートメーションブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":42},
+  effect:{"name":"自動操縦","description":"敵発見率＋5ポイント","enemyDiscoveryBonus":0.05},
+  rarity:"epic",
+  art:["equipment_09",2],
+  fallback:"🥾",
+  recipes:[{"order":90,"category":"armor","icon":"🥾","desc":"脚装備","need":{"gear_boots":1,"energy_gear":1}}]
+ },
+ {
+  id:"leg_cover",
+  name:"レッグカバー",
+  equipment:{"slot":"legs","attack":0,"defense":12},
+  rarity:"uncommon",
+  art:["equipment_10",0],
+  fallback:"🥾",
+  recipes:[{"order":91,"category":"armor","icon":"🥾","desc":"脚装備","need":{"cloth":1,"fur":1}}]
+ },
+ {
+  id:"steel_leg_cover",
+  name:"鋼のレッグカバー",
+  equipment:{"slot":"legs","attack":0,"defense":25},
+  rarity:"rare",
+  art:["equipment_10",1],
+  fallback:"🥾",
+  recipes:[{"order":92,"category":"armor","icon":"🥾","desc":"脚装備","need":{"leg_cover":1,"steel":1}}]
+ },
+ {
+  id:"energy_socks",
+  name:"エナジーソックス",
+  equipment:{"slot":"legs","attack":0,"defense":36},
+  effect:{"name":"ハイエナジー","description":"スタミナ上限値＋30","maxStaminaBonus":30},
+  rarity:"epic",
+  art:["equipment_09",3],
+  fallback:"🥾",
+  recipes:[{"order":93,"category":"armor","icon":"🥾","desc":"脚装備","need":{"steel_leg_cover":1,"energy_drink":1}}]
+ },
+ {
+  id:"small_gear",
+  name:"小さな歯車",
+  rarity:"common",
+  art:["equipment_04",2],
+  fallback:"⚙️"
+ },
+ {
+  id:"large_gear",
+  name:"大きな歯車",
+  rarity:"uncommon",
+  art:["equipment_04",3],
+  fallback:"⚙️"
+ },
+ {
+  id:"energy_gear",
+  name:"エネルギーギア",
+  rarity:"rare",
+  art:["equipment_10",2],
+  fallback:"⚙️",
+  recipes:[{"order":94,"category":"item","icon":"⚙️","desc":"レア・素材","need":{"cell":1,"large_gear":1}}]
+ },
+ {
+  id:"suit",
+  name:"スーツ",
+  equipment:{"slot":"body","attack":0,"defense":18},
+  rarity:"uncommon",
+  art:["body_01",0],
+  fallback:"🥼",
+  recipes:[{"order":95,"category":"armor","icon":"🥼","desc":"身体装備","need":{"fine_cloth":1,"scissors":1}}]
+ },
+ {
+  id:"royal_suit",
+  name:"ロイヤルスーツ",
+  equipment:{"slot":"body","attack":0,"defense":48},
+  effect:{"name":"貴族の威光","description":"エピック以上の制作経験値＋10%","epicCraftXpBonus":0.1},
+  rarity:"epic",
+  art:["body_01",1],
+  fallback:"🥼",
+  recipes:[{"order":96,"category":"armor","icon":"🥼","desc":"身体装備","need":{"suit":1,"gold_thread":1}}]
+ },
+ {
+  id:"sailor_suit",
+  name:"セーラースーツ",
+  equipment:{"slot":"body","attack":0,"defense":32},
+  rarity:"rare",
+  art:["body_01",2],
+  fallback:"🥼",
+  recipes:[{"order":97,"category":"armor","icon":"🥼","desc":"身体装備","need":{"suit":1,"sea_thread":1}}]
+ },
+ {
+  id:"navy_suit",
+  name:"ネイビースーツ",
+  equipment:{"slot":"body","attack":0,"defense":49},
+  effect:{"name":"対銃防護","description":"銃武器の被ダメージ－10%（軽減後切り捨て・最低1）","gunDamageReduction":0.1},
+  rarity:"epic",
+  art:["body_01",3],
+  fallback:"🥼",
+  recipes:[{"order":98,"category":"armor","icon":"🥼","desc":"身体装備","need":{"sailor_suit":1,"hand_blaster":1}}]
+ },
+ {
+  id:"lab_coat",
+  name:"白衣",
+  equipment:{"slot":"body","attack":0,"defense":10},
+  rarity:"common",
+  art:["body_02",0],
+  fallback:"🥼"
+ },
+ {
+  id:"apothecary_clothes",
+  name:"薬師の服",
+  equipment:{"slot":"body","attack":0,"defense":18},
+  rarity:"uncommon",
+  art:["body_02",1],
+  fallback:"🥼",
+  recipes:[{"order":99,"category":"armor","icon":"🥼","desc":"身体装備","need":{"lab_coat":1,"kit":1}}]
+ },
+ {
+  id:"holy_robe",
+  name:"聖なるローブ",
+  equipment:{"slot":"body","attack":0,"defense":31},
+  rarity:"rare",
+  art:["body_02",2],
+  fallback:"🥼",
+  recipes:[{"order":100,"category":"armor","icon":"🥼","desc":"身体装備","need":{"apothecary_clothes":1,"paradise_broth":1}}]
+ },
+ {
+  id:"archangel_robe",
+  name:"大天使のローブ",
+  equipment:{"slot":"body","attack":0,"defense":46},
+  effect:{"name":"大天使の加護","description":"回復薬系統の制作個数＋1","potionCraftBonus":1},
+  rarity:"epic",
+  art:["body_02",3],
+  fallback:"🥼",
+  recipes:[{"order":101,"category":"armor","icon":"🥼","desc":"身体装備","need":{"holy_robe":1,"angel_wing":1}}]
+ },
+ {
+  id:"doctor_suit",
+  name:"ドクタースーツ",
+  equipment:{"slot":"body","attack":0,"defense":20},
+  rarity:"uncommon",
+  art:["body_03",0],
+  fallback:"🥼",
+  recipes:[{"order":102,"category":"armor","icon":"🥼","desc":"身体装備","need":{"lab_coat":1,"rubber_gloves":1}}]
+ },
+ {
+  id:"black_doctor_gown",
+  name:"黒医者のガウン",
+  equipment:{"slot":"body","attack":0,"defense":32},
+  rarity:"rare",
+  art:["body_03",1],
+  fallback:"🥼",
+  recipes:[{"order":103,"category":"armor","icon":"🥼","desc":"身体装備","need":{"doctor_suit":1,"black_thread":1}}]
+ },
+ {
+  id:"mad_doctor_gown",
+  name:"マッドドクターガウン",
+  equipment:{"slot":"body","attack":0,"defense":47},
+  effect:{"name":"狂ったメス","description":"攻撃時に負傷付与（CT30秒）：5秒間、探索ごとにHP－4。命中を受けると残り時間が5秒に戻る","injuryMs":5000,"cooldownMs":30000},
+  rarity:"epic",
+  art:["body_03",2],
+  fallback:"🥼",
+  recipes:[{"order":104,"category":"armor","icon":"🥼","desc":"身体装備","need":{"black_doctor_gown":1,"poison_potion":1}}],
+  skillIcon:{"id":"mad_scalpel","art":"assets/inline-art/skills/equipment/mad_scalpel.webp"}
+ },
+ {
+  id:"fine_cloth",
+  name:"上質な布",
+  rarity:"uncommon",
+  art:["body_03",3],
+  fallback:"🧵",
+  recipes:[{"order":105,"category":"item","icon":"🧪","desc":"アンコモン・素材","need":{"cloth":1,"oil":1}}]
+ },
+ {
+  id:"thread",
+  name:"糸",
+  rarity:"common",
+  art:["body_04",0],
+  fallback:"🧵"
+ },
+ {
+  id:"gold_thread",
+  name:"黄金の糸",
+  rarity:"rare",
+  art:["body_04",1],
+  fallback:"🧵",
+  recipes:[{"order":106,"category":"item","icon":"🧵","desc":"レア・素材","need":{"thread":1,"gold":1}}]
+ },
+ {
+  id:"sea_thread",
+  name:"潮風の糸",
+  rarity:"uncommon",
+  art:["body_04",2],
+  fallback:"🧵",
+  recipes:[{"order":107,"category":"item","icon":"🧵","desc":"アンコモン・素材","need":{"seaweed":1,"thread":1}}]
+ },
+ {
+  id:"black_thread",
+  name:"黒い糸",
+  rarity:"uncommon",
+  art:["body_04",3],
+  fallback:"🧵",
+  recipes:[{"order":108,"category":"item","icon":"🧵","desc":"アンコモン・素材","need":{"thread":1,"charcoal":1}}]
+ },
+ {
+  id:"herb_oil",
+  name:"薬草油",
+  rarity:"uncommon",
+  art:["body_05",0],
+  fallback:"🧪",
+  recipes:[{"order":109,"category":"item","icon":"🧪","desc":"アンコモン・素材","need":{"herb":1,"heated_oil":1}}]
+ },
+ {
+  id:"poison_potion",
+  name:"毒薬",
+  rarity:"rare",
+  art:["body_05",1],
+  fallback:"🧪",
+  recipes:[{"order":110,"category":"item","icon":"🧪","desc":"レア・素材","need":{"herb_oil":1,"porcupinefish":1}}]
+ },
+ {
+  id:"herb",
+  name:"薬草",
+  rarity:"common",
+  recovery:{"group":"hp","amount":10},
+  art:["body_05",2],
+  fallback:"🌿",
+  craftGroup:"recovery"
+ },
+ {
+  id:"healing_potion",
+  name:"回復薬",
+  rarity:"common",
+  recovery:{"group":"hp","amount":30},
+  art:["body_05",3],
+  fallback:"🧪",
+  craftGroup:"recovery",
+  recipes:[{"order":111,"category":"item","icon":"🧪","desc":"コモン・HP30回復","need":{"herb":1,"hotwater":1},"count":3}]
+ },
+ {
+  id:"practice_sword",
+  name:"練習用の剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":8,"defense":0},
+  art:["practice_1",0],
+  startingWeapon:true
+ },
+ {
+  id:"practice_hammer",
+  name:"練習用の槌",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":8,"defense":0},
+  art:["practice_1",1],
+  startingWeapon:true
+ },
+ {
+  id:"practice_gauntlet",
+  name:"練習用の小手",
+  equipment:{"slot":"weapon","weaponType":"fist","attack":8,"defense":0},
+  art:["practice_1",2],
+  startingWeapon:true
+ },
+ {
+  id:"practice_bow",
+  name:"練習用の弓",
+  equipment:{"slot":"weapon","weaponType":"bow","attack":8,"defense":0,"ammoType":"arrows","capacity":20},
+  art:["practice_1",3],
+  startingWeapon:true
+ },
+ {
+  id:"practice_gun",
+  name:"練習用の銃",
+  equipment:{"slot":"weapon","weaponType":"gun","attack":8,"defense":0,"ammoType":"bullets","capacity":20},
+  art:["practice_2",0],
+  startingWeapon:true
+ },
+ {
+  id:"roast_meat",
+  name:"焼いた肉",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":80},
+  art:["food_01",0],
+  fallback:"🍖",
+  craftGroup:"recovery",
+  recipes:[{"order":112,"category":"item","desc":"アンコモン・HP80回復","need":{"beast_meat":1,"lighter":1},"count":1}]
+ },
+ {
+  id:"smoked_meat",
+  name:"燻製肉",
+  rarity:"rare",
+  recovery:{"group":"hp","amount":60},
+  art:["food_01",1],
+  fallback:"🍖",
+  craftGroup:"recovery",
+  recipes:[{"order":113,"category":"item","desc":"レア・HP60回復","need":{"beast_meat":1,"charcoal":1},"count":3}]
+ },
+ {
+  id:"medium_ration",
+  name:"中級レーション",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":40},
+  art:["food_01",2],
+  fallback:"🥫",
+  craftGroup:"recovery",
+  recipes:[{"order":114,"category":"item","desc":"アンコモン・HP40回復","need":{"ration":1,"egg":1},"count":2}]
+ },
+ {
+  id:"boiled_egg",
+  name:"ゆで卵",
+  rarity:"common",
+  recovery:{"group":"hp","amount":60},
+  art:["food_01",3],
+  fallback:"🥚",
+  craftGroup:"recovery",
+  recipes:[{"order":115,"category":"item","desc":"コモン・HP60回復","need":{"egg":1,"hotwater":1},"count":1}]
+ },
+ {
+  id:"rock_salt",
+  name:"岩塩",
+  rarity:"common",
+  recovery:{"group":"hp","amount":5},
+  art:["food_02",0],
+  fallback:"🧂",
+  craftGroup:"recovery"
+ },
+ {
+  id:"seasoned_egg",
+  name:"味付き卵",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":60},
+  art:["food_02",1],
+  fallback:"🥚",
+  craftGroup:"recovery",
+  recipes:[{"order":116,"category":"item","desc":"アンコモン・HP60回復","need":{"boiled_egg":1,"rock_salt":1},"count":3}]
+ },
+ {
+  id:"frying_pan",
+  name:"フライパン",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":7,"defense":0},
+  rarity:"common",
+  art:["food_02",2],
+  fallback:"🍳"
+ },
+ {
+  id:"heated_frying_pan",
+  name:"熱したフライパン",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":16,"defense":0},
+  rarity:"uncommon",
+  art:["food_02",3],
+  fallback:"🍳",
+  recipes:[{"order":117,"category":"weapon","desc":"アンコモン・鈍器・攻撃16","need":{"frying_pan":1,"lighter":1},"count":1}]
+ },
+ {
+  id:"fried_egg",
+  name:"目玉焼き",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":50},
+  art:["food_03",0],
+  fallback:"🍳",
+  craftGroup:"recovery",
+  recipes:[{"order":118,"category":"item","desc":"アンコモン・HP50回復","need":{"egg":1,"heated_frying_pan":1},"count":2}]
+ },
+ {
+  id:"salted_meat",
+  name:"塩漬け肉",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":20},
+  art:["food_03",1],
+  fallback:"🍖",
+  craftGroup:"recovery",
+  recipes:[{"order":119,"category":"item","desc":"アンコモン・HP20回復","need":{"beast_meat":1,"rock_salt":1},"count":1}]
+ },
+ {
+  id:"steak",
+  name:"ステーキ",
+  rarity:"epic",
+  recovery:{"group":"hp","amount":150},
+  art:["food_03",2],
+  fallback:"🍖",
+  craftGroup:"recovery",
+  recipes:[{"order":120,"category":"item","desc":"エピック・HP150回復","need":{"salted_meat":1,"heated_frying_pan":1},"count":1}]
+ },
+ {
+  id:"small_flower",
+  name:"小さな花",
+  rarity:"common",
+  recovery:{"group":"hp","amount":4},
+  art:["food_03",3],
+  fallback:"🌼",
+  craftGroup:"recovery"
+ },
+ {
+  id:"medium_healing_potion",
+  name:"中級回復薬",
+  rarity:"uncommon",
+  recovery:{"group":"hp","amount":45},
+  art:["food_04",0],
+  fallback:"🧪",
+  craftGroup:"recovery",
+  recipes:[{"order":121,"category":"item","desc":"アンコモン・HP45回復","need":{"healing_potion":1,"small_flower":1},"count":3}]
+ },
+ {
+  id:"advanced_healing_potion",
+  name:"上級回復薬",
+  rarity:"rare",
+  recovery:{"group":"hp","amount":70},
+  art:["food_04",1],
+  fallback:"🧪",
+  craftGroup:"recovery",
+  recipes:[{"order":122,"category":"item","desc":"レア・HP70回復","need":{"medium_healing_potion":1,"paradisefish":1},"count":3}]
+ },
+ {
+  id:"energy_fruit",
+  name:"エナジーフルーツ",
+  rarity:"common",
+  recovery:{"group":"stamina","amount":10},
+  art:["stamina_01",0],
+  fallback:"🍊",
+  craftGroup:"recovery",
+  findCount:3
+ },
+ {
+  id:"milk",
+  name:"牛乳",
+  rarity:"uncommon",
+  recovery:{"group":"stamina","amount":20},
+  art:["stamina_01",1],
+  fallback:"🥛",
+  craftGroup:"recovery"
+ },
+ {
+  id:"hot_milk",
+  name:"ホットミルク",
+  rarity:"uncommon",
+  recovery:{"group":"stamina","amount":20},
+  art:["stamina_01",2],
+  fallback:"🥛",
+  craftGroup:"recovery",
+  recipes:[{"order":124,"category":"item","desc":"アンコモン・スタミナ20回復","need":{"milk":1,"lighter":1},"count":3}]
+ },
+ {
+  id:"fruit_milk",
+  name:"フルーツ牛乳",
+  rarity:"rare",
+  recovery:{"group":"stamina","amount":50},
+  art:["stamina_01",3],
+  fallback:"🥛",
+  craftGroup:"recovery",
+  recipes:[{"order":125,"category":"item","desc":"コモン・スタミナ50回復","need":{"energy_fruit":1,"milk":1},"count":3}]
+ },
+ {
+  id:"stamina_potion",
+  name:"S回復薬",
+  rarity:"common",
+  recovery:{"group":"stamina","amount":30},
+  art:["stamina_02",0],
+  fallback:"🧪",
+  craftGroup:"recovery",
+  recipes:[{"order":126,"category":"item","desc":"コモン・スタミナ30回復","need":{"hotwater":1,"small_flower":1},"count":3}]
+ },
+ {
+  id:"advanced_stamina_potion",
+  name:"上級S回復薬",
+  rarity:"epic",
+  recovery:{"group":"stamina","amount":80},
+  art:["stamina_02",1],
+  fallback:"🧪",
+  craftGroup:"recovery",
+  recipes:[{"order":127,"category":"item","desc":"エピック・スタミナ80回復","need":{"stamina_potion":1,"herb_oil":1},"count":3}]
+ },
+ {
+  id:"soda",
+  name:"ソーダ",
+  rarity:"rare",
+  recovery:{"group":"stamina","amount":40},
+  art:["stamina_02",2],
+  fallback:"🥤",
+  craftGroup:"recovery"
+ },
+ {
+  id:"fruit_punch",
+  name:"フルーツポンチ",
+  rarity:"epic",
+  recovery:{"group":"stamina","amount":60},
+  art:["stamina_02",3],
+  fallback:"🥤",
+  craftGroup:"recovery",
+  recipes:[{"order":128,"category":"item","desc":"エピック・スタミナ60回復","need":{"soda":1,"energy_fruit":1},"count":5}]
+ },
+ {
+  id:"craft_cola",
+  name:"クラフトコーラ",
+  rarity:"epic",
+  recovery:{"group":"stamina","amount":150},
+  art:["stamina_03",0],
+  fallback:"🥤",
+  craftGroup:"recovery",
+  recipes:[{"order":129,"category":"item","desc":"エピック・スタミナ150回復","need":{"soda":1,"herb_oil":1},"count":1}]
+ },
+ {
+  id:"wood_mallet",
+  name:"木槌",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":15,"defense":0},
+  rarity:"common",
+  art:["hammer_01",0],
+  fallback:"🔨"
+ },
+ {
+  id:"wood_hammer",
+  name:"ウッドハンマー",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":25,"defense":0},
+  rarity:"uncommon",
+  art:["hammer_01",1],
+  fallback:"🔨",
+  recipes:[{"order":132,"category":"weapon","desc":"鈍器","need":{"wood_mallet":1,"wood":1}}]
+ },
+ {
+  id:"steel_hammer",
+  name:"スチールハンマー",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":36,"defense":0},
+  rarity:"rare",
+  art:["hammer_01",2],
+  fallback:"🔨",
+  recipes:[{"order":133,"category":"weapon","desc":"鈍器","need":{"wood_hammer":1,"steel":1}}]
+ },
+ {
+  id:"keraunos_hammer",
+  name:"ケラウノスハンマー",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":46,"defense":0},
+  effect:{"name":"裁きの雷","description":"攻撃時（ガードでも発動）、相手の6装備枠のうちエピック以上でない枠×2の追加ダメージ（CT30秒）","judgment":true,"cooldownMs":30000},
+  rarity:"epic",
+  art:["hammer_01",3],
+  fallback:"🔨",
+  recipes:[{"order":134,"category":"weapon","desc":"鈍器","need":{"steel_hammer":1,"discharger":1}}],
+  skillIcon:{"id":"judgment_thunder","art":"assets/inline-art/skills/equipment/judgment_thunder.webp"}
+ },
+ {
+  id:"bone_crusher",
+  name:"ボーンクラッシャー",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":48,"defense":0},
+  effect:{"name":"骨砕き","description":"命中時の敵負傷率＋1％（負傷5秒）","injuryChance":0.01,"weaponInjuryMs":5000},
+  rarity:"epic",
+  art:["hammer_02",0],
+  fallback:"🔨",
+  recipes:[{"order":135,"category":"weapon","desc":"鈍器","need":{"steel_hammer":1,"blackiron":1}}]
+ },
+ {
+  id:"wild_hammer",
+  name:"ワイルドハンマー",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},
+  rarity:"rare",
+  art:["hammer_02",1],
+  fallback:"🔨",
+  recipes:[{"order":136,"category":"weapon","desc":"鈍器","need":{"wood_hammer":1,"fur":1}}]
+ },
+ {
+  id:"super_wild_hammer",
+  name:"超野生ハンマー",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},
+  effect:{"name":"ワイルドパワー","description":"外れを含む3回攻撃ごとに、この武器個体の攻撃力＋1。破壊されない","growthInterval":3,"durabilityLossImmune":true},
+  rarity:"epic",
+  art:["hammer_02",2],
+  fallback:"🔨",
+  recipes:[{"order":137,"category":"weapon","desc":"鈍器","need":{"wild_hammer":2}}],
+  skillIcon:{"id":"wild_power","art":"assets/inline-art/skills/equipment/wild_power.webp"}
+ },
+ {
+  id:"squeaky_hammer",
+  name:"ピコピコハンマー",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":30,"defense":0},
+  rarity:"rare",
+  art:["hammer_02",3],
+  fallback:"🔨",
+  recipes:[{"order":138,"category":"weapon","desc":"鈍器","need":{"wood_mallet":1,"rubber":1}}]
+ },
+ {
+  id:"bamboo_pole",
+  name:"竹竿",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":12,"defense":0},
+  rarity:"common",
+  art:["hammer_03",0],
+  fallback:"🔨"
+ },
+ {
+  id:"drying_pole",
+  name:"物干し竿",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":20,"defense":0},
+  rarity:"uncommon",
+  art:["hammer_03",1],
+  fallback:"🔨",
+  recipes:[{"order":139,"category":"weapon","desc":"鈍器","need":{"bamboo_pole":1,"cloth":1}}]
+ },
+ {
+  id:"super_drying_pole",
+  name:"超・物干し竿",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":34,"defense":0},
+  rarity:"rare",
+  art:["hammer_03",2],
+  fallback:"🔨",
+  recipes:[{"order":140,"category":"weapon","desc":"鈍器","need":{"drying_pole":1,"fine_cloth":1}}]
+ },
+ {
+  id:"true_drying_pole",
+  name:"真・物干し竿",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":48,"defense":10},
+  rarity:"epic",
+  art:["hammer_03",3],
+  fallback:"🔨",
+  recipes:[{"order":141,"category":"weapon","desc":"鈍器","need":{"super_drying_pole":1,"sailor_suit":1}}]
+ },
+ {
+  id:"jade_club",
+  name:"玉砕棍",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":33,"defense":0},
+  rarity:"rare",
+  art:["hammer_04",0],
+  fallback:"🔨",
+  recipes:[{"order":142,"category":"weapon","desc":"鈍器","need":{"bamboo_pole":1,"wonderjewel":1}}]
+ },
+ {
+  id:"diamond_jade_club",
+  name:"金剛玉砕棍",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":50,"defense":0},
+  rarity:"epic",
+  art:["hammer_04",1],
+  fallback:"🔨",
+  recipes:[{"order":143,"category":"weapon","desc":"鈍器","need":{"jade_club":1,"diamond":1}}]
+ },
+ {
+  id:"knuckle",
+  name:"ナックル",
+  equipment:{"slot":"weapon","attack":10,"defense":0,"weaponType":"fist"},
+  rarity:"common",
+  art:["fist_01",0],
+  fallback:"🥊"
+ },
+ {
+  id:"iron_knuckle",
+  name:"アイアンナックル",
+  equipment:{"slot":"weapon","attack":22,"defense":0,"weaponType":"fist"},
+  rarity:"uncommon",
+  art:["fist_01",1],
+  fallback:"🥊",
+  recipes:[{"order":144,"category":"weapon","desc":"拳武器・攻撃＋22","need":{"knuckle":1,"iron":1}}]
+ },
+ {
+  id:"glass_knuckle",
+  name:"ガラスナックル",
+  equipment:{"slot":"weapon","attack":34,"defense":0,"weaponType":"fist"},
+  rarity:"rare",
+  art:["fist_01",2],
+  fallback:"🥊",
+  recipes:[{"order":145,"category":"weapon","desc":"拳武器・攻撃＋34","need":{"iron_knuckle":1,"glass_shard":1}}]
+ },
+ {
+  id:"brilliant_knuckle",
+  name:"ブリリアントナックル",
+  equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},
+  rarity:"epic",
+  art:["fist_01",3],
+  fallback:"🥊",
+  recipes:[{"order":146,"category":"weapon","desc":"拳武器・攻撃＋47","need":{"glass_knuckle":1,"diamond":1}}]
+ },
+ {
+  id:"poseidon_knuckle",
+  name:"ポセイドンナックル",
+  equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},
+  rarity:"epic",
+  art:["fist_02",0],
+  fallback:"🥊",
+  recipes:[{"order":147,"category":"weapon","desc":"拳武器・攻撃＋47","need":{"iron_knuckle":1,"sea_god_amulet":1}}]
+ },
+ {
+  id:"sea_god_amulet",
+  name:"海神の護符",
+  equipment:{"slot":"accessory","attack":0,"defense":20},
+  rarity:"rare",
+  art:["fist_02",1],
+  fallback:"🔱",
+  recipes:[{"order":148,"category":"armor","desc":"アクセサリー・防御＋20","need":{"fish_scale":1,"sea_thread":1}}]
+ },
+ {
+  id:"bandage",
+  name:"包帯",
+  rarity:"common",
+  recovery:{"group":"hp","amount":25},
+  art:["fist_02",2],
+  fallback:"🩹",
+  findCount:3
+ },
+ {
+  id:"fighting_wraps",
+  name:"バンテージ",
+  equipment:{"slot":"weapon","attack":18,"defense":0,"weaponType":"fist"},
+  rarity:"uncommon",
+  art:["fist_02",3],
+  fallback:"🥊",
+  recipes:[{"order":149,"category":"weapon","desc":"拳武器・攻撃＋18","need":{"ragglove":1,"bandage":1}}]
+ },
+ {
+  id:"reinforced_wraps",
+  name:"強化バンテージ",
+  equipment:{"slot":"weapon","attack":32,"defense":0,"weaponType":"fist"},
+  rarity:"rare",
+  art:["fist_03",0],
+  fallback:"🥊",
+  recipes:[{"order":150,"category":"weapon","desc":"拳武器・攻撃＋32","need":{"fighting_wraps":1,"fine_cloth":1}}]
+ },
+ {
+  id:"leather_wraps",
+  name:"革のバンテージ",
+  equipment:{"slot":"weapon","attack":26,"defense":0,"weaponType":"fist"},
+  rarity:"rare",
+  art:["fist_03",1],
+  fallback:"🥊",
+  recipes:[{"order":151,"category":"weapon","desc":"拳武器・攻撃＋26","need":{"fighting_wraps":1,"fur":1}}]
+ },
+ {
+  id:"beast_fang",
+  name:"ビーストファング",
+  equipment:{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},
+  effect:{"name":"ワイルドハント","description":"敵撃破時、死体の空き枠に毛皮と羽を各1個追加（最大12枠・毛皮優先）","wildHunt":true},
+  rarity:"epic",
+  art:["fist_03",2],
+  fallback:"🥊",
+  recipes:[{"order":152,"category":"weapon","desc":"拳武器・攻撃＋47","need":{"reinforced_wraps":1,"leather_wraps":1}}]
+ },
+ {
+  id:"iron_sword",
+  name:"鉄の剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":20,"defense":0},
+  rarity:"uncommon",
+  art:["slash_01",0],
+  fallback:"🗡️",
+  recipes:[{"order":153,"category":"weapon","desc":"斬り武器・攻撃＋20","need":{"wood_sword":1,"iron":1}}]
+ },
+ {
+  id:"steel_sword",
+  name:"鋼の剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},
+  rarity:"rare",
+  art:["slash_01",1],
+  fallback:"🗡️",
+  recipes:[{"order":154,"category":"weapon","desc":"斬り武器・攻撃＋30","need":{"iron_sword":1,"steel":1}}]
+ },
+ {
+  id:"zantetsu_sword",
+  name:"斬鉄剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":46,"defense":0},
+  rarity:"epic",
+  art:["slash_01",2],
+  fallback:"🗡️",
+  recipes:[{"order":155,"category":"weapon","desc":"斬り武器・攻撃＋46","need":{"steel_sword":1,"blackiron":1}}]
+ },
+ {
+  id:"hero_sword",
+  name:"勇者の剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":48,"defense":0},
+  effect:{"name":"勇気の印","description":"ドローンへの与ダメージ＋30%・ドローンからの被ダメージ－30%","droneDamageBonus":0.3,"droneDamageReduction":0.3},
+  rarity:"epic",
+  art:["hero_sword_v2",0,"single"],
+  fallback:"🗡️",
+  recipes:[{"order":156,"category":"weapon","desc":"斬り武器・攻撃＋48","need":{"steel_sword":1,"ruby":1}}]
+ },
+ {
+  id:"spirit_sword",
+  name:"精霊の剣",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
+  effect:{"name":"アカシアの精霊","description":"治療1回（1秒）ごとのHP回復量＋3","treatmentBonus":3},
+  rarity:"epic",
+  art:["slash_02",0],
+  fallback:"🗡️",
+  recipes:[{"order":157,"category":"weapon","desc":"斬り武器・攻撃＋47","need":{"iron_sword":1,"laurel":1}}]
+ },
+ {
+  id:"army_knife",
+  name:"アーミーナイフ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":35,"defense":0},
+  rarity:"rare",
+  art:["slash_02",1],
+  fallback:"🗡️",
+  recipes:[{"order":158,"category":"weapon","desc":"斬り武器・攻撃＋35","need":{"survival_knife":1,"handgun":1}}]
+ },
+ {
+  id:"assassin_knife",
+  name:"アサシンナイフ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":44,"defense":0},
+  effect:{"name":"蝕む劇毒","description":"攻撃時（ガードでも発動）、蠍の紫毒を1付与しスタック数の追加ダメージ（最大10・5秒ごとに1減少）","purplePoison":true},
+  rarity:"epic",
+  art:["slash_02",2],
+  fallback:"🗡️",
+  recipes:[{"order":159,"category":"weapon","desc":"斬り武器・攻撃＋44","need":{"army_knife":1,"poison_potion":1}}]
+ },
+ {
+  id:"mermaid_knife",
+  name:"マーメイドナイフ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},
+  rarity:"rare",
+  art:["slash_02",3],
+  fallback:"🗡️",
+  recipes:[{"order":160,"category":"weapon","desc":"斬り武器・攻撃＋30","need":{"survival_knife":1,"fish_scale":1}}]
+ },
+ {
+  id:"jail_knife",
+  name:"ジェイルナイフ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
+  effect:{"name":"クリティカル補正","description":"クリティカル率＋3ポイント（合計6%）","criticalBonus":0.03},
+  rarity:"epic",
+  art:["slash_03",0],
+  fallback:"🗡️",
+  recipes:[{"order":161,"category":"weapon","desc":"斬り武器・攻撃＋47","need":{"mermaid_knife":1,"sapphire":1}}]
+ },
+ {
+  id:"jambiya",
+  name:"ジャンビーヤ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},
+  rarity:"rare",
+  art:["slash_03",1],
+  fallback:"🗡️",
+  recipes:[{"order":162,"category":"weapon","desc":"斬り武器・攻撃＋30","need":{"survival_knife":1,"marble":1}}]
+ },
+ {
+  id:"orichalcum",
+  name:"オリハルコン",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
+  effect:{"name":"不滅の刃","description":"この武器は耐久値が下がらない","durabilityLossImmune":true},
+  rarity:"epic",
+  art:["slash_03",2],
+  fallback:"🗡️",
+  recipes:[{"order":163,"category":"weapon","desc":"斬り武器・攻撃＋47","need":{"jambiya":1,"obsidian":1}}]
+ },
+ {
+  id:"kukri",
+  name:"ククリ",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":45,"defense":0},
+  rarity:"epic",
+  art:["slash_03",3],
+  fallback:"🗡️",
+  recipes:[{"order":164,"category":"weapon","desc":"斬り武器・攻撃＋45","need":{"jambiya":2}}]
+ },
+ {
+  id:"battle_axe",
+  name:"バトルアックス",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":26,"defense":0},
+  rarity:"uncommon",
+  art:["slash_04",0],
+  fallback:"🗡️",
+  recipes:[{"order":165,"category":"weapon","desc":"斬り武器・攻撃＋26","need":{"bamboo_pole":1,"iron":1}}]
+ },
+ {
+  id:"golden_axe",
+  name:"ゴールデンアックス",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":38,"defense":0},
+  rarity:"rare",
+  art:["slash_04",1],
+  fallback:"🗡️",
+  recipes:[{"order":166,"category":"weapon","desc":"斬り武器・攻撃＋38","need":{"battle_axe":1,"gold":1}}]
+ },
+ {
+  id:"platinum_axe",
+  name:"プラチナムアックス",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":50,"defense":0},
+  rarity:"epic",
+  art:["slash_04",2],
+  fallback:"🗡️",
+  recipes:[{"order":167,"category":"weapon","desc":"斬り武器・攻撃＋50","need":{"golden_axe":1,"whitesilver":1}}]
+ },
+ {
+  id:"booster_axe",
+  name:"ブースターアックス",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":32,"defense":0},
+  rarity:"rare",
+  art:["slash_04",3],
+  fallback:"🗡️",
+  recipes:[{"order":168,"category":"weapon","desc":"斬り武器・攻撃＋32","need":{"battle_axe":1,"large_gear":1}}]
+ },
+ {
+  id:"double_gear",
+  name:"ダブルギア",
+  rarity:"rare",
+  art:["slash_05",0],
+  fallback:"⚙️",
+  recipes:[{"order":169,"category":"item","desc":"レア・素材","need":{"large_gear":1,"small_gear":1}}]
+ },
+ {
+  id:"automaton_axe",
+  name:"オートマトンアックス",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},
+  effect:{"name":"機械の照準","description":"ガードされる確率－5ポイント","accuracyBonus":5},
+  rarity:"epic",
+  art:["slash_05",1],
+  fallback:"🗡️",
+  recipes:[{"order":170,"category":"weapon","desc":"斬り武器・攻撃＋47","need":{"booster_axe":1,"double_gear":1}}]
+ },
+ {
+  id:"quiver",
+  name:"矢筒",
+  equipment:{"slot":"accessory","attack":0,"defense":12},
+  effect:{"bowCapacity":8,"name":"矢筒","description":"弓装備時、装填可能数＋8"},
+  rarity:"uncommon",
+  art:["acc_quiver",0,"single"],
+  fallback:"🏹",
+  recipes:[{"order":171,"category":"armor","need":{"bamboo_pole":1,"fur":1},"desc":"弓装備時、装填可能数＋8"}]
+ },
+ {
+  id:"sturdy_quiver",
+  name:"丈夫な矢筒",
+  equipment:{"slot":"accessory","attack":0,"defense":18},
+  effect:{"bowCapacity":12,"name":"丈夫な矢筒","description":"弓装備時、装填可能数＋12"},
+  rarity:"rare",
+  art:["acc_sturdy_quiver",0,"single"],
+  fallback:"🏹",
+  recipes:[{"order":172,"category":"armor","need":{"quiver":1,"fish_scale":1},"desc":"弓装備時、装填可能数＋12"}]
+ },
+ {
+  id:"snakeskin_quiver",
+  name:"ヘビ皮の矢筒",
+  equipment:{"slot":"accessory","attack":0,"defense":26},
+  effect:{"bowCapacity":18,"name":"ヘビ皮の矢筒","description":"弓装備時、装填可能数＋18"},
+  rarity:"rare",
+  art:["acc_snakeskin_quiver",0,"single"],
+  fallback:"🏹",
+  recipes:[{"order":173,"category":"armor","need":{"sturdy_quiver":1,"rubbery_hide":1},"desc":"弓装備時、装填可能数＋18"}]
+ },
+ {
+  id:"magic_quiver",
+  name:"魔法の矢筒",
+  equipment:{"slot":"accessory","attack":0,"defense":12},
+  effect:{"arrowSaveChance":0.5,"name":"魔法の矢筒","description":"弓攻撃時、50%の確率で矢を消費しない"},
+  rarity:"rare",
+  art:["acc_magic_quiver",0,"single"],
+  fallback:"🏹",
+  recipes:[{"order":174,"category":"armor","need":{"quiver":1,"wonderore":1},"desc":"弓攻撃時、50%の確率で矢を消費しない"}]
+ },
+ {
+  id:"artemis_quiver",
+  name:"アルテミスの矢筒",
+  equipment:{"slot":"accessory","attack":0,"defense":18},
+  effect:{"arrowSaveChance":0.9,"name":"アルテミスの矢筒","description":"弓攻撃時、90%の確率で矢を消費しない"},
+  rarity:"epic",
+  art:["acc_artemis_quiver",0,"single"],
+  fallback:"🏹",
+  recipes:[{"order":175,"category":"armor","need":{"magic_quiver":1,"sapphire":1},"desc":"弓攻撃時、90%の確率で矢を消費しない"}]
+ },
+ {
+  id:"apollo_quiver",
+  name:"アポロンの矢筒",
+  equipment:{"slot":"accessory","attack":0,"defense":18},
+  effect:{"arrowSaveChance":1,"name":"アポロンの矢筒","description":"弓攻撃時、矢を消費しない"},
+  rarity:"epic",
+  art:["acc_apollo_quiver",0,"single"],
+  fallback:"🏹",
+  recipes:[{"order":176,"category":"armor","need":{"magic_quiver":1,"laurel":1},"desc":"弓攻撃時、矢を消費しない"}]
+ },
+ {
+  id:"simple_magazine",
+  name:"簡易マガジン",
+  equipment:{"slot":"accessory","attack":0,"defense":8},
+  effect:{"gunCapacity":20,"name":"簡易マガジン","description":"銃装備時、装填可能数＋20"},
+  rarity:"uncommon",
+  art:["acc_simple_magazine",0,"single"],
+  fallback:"▣",
+  recipes:[{"order":177,"category":"armor","need":{"gunpowder":1,"scrap":1},"desc":"銃装備時、装填可能数＋20"}]
+ },
+ {
+  id:"auto_magazine",
+  name:"オートマガジン",
+  equipment:{"slot":"accessory","attack":0,"defense":20},
+  effect:{"gunCapacity":99,"name":"オートマガジン","description":"銃装備時、装填可能数＋99"},
+  rarity:"epic",
+  art:["acc_auto_magazine",0,"single"],
+  fallback:"▣",
+  recipes:[{"order":178,"category":"armor","need":{"simple_magazine":1,"double_gear":1},"desc":"銃装備時、装填可能数＋99"}]
+ },
+ {
+  id:"life_death_scales",
+  name:"生と死の天秤",
+  equipment:{"slot":"accessory","attack":0,"defense":20},
+  effect:{"deadlyBalance":true,"name":"デッドリィバランス","description":"デッドリィバランス：現在HPを超えるダメージを受けるとHP1で耐える。CT300秒"},
+  rarity:"epic",
+  art:["acc_life_death_scales",0,"single"],
+  fallback:"⚖️",
+  recipes:[{"order":179,"category":"armor","need":{"poison_potion":1,"advanced_healing_potion":1},"desc":"デッドリィバランス：現在HPを超えるダメージを受けるとHP1で耐える。CT300秒"}],
+  skillIcon:{"id":"deadly_balance","art":"assets/inline-art/skills/equipment/deadly_balance.webp"}
+ },
+ {
+  id:"medical_stone",
+  name:"薬石",
+  equipment:{"slot":"accessory","attack":0,"defense":16},
+  effect:{"name":"薬効あり","description":"行動時、HP＋1（最大HPまで）。探索・攻撃・移動・製作・アイテム使用・装填・フィールドスキルで発動。","actionRecovery":1},
+  rarity:"rare",
+  art:["item_medical_stone",0,"single"],
+  fallback:"💊",
+  recipes:[{"order":183,"category":"armor","need":{"stone":1,"kit":1},"desc":"行動時、HP＋1（最大HPまで）。探索・攻撃・移動・製作・アイテム使用・装填・フィールドスキルで発動。"}]
+ },
+ {
+  id:"philosophers_stone",
+  name:"賢者の石",
+  equipment:{"slot":"accessory","attack":0,"defense":20},
+  effect:{"name":"ヒーリングオーラ","description":"行動時、HP＋2（最大HPまで）。探索・攻撃・移動・製作・アイテム使用・装填・フィールドスキルで発動。","actionRecovery":2},
+  rarity:"epic",
+  art:["item_philosophers_stone",0,"single"],
+  fallback:"🔮",
+  recipes:[{"order":184,"category":"armor","need":{"medical_stone":1,"herb_oil":1},"desc":"行動時、HP＋2（最大HPまで）。探索・攻撃・移動・製作・アイテム使用・装填・フィールドスキルで発動。"}]
+ },
+ {
+  id:"dragon_scale",
+  name:"逆鱗",
+  rarity:"epic",
+  art:["dragon_dragon_scale",0,"single"]
+ },
+ {
+  id:"drago_core",
+  name:"ドラゴコア",
+  rarity:"epic",
+  art:["dragon_drago_core",0,"single"],
+  recipes:[{"order":185,"category":"item","desc":"エピック・ドラゴン素材","need":{"dragon_scale":1,"discharger":1}}]
+ },
+ {
+  id:"dragon_heart",
+  name:"ドラゴンハート",
+  equipment:{"slot":"weapon","weaponType":"fist","attack":58,"defense":0},
+  effect:{"lifesteal":0.3,"name":"龍の魂","description":"攻撃時、実際に与えたダメージの30%をHP回復。耐久値が下がらない。","durabilityLossImmune":true},
+  rarity:"legendary",
+  art:["dragon_dragon_heart",0,"single"],
+  recipes:[{"order":186,"category":"weapon","desc":"攻撃時、実際に与えたダメージの30%をHP回復。耐久値が下がらない。","need":{"drago_core":1,"ragglove":1}}]
+ },
+ {
+  id:"dragon_buster",
+  name:"ドラゴンバスター",
+  equipment:{"slot":"weapon","weaponType":"slash","attack":60,"defense":0},
+  effect:{"droneDamageBonus":2,"killRewardMultiplier":4,"name":"屠龍の証","description":"ドローンへのダメージ＋200%。敵撃破時の経験値・熟練度＋300%。耐久値が下がらない。","durabilityLossImmune":true},
+  rarity:"legendary",
+  art:["dragon_dragon_buster",0,"single"],
+  recipes:[{"order":187,"category":"weapon","desc":"ドローンへのダメージ＋200%。敵撃破時の経験値・熟練度＋300%。耐久値が下がらない。","need":{"drago_core":1,"wood_sword":1}}]
+ },
+ {
+  id:"drag_eater",
+  name:"ドラグイーター",
+  equipment:{"slot":"weapon","weaponType":"hammer","attack":60,"defense":0},
+  effect:{"criticalBonus":0.05,"criticalMultiplier":1.5,"name":"龍喰らいの槌","description":"クリティカル率＋5ポイント。クリティカル倍率1.5倍。耐久値が下がらない。","durabilityLossImmune":true},
+  rarity:"legendary",
+  art:["dragon_drag_eater",0,"single"],
+  recipes:[{"order":188,"category":"weapon","desc":"クリティカル率＋5ポイント。クリティカル倍率1.5倍。耐久値が下がらない。","need":{"drago_core":1,"wood_mallet":1}}]
+ },
+ {
+  id:"drag_energy_07",
+  name:"ドラグエナジー07",
+  equipment:{"slot":"weapon","weaponType":"gun","attack":55,"defense":0,"ammoType":"bullets","capacity":20},
+  effect:{"accuracyBonus":20,"reloadGrowth":true,"name":"龍の息吹","description":"命中率＋20ポイント。リロード1回ごとにこの武器の攻撃力＋1。耐久値が下がらない。","durabilityLossImmune":true},
+  rarity:"legendary",
+  art:["dragon_drag_energy_07",0,"single"],
+  recipes:[{"order":189,"category":"weapon","desc":"命中率＋20ポイント。リロード1回ごとにこの武器の攻撃力＋1。耐久値が下がらない。","need":{"drago_core":1,"handgun":1}}]
+ },
+ {
+  id:"dragon_killer",
+  name:"ドラゴンキラー",
+  equipment:{"slot":"weapon","weaponType":"bow","attack":60,"defense":0,"ammoType":"arrows","capacity":Infinity,"unlimitedAmmo":true},
+  effect:{"staminaDrain":5,"name":"龍殺しの弓","description":"攻撃時、敵のスタミナ－5。不足分×4の追加ダメージ。耐久値が下がらない。","durabilityLossImmune":true},
+  rarity:"legendary",
+  art:["dragon_dragon_killer",0,"single"],
+  recipes:[{"order":190,"category":"weapon","desc":"攻撃時、敵のスタミナ－5。不足分×4の追加ダメージ。耐久値が下がらない。","need":{"drago_core":1,"western_bow":1}}]
+ },
+ {
+  id:"dragon_suit",
+  name:"ドラゴンスーツ",
+  equipment:{"slot":"body","attack":0,"defense":100},
+  rarity:"legendary",
+  art:["dragon_dragon_suit",0,"single"],
+  recipes:[{"order":191,"category":"armor","desc":"防御＋100","need":{"dragon_scale":1,"suit":1}}]
+ },
+ {
+  id:"dragon_sage_robe",
+  name:"龍賢者のローブ",
+  equipment:{"slot":"body","attack":0,"defense":88},
+  effect:{"name":"超再生力","description":"HP治療の回復量が毎秒20になる。怪我の治療時間－9秒。","treatmentOverride":20,"injuryTreatmentReduction":9000},
+  rarity:"legendary",
+  art:["dragon_dragon_sage_robe",0,"single"],
+  recipes:[{"order":192,"category":"armor","desc":"防御＋88","need":{"drago_core":1,"apothecary_clothes":1}}]
+ },
+ {
+  id:"scale_boots",
+  name:"鱗のブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":15},
+  rarity:"uncommon",
+  art:["dragon_scale_boots",0,"single"],
+  recipes:[{"order":193,"category":"armor","desc":"防御＋15","need":{"boots":1,"fish_scale":1}}]
+ },
+ {
+  id:"dragon_scale_boots",
+  name:"逆鱗ブーツ",
+  equipment:{"slot":"legs","attack":0,"defense":48},
+  effect:{"name":"龍の翼","description":"探索時の消費スタミナ－1。","searchCostBonus":-1},
+  rarity:"legendary",
+  art:["dragon_dragon_scale_boots",0,"single"],
+  recipes:[{"order":194,"category":"armor","desc":"防御＋48","need":{"dragon_scale":1,"scale_boots":1}}]
+ },
+ {
+  id:"dragon_meat",
+  name:"ドラゴンミート",
+  rarity:"epic",
+  recovery:{"group":"hp","amount":150},
+  art:["dragon_dragon_meat",0,"single"],
+  craftGroup:"recovery",
+  recipes:[{"order":195,"category":"item","count":4,"desc":"HP150回復","need":{"dragon_scale":1,"beast_meat":1}}]
+ },
+ {
+  id:"dragon_fruit",
+  name:"ドラゴンフルーツ",
+  rarity:"epic",
+  recovery:{"group":"stamina","amount":200},
+  art:["dragon_dragon_fruit",0,"single"],
+  craftGroup:"recovery",
+  recipes:[{"order":196,"category":"item","count":4,"desc":"スタミナ200回復","need":{"dragon_scale":1,"energy_fruit":1}}]
+ },
+ {
+  id:"jewel_meat",
+  name:"ジュエルミート",
+  rarity:"epic",
+  recovery:{"group":"hp","amount":140},
+  art:["item_jewel_meat",0,"single"],
+  fallback:"🥩",
+  craftGroup:"recovery",
+  recipes:[{"order":197,"category":"item","need":{"beast_meat":1,"wonderjewel":1},"count":2,"desc":"エピック・HP140回復"}]
+ },
+ {
+  id:"heaven_pot",
+  name:"天国鍋",
+  rarity:"epic",
+  recovery:{"group":"hp","amount":120},
+  art:["item_heaven_pot",0,"single"],
+  fallback:"🍲",
+  craftGroup:"recovery",
+  recipes:[{"order":198,"category":"item","need":{"paradisefish":1,"herb_oil":1},"count":3,"desc":"エピック・HP120回復"}]
+ },
+ {
+  id:"compressed_ration",
+  name:"圧縮レーション",
+  rarity:"rare",
+  recovery:{"group":"hp","amount":150},
+  art:["item_compressed_ration",0,"single"],
+  fallback:"🥫",
+  craftGroup:"recovery",
+  recipes:[{"order":199,"category":"item","need":{"premium_ration":1,"cell":1},"count":1,"desc":"レア・HP150回復"}]
+ },
+ {
+  id:"life_elixir",
+  name:"生命の秘薬",
+  rarity:"legendary",
+  recovery:{"group":"hp","amount":220},
+  art:["item_life_elixir",0,"single"],
+  fallback:"⚗️",
+  craftGroup:"recovery",
+  recipes:[{"order":200,"category":"item","need":{"laurel":1,"poison_potion":1},"count":1,"desc":"レジェンダリー・HP220回復"}]
+ }
+];
+// Shared atlas URLs; each item selects its atlas and cell in its art field.
+const ITEM_ART_SHEETS={
+ "practice_1": "assets/icon_practice_1.webp",
+ "practice_2": "assets/icon_practice_2.webp",
+ "drone_drops_1": "assets/icon_drone_drops_1.webp",
+ "drone_drops_2": "assets/icon_drone_drops_2.webp",
+ "basic": "assets/icon_basic.png",
+ "tools": "assets/icon_tools.png",
+ "metal": "assets/icon_metal.png",
+ "advanced": "assets/icon_advanced.png",
+ "gems": "assets/icon_gems.png",
+ "stones": "assets/icon_stones.png",
+ "gloves": "assets/icon_gloves.png",
+ "materials": "assets/icon_materials.png",
+ "energy": "assets/icon_energy.png",
+ "gear": "assets/icon_gear.png",
+ "water_1": "assets/icon_water_1.png",
+ "water_2": "assets/icon_water_2.png",
+ "water_3": "assets/icon_water_3.png",
+ "water_4": "assets/icon_water_4.png",
+ "water_5": "assets/icon_water_5.png",
+ "water_gear_1": "assets/icon_water_gear_1.png",
+ "water_gear_2": "assets/icon_water_gear_2.png",
+ "water_gear_3": "assets/icon_water_gear_3.png",
+ "guns_1": "assets/icon_guns_1.webp",
+ "guns_2": "assets/icon_guns_2.webp",
+ "bows_1": "assets/icon_bows_1.webp",
+ "bows_2": "assets/icon_bows_2.webp",
+ "bows_3": "assets/icon_bows_3.webp",
+ "optics": "assets/icon_optics.webp",
+ "hides_feathers": "assets/icon_hides_feathers.webp",
+ "ranged_materials": "assets/icon_ranged_materials.webp",
+ "ammo": "assets/icon_ammo.webp",
+ "dragon_dragon_suit": "assets/dragon/dragon_suit.webp",
+ "dragon_dragon_sage_robe": "assets/dragon/dragon_sage_robe.webp",
+ "dragon_dragon_meat": "assets/dragon/dragon_meat.webp",
+ "dragon_dragon_fruit": "assets/dragon/dragon_fruit.webp",
+ "dragon_scale_boots": "assets/dragon/scale_boots.webp",
+ "dragon_dragon_scale_boots": "assets/dragon/dragon_scale_boots.webp",
+ "item_medical_stone": "assets/icon_medical_stone.webp",
+ "item_philosophers_stone": "assets/icon_philosophers_stone.webp",
+ "item_jewel_meat": "assets/icon_jewel_meat.webp",
+ "item_heaven_pot": "assets/icon_heaven_pot.webp",
+ "item_compressed_ration": "assets/icon_compressed_ration.webp",
+ "item_life_elixir": "assets/icon_life_elixir.webp",
+ "equipment_01": "assets/icon_equipment_01.webp",
+ "equipment_02": "assets/icon_equipment_02.webp",
+ "equipment_03": "assets/icon_equipment_03.webp",
+ "equipment_04": "assets/icon_equipment_04.webp",
+ "equipment_05": "assets/icon_equipment_05.webp",
+ "equipment_06": "assets/icon_equipment_06.webp",
+ "equipment_07": "assets/icon_equipment_07.webp",
+ "equipment_08": "assets/icon_equipment_08.webp",
+ "equipment_09": "assets/icon_equipment_09.webp",
+ "equipment_10": "assets/icon_equipment_10.webp",
+ "body_01": "assets/icon_body_01.webp",
+ "body_02": "assets/icon_body_02.webp",
+ "body_03": "assets/icon_body_03.webp",
+ "body_04": "assets/icon_body_04.webp",
+ "body_05": "assets/icon_body_05.webp",
+ "food_01": "assets/icon_food_01.webp",
+ "food_02": "assets/icon_food_02.webp",
+ "food_03": "assets/icon_food_03.webp",
+ "food_04": "assets/icon_food_04.webp",
+ "stamina_01": "assets/icon_stamina_01.webp",
+ "stamina_02": "assets/icon_stamina_02.webp",
+ "stamina_03": "assets/icon_stamina_03.webp",
+ "hammer_01": "assets/icon_hammer_01.webp",
+ "hammer_02": "assets/icon_hammer_02.webp",
+ "hammer_03": "assets/icon_hammer_03.webp",
+ "hammer_04": "assets/icon_hammer_04.webp",
+ "fist_01": "assets/icon_fist_01.webp",
+ "fist_02": "assets/icon_fist_02.webp",
+ "fist_03": "assets/icon_fist_03.webp",
+ "slash_01": "assets/icon_slash_01.webp",
+ "slash_02": "assets/icon_slash_02.webp",
+ "slash_03": "assets/icon_slash_03.webp",
+ "slash_04": "assets/icon_slash_04.webp",
+ "slash_05": "assets/icon_slash_05.webp",
+ "hero_sword_v2": "assets/icon_hero_sword_v2.webp",
+ "acc_quiver": "assets/accessories/quiver.webp",
+ "acc_sturdy_quiver": "assets/accessories/sturdy_quiver.webp",
+ "acc_snakeskin_quiver": "assets/accessories/snakeskin_quiver.webp",
+ "acc_magic_quiver": "assets/accessories/magic_quiver.webp",
+ "acc_artemis_quiver": "assets/accessories/artemis_quiver.webp",
+ "acc_apollo_quiver": "assets/accessories/apollo_quiver.webp",
+ "acc_simple_magazine": "assets/accessories/simple_magazine.webp",
+ "acc_auto_magazine": "assets/accessories/auto_magazine.webp",
+ "acc_life_death_scales": "assets/accessories/life_death_scales.webp",
+ "dragon_dragon_scale": "assets/dragon/dragon_scale.webp",
+ "dragon_drago_core": "assets/dragon/drago_core.webp",
+ "dragon_dragon_heart": "assets/dragon/dragon_heart.webp",
+ "dragon_dragon_buster": "assets/dragon/dragon_buster.webp",
+ "dragon_drag_eater": "assets/dragon/drag_eater.webp",
+ "dragon_drag_energy_07": "assets/dragon/drag_energy_07.webp",
+ "dragon_dragon_killer": "assets/dragon/dragon_killer.webp"
+};
+// Preserve existing enumeration order for random draws, COM tie-breaks and recipe display.
+// New records are appended automatically; do not add IDs to this compatibility index.
+const ITEM_TABLE_ORDER={
+ name:["scrap","stone","wood","mystery","pickaxe","marble","lighter","bronze","iron","blackiron","silver","whitesilver","gold","wonderore","wonderjewel","ruby","sapphire","diamond","superpickaxe","greatpickaxe","redstone","bluestone","whitestone","obsidian","meteorite","cloth","cell","ragglove","scissors","charcoal","core","glove","reinforced","steel","discharger","plasma","armguard","kit","ration","drink","water","seaweed","swimsuit","rubber","oil","swordfish","minefish","porcupinefish","paradisefish","wood_sword","survival_knife","hotwater","seaweed_soup","bikini_pants","passion_bikini","rubber_gloves","rubber_suit","insulated_suit","charged_suit","glue","heated_oil","sea_sword","fried_swordfish","swordfish_sashimi","minefish_sashimi","needle_suit","stinger_suit","onyx_suit","paradise_sashimi","paradise_platter","paradise_broth","handgun","hand_blaster","magma_blaster","rifle","sniper_rifle","laser_rifle","cannon","blizzard_cannon","telescope","optical_sight","stargazing_telescope","mythic_telescope","japanese_bow","strong_bow","reinforced_wire","mighty_bow","azusa_bow","unerring_bow","western_bow","longbow","silver_bow","golden_bow","angel_wing","eros_bow","amalgam_bow","apollo_bow","rubbery_hide","gunpowder","wire","feather","fur","laurel","bullets","arrows","egg","fish_scale","beast_meat","premium_ration","energy_drink","goggles","night_goggles","xray_goggles","machine_goggles","mechanic_goggles","steampunk_goggles","hat","cloth_hat","fur_hat","leather_hat","feather_hat","bluebird_hat","glass_shard","monitor","bracelet","ruby_bracelet","gold_bracelet","silver_bracelet","hermes_bracelet","simple_armguard","iron_armguard","steel_armguard","obsidian_armguard","boots","fur_boots","synthetic_boots","amalgam_boots","primal_boots","wing_boots","spike_boots","diamond_boots","gear_boots","automation_boots","leg_cover","steel_leg_cover","energy_socks","small_gear","large_gear","energy_gear","suit","royal_suit","sailor_suit","navy_suit","lab_coat","apothecary_clothes","holy_robe","archangel_robe","doctor_suit","black_doctor_gown","mad_doctor_gown","fine_cloth","thread","gold_thread","sea_thread","black_thread","herb_oil","poison_potion","herb","healing_potion","practice_sword","practice_hammer","practice_gauntlet","practice_bow","practice_gun","roast_meat","smoked_meat","medium_ration","boiled_egg","rock_salt","seasoned_egg","frying_pan","heated_frying_pan","fried_egg","salted_meat","steak","small_flower","medium_healing_potion","advanced_healing_potion","energy_fruit","milk","hot_milk","fruit_milk","stamina_potion","advanced_stamina_potion","soda","fruit_punch","craft_cola","wood_mallet","wood_hammer","steel_hammer","keraunos_hammer","bone_crusher","wild_hammer","super_wild_hammer","squeaky_hammer","bamboo_pole","drying_pole","super_drying_pole","true_drying_pole","jade_club","diamond_jade_club","knuckle","iron_knuckle","glass_knuckle","brilliant_knuckle","poseidon_knuckle","sea_god_amulet","bandage","fighting_wraps","reinforced_wraps","leather_wraps","beast_fang","iron_sword","steel_sword","zantetsu_sword","hero_sword","spirit_sword","army_knife","assassin_knife","mermaid_knife","jail_knife","jambiya","orichalcum","kukri","battle_axe","golden_axe","platinum_axe","booster_axe","double_gear","automaton_axe","quiver","sturdy_quiver","snakeskin_quiver","magic_quiver","artemis_quiver","apollo_quiver","simple_magazine","auto_magazine","life_death_scales","medical_stone","philosophers_stone","dragon_scale","drago_core","dragon_heart","dragon_buster","drag_eater","drag_energy_07","dragon_killer","dragon_suit","dragon_sage_robe","scale_boots","dragon_scale_boots","dragon_meat","dragon_fruit","jewel_meat","heaven_pot","compressed_ration","life_elixir"],
+ equipment:["ragglove","glove","reinforced","plasma","pickaxe","superpickaxe","greatpickaxe","wood_sword","survival_knife","sea_sword","rubber_gloves","swimsuit","bikini_pants","passion_bikini","rubber_suit","insulated_suit","charged_suit","needle_suit","stinger_suit","onyx_suit","armguard","goggles","night_goggles","xray_goggles","machine_goggles","mechanic_goggles","steampunk_goggles","hat","cloth_hat","fur_hat","leather_hat","feather_hat","bluebird_hat","bracelet","ruby_bracelet","gold_bracelet","silver_bracelet","hermes_bracelet","simple_armguard","iron_armguard","steel_armguard","obsidian_armguard","boots","fur_boots","synthetic_boots","amalgam_boots","primal_boots","wing_boots","spike_boots","diamond_boots","gear_boots","automation_boots","leg_cover","steel_leg_cover","energy_socks","suit","royal_suit","sailor_suit","navy_suit","lab_coat","apothecary_clothes","holy_robe","archangel_robe","doctor_suit","black_doctor_gown","mad_doctor_gown","handgun","hand_blaster","magma_blaster","rifle","sniper_rifle","laser_rifle","cannon","blizzard_cannon","telescope","optical_sight","stargazing_telescope","mythic_telescope","japanese_bow","strong_bow","mighty_bow","azusa_bow","unerring_bow","western_bow","longbow","silver_bow","golden_bow","angel_wing","eros_bow","amalgam_bow","apollo_bow","practice_sword","practice_hammer","practice_gauntlet","practice_bow","practice_gun","scissors","frying_pan","heated_frying_pan","wood_mallet","wood_hammer","steel_hammer","keraunos_hammer","bone_crusher","wild_hammer","super_wild_hammer","squeaky_hammer","bamboo_pole","drying_pole","super_drying_pole","true_drying_pole","jade_club","diamond_jade_club","knuckle","iron_knuckle","glass_knuckle","brilliant_knuckle","poseidon_knuckle","sea_god_amulet","fighting_wraps","reinforced_wraps","leather_wraps","beast_fang","iron_sword","steel_sword","zantetsu_sword","hero_sword","spirit_sword","army_knife","assassin_knife","mermaid_knife","jail_knife","jambiya","orichalcum","kukri","battle_axe","golden_axe","platinum_axe","booster_axe","automaton_axe","quiver","sturdy_quiver","snakeskin_quiver","magic_quiver","artemis_quiver","apollo_quiver","simple_magazine","auto_magazine","life_death_scales","medical_stone","philosophers_stone","dragon_heart","dragon_buster","drag_eater","drag_energy_07","dragon_killer","dragon_suit","dragon_sage_robe","scale_boots","dragon_scale_boots"],
+ effect:["plasma","silver_bracelet","passion_bikini","charged_suit","needle_suit","stinger_suit","onyx_suit","unerring_bow","sniper_rifle","laser_rifle","optical_sight","eros_bow","amalgam_bow","magma_blaster","blizzard_cannon","stargazing_telescope","mythic_telescope","xray_goggles","leather_hat","bluebird_hat","ruby_bracelet","hermes_bracelet","steel_armguard","primal_boots","diamond_boots","automation_boots","energy_socks","royal_suit","navy_suit","archangel_robe","mad_doctor_gown","keraunos_hammer","bone_crusher","super_wild_hammer","beast_fang","hero_sword","spirit_sword","assassin_knife","jail_knife","orichalcum","automaton_axe","quiver","sturdy_quiver","snakeskin_quiver","magic_quiver","artemis_quiver","apollo_quiver","simple_magazine","auto_magazine","life_death_scales","medical_stone","philosophers_stone","dragon_heart","dragon_buster","drag_eater","drag_energy_07","dragon_killer","dragon_sage_robe","dragon_scale_boots"],
+ rarity:["bronze","iron","steel","blackiron","charcoal","silver","whitesilver","gold","wonderore","wonderjewel","ruby","sapphire","diamond","superpickaxe","greatpickaxe","glove","reinforced","discharger","plasma","armguard","kit","hotwater","seaweed_soup","bikini_pants","passion_bikini","rubber_gloves","rubber_suit","insulated_suit","charged_suit","glue","heated_oil","sea_sword","fried_swordfish","swordfish_sashimi","minefish_sashimi","needle_suit","stinger_suit","onyx_suit","paradise_sashimi","paradise_platter","paradise_broth","handgun","hand_blaster","magma_blaster","rifle","sniper_rifle","laser_rifle","cannon","blizzard_cannon","telescope","optical_sight","stargazing_telescope","mythic_telescope","japanese_bow","strong_bow","reinforced_wire","mighty_bow","azusa_bow","unerring_bow","western_bow","longbow","silver_bow","golden_bow","angel_wing","eros_bow","amalgam_bow","apollo_bow","rubbery_hide","gunpowder","wire","feather","fur","laurel","bullets","arrows","goggles","night_goggles","xray_goggles","machine_goggles","mechanic_goggles","steampunk_goggles","hat","cloth_hat","fur_hat","leather_hat","feather_hat","bluebird_hat","glass_shard","monitor","bracelet","ruby_bracelet","gold_bracelet","silver_bracelet","hermes_bracelet","simple_armguard","iron_armguard","steel_armguard","obsidian_armguard","boots","fur_boots","synthetic_boots","amalgam_boots","primal_boots","wing_boots","spike_boots","diamond_boots","gear_boots","automation_boots","leg_cover","steel_leg_cover","energy_socks","small_gear","large_gear","energy_gear","suit","royal_suit","sailor_suit","navy_suit","lab_coat","apothecary_clothes","holy_robe","archangel_robe","doctor_suit","black_doctor_gown","mad_doctor_gown","fine_cloth","thread","gold_thread","sea_thread","black_thread","herb_oil","poison_potion","herb","healing_potion","roast_meat","smoked_meat","medium_ration","boiled_egg","rock_salt","seasoned_egg","frying_pan","heated_frying_pan","fried_egg","salted_meat","steak","small_flower","medium_healing_potion","advanced_healing_potion","premium_ration","energy_fruit","milk","hot_milk","fruit_milk","stamina_potion","advanced_stamina_potion","soda","fruit_punch","craft_cola","wood_mallet","wood_hammer","steel_hammer","keraunos_hammer","bone_crusher","wild_hammer","super_wild_hammer","squeaky_hammer","bamboo_pole","drying_pole","super_drying_pole","true_drying_pole","jade_club","diamond_jade_club","knuckle","iron_knuckle","glass_knuckle","brilliant_knuckle","poseidon_knuckle","sea_god_amulet","bandage","fighting_wraps","reinforced_wraps","leather_wraps","beast_fang","iron_sword","steel_sword","zantetsu_sword","hero_sword","spirit_sword","army_knife","assassin_knife","mermaid_knife","jail_knife","jambiya","orichalcum","kukri","battle_axe","golden_axe","platinum_axe","booster_axe","double_gear","automaton_axe","quiver","sturdy_quiver","snakeskin_quiver","magic_quiver","artemis_quiver","apollo_quiver","simple_magazine","auto_magazine","life_death_scales","medical_stone","philosophers_stone","dragon_scale","drago_core","dragon_heart","dragon_buster","drag_eater","drag_energy_07","dragon_killer","dragon_suit","dragon_sage_robe","scale_boots","dragon_scale_boots","dragon_meat","dragon_fruit","energy_drink","jewel_meat","heaven_pot","compressed_ration","life_elixir"],
+ recovery:["herb","healing_potion","egg","beast_meat","premium_ration","energy_drink","ration","kit","seaweed","seaweed_soup","fried_swordfish","swordfish_sashimi","minefish_sashimi","paradise_sashimi","paradise_platter","paradise_broth","drink","water","roast_meat","smoked_meat","medium_ration","boiled_egg","rock_salt","seasoned_egg","fried_egg","salted_meat","steak","small_flower","medium_healing_potion","advanced_healing_potion","energy_fruit","milk","hot_milk","fruit_milk","stamina_potion","advanced_stamina_potion","soda","fruit_punch","craft_cola","dragon_meat","dragon_fruit","bandage","jewel_meat","heaven_pot","compressed_ration","life_elixir"],
+ art:["stone","wood","mystery","marble","lighter","pickaxe","superpickaxe","greatpickaxe","bronze","iron","blackiron","whitesilver","silver","gold","wonderore","wonderjewel","ruby","sapphire","diamond","obsidian","redstone","bluestone","whitestone","meteorite","ragglove","glove","reinforced","plasma","scrap","cloth","scissors","charcoal","core","cell","steel","discharger","armguard","ration","drink","kit","water","seaweed","oil","rubber","swordfish","minefish","porcupinefish","paradisefish","hotwater","heated_oil","glue","seaweed_soup","fried_swordfish","swordfish_sashimi","minefish_sashimi","paradise_sashimi","paradise_platter","paradise_broth","wood_sword","survival_knife","swimsuit","bikini_pants","passion_bikini","rubber_gloves","rubber_suit","insulated_suit","charged_suit","sea_sword","needle_suit","stinger_suit","onyx_suit","handgun","hand_blaster","magma_blaster","rifle","sniper_rifle","laser_rifle","cannon","blizzard_cannon","japanese_bow","strong_bow","mighty_bow","azusa_bow","unerring_bow","western_bow","longbow","silver_bow","golden_bow","eros_bow","amalgam_bow","apollo_bow","telescope","optical_sight","stargazing_telescope","mythic_telescope","angel_wing","feather","fur","rubbery_hide","gunpowder","wire","reinforced_wire","laurel","bullets","arrows","egg","fish_scale","beast_meat","premium_ration","energy_drink","practice_sword","practice_hammer","practice_gauntlet","practice_bow","practice_gun","dragon_suit","dragon_sage_robe","dragon_meat","dragon_fruit","scale_boots","dragon_scale_boots","medical_stone","philosophers_stone","jewel_meat","heaven_pot","compressed_ration","life_elixir","simple_armguard","goggles","machine_goggles","night_goggles","xray_goggles","mechanic_goggles","steampunk_goggles","hat","cloth_hat","fur_hat","leather_hat","feather_hat","bluebird_hat","glass_shard","monitor","small_gear","large_gear","bracelet","ruby_bracelet","gold_bracelet","silver_bracelet","hermes_bracelet","iron_armguard","steel_armguard","obsidian_armguard","boots","fur_boots","synthetic_boots","amalgam_boots","primal_boots","wing_boots","spike_boots","diamond_boots","gear_boots","automation_boots","energy_socks","leg_cover","steel_leg_cover","energy_gear","suit","royal_suit","sailor_suit","navy_suit","lab_coat","apothecary_clothes","holy_robe","archangel_robe","doctor_suit","black_doctor_gown","mad_doctor_gown","fine_cloth","thread","gold_thread","sea_thread","black_thread","herb_oil","poison_potion","herb","healing_potion","roast_meat","smoked_meat","medium_ration","boiled_egg","rock_salt","seasoned_egg","frying_pan","heated_frying_pan","fried_egg","salted_meat","steak","small_flower","medium_healing_potion","advanced_healing_potion","energy_fruit","milk","hot_milk","fruit_milk","stamina_potion","advanced_stamina_potion","soda","fruit_punch","craft_cola","wood_mallet","wood_hammer","steel_hammer","keraunos_hammer","bone_crusher","wild_hammer","super_wild_hammer","squeaky_hammer","bamboo_pole","drying_pole","super_drying_pole","true_drying_pole","jade_club","diamond_jade_club","knuckle","iron_knuckle","glass_knuckle","brilliant_knuckle","poseidon_knuckle","sea_god_amulet","bandage","fighting_wraps","reinforced_wraps","leather_wraps","beast_fang","iron_sword","steel_sword","zantetsu_sword","hero_sword","spirit_sword","army_knife","assassin_knife","mermaid_knife","jail_knife","jambiya","orichalcum","kukri","battle_axe","golden_axe","platinum_axe","booster_axe","double_gear","automaton_axe","quiver","sturdy_quiver","snakeskin_quiver","magic_quiver","artemis_quiver","apollo_quiver","simple_magazine","auto_magazine","life_death_scales","dragon_scale","drago_core","dragon_heart","dragon_buster","drag_eater","drag_energy_07","dragon_killer"],
+ fallback:["water","hotwater","seaweed","seaweed_soup","swimsuit","bikini_pants","passion_bikini","rubber","rubber_gloves","rubber_suit","insulated_suit","charged_suit","glue","oil","heated_oil","swordfish","minefish","porcupinefish","paradisefish","wood_sword","survival_knife","sea_sword","fried_swordfish","swordfish_sashimi","minefish_sashimi","needle_suit","stinger_suit","onyx_suit","paradise_sashimi","paradise_platter","paradise_broth","ragglove","glove","reinforced","plasma","scrap","cloth","scissors","charcoal","core","cell","steel","discharger","armguard","ration","drink","kit","medical_stone","philosophers_stone","handgun","hand_blaster","magma_blaster","rifle","sniper_rifle","laser_rifle","cannon","blizzard_cannon","telescope","optical_sight","stargazing_telescope","mythic_telescope","japanese_bow","strong_bow","reinforced_wire","mighty_bow","azusa_bow","unerring_bow","western_bow","longbow","silver_bow","golden_bow","angel_wing","eros_bow","amalgam_bow","apollo_bow","rubbery_hide","gunpowder","wire","feather","fur","laurel","bullets","arrows","egg","fish_scale","beast_meat","premium_ration","energy_drink","goggles","night_goggles","xray_goggles","machine_goggles","mechanic_goggles","steampunk_goggles","hat","cloth_hat","fur_hat","leather_hat","feather_hat","bluebird_hat","glass_shard","monitor","bracelet","ruby_bracelet","gold_bracelet","silver_bracelet","hermes_bracelet","simple_armguard","iron_armguard","steel_armguard","obsidian_armguard","boots","fur_boots","synthetic_boots","amalgam_boots","primal_boots","wing_boots","spike_boots","diamond_boots","gear_boots","automation_boots","leg_cover","steel_leg_cover","energy_socks","small_gear","large_gear","energy_gear","suit","royal_suit","sailor_suit","navy_suit","lab_coat","apothecary_clothes","holy_robe","archangel_robe","doctor_suit","black_doctor_gown","mad_doctor_gown","fine_cloth","thread","gold_thread","sea_thread","black_thread","herb_oil","poison_potion","herb","healing_potion","roast_meat","smoked_meat","medium_ration","boiled_egg","rock_salt","seasoned_egg","frying_pan","heated_frying_pan","fried_egg","salted_meat","steak","small_flower","medium_healing_potion","advanced_healing_potion","energy_fruit","milk","hot_milk","fruit_milk","stamina_potion","advanced_stamina_potion","soda","fruit_punch","craft_cola","wood_mallet","wood_hammer","steel_hammer","keraunos_hammer","bone_crusher","wild_hammer","super_wild_hammer","squeaky_hammer","bamboo_pole","drying_pole","super_drying_pole","true_drying_pole","jade_club","diamond_jade_club","knuckle","iron_knuckle","glass_knuckle","brilliant_knuckle","poseidon_knuckle","sea_god_amulet","bandage","fighting_wraps","reinforced_wraps","leather_wraps","beast_fang","iron_sword","steel_sword","zantetsu_sword","hero_sword","spirit_sword","army_knife","assassin_knife","mermaid_knife","jail_knife","jambiya","orichalcum","kukri","battle_axe","golden_axe","platinum_axe","booster_axe","double_gear","automaton_axe","quiver","sturdy_quiver","snakeskin_quiver","magic_quiver","artemis_quiver","apollo_quiver","simple_magazine","auto_magazine","life_death_scales","jewel_meat","heaven_pot","compressed_ration","life_elixir"],
+ craftGroup:["herb","healing_potion","kit","bronze","iron","steel","blackiron","silver","whitesilver","gold","wonderore","wonderjewel","ruby","sapphire","diamond","whitestone","bluestone","redstone","charcoal","discharger","hotwater","seaweed_soup","glue","heated_oil","fried_swordfish","swordfish_sashimi","minefish_sashimi","paradise_sashimi","paradise_platter","paradise_broth","roast_meat","smoked_meat","medium_ration","boiled_egg","rock_salt","seasoned_egg","fried_egg","salted_meat","steak","small_flower","medium_healing_potion","advanced_healing_potion","premium_ration","energy_fruit","milk","hot_milk","fruit_milk","stamina_potion","advanced_stamina_potion","soda","fruit_punch","craft_cola","drink","energy_drink","dragon_meat","dragon_fruit","jewel_meat","heaven_pot","compressed_ration","life_elixir"],
+ carryLimit:["bullets","arrows"]
+};
+function validateItemDefinitions(definitions,sheets){
+ const ids=new Set();
+ for(const item of definitions){
+  if(!item.id||ids.has(item.id)||!item.name)throw new Error('Duplicate or unnamed item: '+item.id);ids.add(item.id);
+  if(item.rarity&&!['common','uncommon','rare','epic','legendary'].includes(item.rarity))throw new Error('Invalid item rarity: '+item.id);
+  const equipment=item.equipment;
+  if(equipment){
+   if(!['weapon','head','arm','body','legs','accessory'].includes(equipment.slot)||!Number.isFinite(equipment.attack)||!Number.isFinite(equipment.defense))throw new Error('Invalid equipment stats: '+item.id);
+   if(equipment.slot==='weapon'&&!['fist','slash','hammer','bow','gun'].includes(equipment.weaponType))throw new Error('Invalid equipment weapon type: '+item.id);
+   if(equipment.ammoType&&(!['bullets','arrows'].includes(equipment.ammoType)||!(equipment.capacity>=0)))throw new Error('Invalid equipment ammo: '+item.id);
+  }
+  if(item.recovery&&(!['hp','stamina'].includes(item.recovery.group)||!Number.isFinite(item.recovery.amount)||item.recovery.amount<=0))throw new Error('Invalid recovery item: '+item.id);
+  if(item.art&&(!Array.isArray(item.art)||!sheets[item.art[0]]||!Number.isInteger(item.art[1])||item.art[1]<0||item.art[1]>3||(item.art[2]&&item.art[2]!=='single')))throw new Error('Invalid item art: '+item.id);
+  if(item.skillIcon&&(!item.skillIcon.id||!item.skillIcon.art))throw new Error('Invalid equipment skill icon: '+item.id);
+  if(item.startingWeapon&&equipment?.slot!=='weapon')throw new Error('Invalid starting weapon: '+item.id);
+  for(const field of ['carryLimit','findCount'])if(item[field]!=null&&(!Number.isInteger(item[field])||item[field]<=0))throw new Error('Invalid item quantity: '+item.id+'/'+field);
+ }
+ for(const item of definitions)for(const recipe of item.recipes||[]){
+  if(!['item','weapon','armor'].includes(recipe.category)||!recipe.need||!Object.keys(recipe.need).length||Object.entries(recipe.need).some(([id,count])=>!ids.has(id)||!Number.isInteger(count)||count<=0)||(recipe.count!=null&&(!Number.isInteger(recipe.count)||recipe.count<=0)))throw new Error('Invalid item recipe: '+item.id);
+ }
+ return true;
+}
+function buildItemTables(definitions,sheets,order={}){
+ validateItemDefinitions(definitions,sheets);
+ const tables={};
+ for(const [table,field]of Object.entries({names:'name',EQUIPMENT_DEFS:'equipment',EQUIPMENT_SPECIAL_EFFECTS:'effect',RECIPE_RARITY:'rarity',RECOVERY_ITEMS:'recovery',itemArt:'art',itemFallback:'fallback',ITEM_CRAFT_GROUP:'craftGroup',AMMO_LIMITS:'carryLimit'})){
+  const entries=definitions.filter(item=>Object.hasOwn(item,field));
+  const positions=new Map((order[field]||[]).map((id,index)=>[id,index]));
+  entries.sort((a,b)=>(positions.get(a.id)??Infinity)-(positions.get(b.id)??Infinity));
+  tables[table]=Object.fromEntries(entries.map(item=>[item.id,item[field]]));
+ }
+ tables.recipes=definitions.flatMap(item=>(item.recipes||[]).map(recipe=>({id:item.id,name:item.name,...recipe}))).sort((a,b)=>(a.order??Infinity)-(b.order??Infinity)).map(({order,...recipe})=>recipe);
+ tables.itemArtSheets=sheets;
+ tables.FISH_ITEMS=new Set(definitions.filter(item=>item.singleStack).map(item=>item.id));
+ tables.PRACTICE_WEAPONS=Object.fromEntries(definitions.filter(item=>item.startingWeapon).map(item=>[item.id,[item.name,item.equipment.weaponType]]));
+ return tables;
+}
+const ITEM_BY_ID=Object.fromEntries(ITEM_DEFS.map(item=>[item.id,item]));
+const {names,recipes,EQUIPMENT_DEFS,EQUIPMENT_SPECIAL_EFFECTS,RECIPE_RARITY,RECOVERY_ITEMS,itemArt,itemArtSheets,itemFallback,ITEM_CRAFT_GROUP,FISH_ITEMS,AMMO_LIMITS,PRACTICE_WEAPONS}=buildItemTables(ITEM_DEFS,ITEM_ART_SHEETS,ITEM_TABLE_ORDER);
+
+
 // Canonical recipe data lives here. recipes.json is legacy and is not referenced.
-const recipes=[{"id":"bronze","category":"item","name":"青銅","icon":"🔩","desc":"アンコモン・金属素材","need":{"scrap":2}},{"id":"iron","category":"item","name":"鉄","icon":"🔩","desc":"アンコモン・金属素材","need":{"scrap":1,"charcoal":1}},{"id":"steel","category":"item","name":"鋼鉄","icon":"🔩","desc":"レア・金属素材","need":{"iron":2}},{"id":"blackiron","category":"item","name":"黒鉄","icon":"🔩","desc":"レア・金属素材","need":{"iron":1,"charcoal":1}},{"id":"charcoal","category":"item","name":"木炭","icon":"⚫","desc":"木材とライターから製作","need":{"wood":1,"lighter":1}},{"id":"silver","category":"item","name":"銀","icon":"🪙","desc":"レア・金属素材","need":{"mystery":1,"pickaxe":1}},{"id":"whitesilver","category":"item","name":"白銀","icon":"🪙","desc":"エピック・金属素材","need":{"silver":1,"whitestone":1}},{"id":"gold","category":"item","name":"金","icon":"🥇","desc":"エピック・金属素材","need":{"mystery":1,"superpickaxe":1}},{"id":"wonderore","category":"item","name":"不思議な鉱石","icon":"💎","desc":"レア・鉱石素材","need":{"mystery":2}},{"id":"wonderjewel","category":"item","name":"ワンダージュエル","icon":"💎","desc":"エピック・宝石素材","need":{"wonderore":1,"greatpickaxe":1}},{"id":"ruby","category":"item","name":"ルビー","icon":"🔴","desc":"エピック・宝石素材","need":{"wonderjewel":1,"redstone":1}},{"id":"sapphire","category":"item","name":"サファイヤ","icon":"🔵","desc":"エピック・宝石素材","need":{"wonderjewel":1,"bluestone":1}},{"id":"diamond","category":"item","name":"ダイヤモンド","icon":"💎","desc":"エピック・宝石素材","need":{"wonderjewel":1,"whitestone":1}},{"id":"superpickaxe","category":"weapon","name":"スーパーピッケル","icon":"⛏️","desc":"レア・片手剣武器（暫定攻撃力）","need":{"pickaxe":1,"bronze":1}},{"id":"greatpickaxe","category":"weapon","name":"グレートピッケル","icon":"⛏️","desc":"レア・片手剣武器（暫定攻撃力）","need":{"pickaxe":1,"iron":1}},{"id":"glove","category":"weapon","name":"グローブ","icon":"🥊","desc":"拳武器・攻撃力 +12","need":{"ragglove":1,"cloth":1}},{"id":"reinforced","category":"weapon","name":"強化グローブ","icon":"🥊","desc":"拳武器・攻撃力 +24","need":{"glove":1,"scissors":1}},{"id":"discharger","category":"item","name":"放電装置","icon":"⚡","desc":"製作素材","need":{"steel":1,"core":1}},{"id":"plasma","category":"weapon","name":"プラズマグローブ","icon":"⚡","desc":"拳武器・攻撃力 +46","need":{"reinforced":1,"discharger":1}},{"id":"simple_armguard","category":"armor","name":"簡易アームガード","icon":"🛡️","desc":"腕防具・防御力 +8（試作用）","need":{"cloth":1,"scrap":1}},{"id":"kit","category":"item","name":"応急キット","icon":"🩹","desc":"HPを60回復","need":{"cloth":1,"cell":1}},{"id":"hotwater","category":"item","name":"熱湯","desc":"コモン・製作素材","need":{"water":1,"lighter":1}},{"id":"seaweed_soup","category":"item","name":"海草スープ","desc":"コモン・HP30回復","need":{"seaweed":1,"hotwater":1},"count":3},{"id":"bikini_pants","category":"armor","name":"ビキニパンツ","desc":"アンコモン・身体装備","need":{"swimsuit":1,"scissors":1}},{"id":"passion_bikini","category":"armor","name":"情熱のビキニ","desc":"エピック・身体装備","need":{"bikini_pants":1,"ruby":1}},{"id":"rubber_gloves","category":"weapon","name":"ゴム手袋","desc":"アンコモン・拳武器","need":{"rubber":1,"ragglove":1}},{"id":"rubber_suit","category":"armor","name":"ラバースーツ","desc":"アンコモン・身体装備","need":{"rubber":1,"swimsuit":1}},{"id":"insulated_suit","category":"armor","name":"耐電スーツ","desc":"レア・身体装備","need":{"rubber_suit":2}},{"id":"charged_suit","category":"armor","name":"帯電スーツ","desc":"エピック・身体装備","need":{"insulated_suit":1,"discharger":1}},{"id":"glue","category":"item","name":"接着剤","desc":"アンコモン・製作素材","need":{"rubber":1,"hotwater":1}},{"id":"heated_oil","category":"item","name":"熱したオイル","desc":"アンコモン・製作素材","need":{"lighter":1,"oil":1}},{"id":"sea_sword","category":"weapon","name":"海魚剣","desc":"レア・斬り武器","need":{"swordfish":1,"wood_sword":1}},{"id":"fried_swordfish","category":"item","name":"剣魚の素揚げ","desc":"レア・HP40回復","need":{"swordfish":1,"heated_oil":1},"count":5},{"id":"swordfish_sashimi","category":"item","name":"剣魚の刺身","desc":"アンコモン・HP30回復","need":{"swordfish":1,"survival_knife":1},"count":5},{"id":"minefish_sashimi","category":"item","name":"地雷魚の刺身","desc":"アンコモン・HP25回復","need":{"minefish":1,"survival_knife":1},"count":5},{"id":"needle_suit","category":"armor","name":"ニードルスーツ","desc":"レア・身体装備","need":{"rubber_suit":1,"porcupinefish":1}},{"id":"stinger_suit","category":"armor","name":"スティンガースーツ","desc":"エピック・身体装備","need":{"needle_suit":1,"blackiron":1}},{"id":"onyx_suit","category":"armor","name":"オニキススーツ","desc":"エピック・身体装備","need":{"needle_suit":1,"obsidian":1}},{"id":"paradise_sashimi","category":"item","name":"楽園魚の刺身","desc":"アンコモン・HP20回復","need":{"paradisefish":1,"survival_knife":1},"count":5},{"id":"paradise_platter","category":"item","name":"楽園魚の造り","desc":"レア・HP100回復","need":{"paradise_sashimi":1,"wood":1}},{"id":"paradise_broth","category":"item","name":"極楽湯","desc":"アンコモン・HP30回復・怪我治癒（状態異常未実装）","need":{"paradisefish":1,"hotwater":1},"count":2},{"id":"hand_blaster","name":"ハンドブラスター","category":"weapon","desc":"レア・銃・攻撃＋0／防御＋0","need":{"handgun":1,"gunpowder":1}},{"id":"magma_blaster","name":"マグマブラスター","category":"weapon","desc":"エピック・銃・攻撃＋0／防御＋0","need":{"hand_blaster":1,"ruby":1}},{"id":"sniper_rifle","name":"スナイパーライフル","category":"weapon","desc":"レア・銃・攻撃＋0／防御＋0","need":{"rifle":1,"optical_sight":1}},{"id":"laser_rifle","name":"レーザーライフル","category":"weapon","desc":"エピック・銃・攻撃＋0／防御＋0","need":{"sniper_rifle":1,"diamond":1}},{"id":"cannon","name":"キャノン","category":"weapon","desc":"レア・銃・攻撃＋0／防御＋0","need":{"steel":1,"gunpowder":1}},{"id":"blizzard_cannon","name":"ブリザードキャノン","category":"weapon","desc":"エピック・銃・攻撃＋0／防御＋0","need":{"cannon":1,"sapphire":1}},{"id":"optical_sight","name":"光学照準器","category":"armor","desc":"アンコモン・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"telescope":1,"cell":1}},{"id":"stargazing_telescope","name":"星見望遠鏡","category":"armor","desc":"レア・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"telescope":1,"whitestone":1}},{"id":"mythic_telescope","name":"神話の望遠鏡","category":"armor","desc":"エピック・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"stargazing_telescope":1,"diamond":1}},{"id":"strong_bow","name":"強弓","category":"weapon","desc":"アンコモン・弓・攻撃＋0／防御＋0","need":{"japanese_bow":1,"wood":1}},{"id":"reinforced_wire","name":"強化ワイヤー","category":"item","desc":"アンコモン・素材","need":{"wire":1,"scrap":1}},{"id":"mighty_bow","name":"剛弓","category":"weapon","desc":"レア・弓・攻撃＋0／防御＋0","need":{"strong_bow":1,"reinforced_wire":1}},{"id":"azusa_bow","name":"梓弓","category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"mighty_bow":1,"strong_bow":1}},{"id":"unerring_bow","name":"名弓・百発百中","category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"mighty_bow":1,"optical_sight":1}},{"id":"longbow","name":"ロングボウ","category":"weapon","desc":"アンコモン・弓・攻撃＋0／防御＋0","need":{"western_bow":1,"bronze":1}},{"id":"silver_bow","name":"白銀の弓","category":"weapon","desc":"レア・弓・攻撃＋0／防御＋0","need":{"longbow":1,"silver":1}},{"id":"golden_bow","name":"黄金の弓","category":"weapon","desc":"レア・弓・攻撃＋0／防御＋0","need":{"silver_bow":1,"gold":1}},{"id":"angel_wing","name":"天使の羽","category":"armor","desc":"レア・アクセサリー（効果未設定）・攻撃＋0／防御＋0","need":{"feather":1,"whitestone":1}},{"id":"eros_bow","name":"エロスの弓","category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"golden_bow":1,"angel_wing":1}},{"id":"amalgam_bow","name":"アマルガムボウ","category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"golden_bow":1,"rubbery_hide":1}},{"id":"apollo_bow","name":"アポロンの弓","category":"weapon","desc":"エピック・弓・攻撃＋0／防御＋0","need":{"golden_bow":1,"laurel":1}},{"id":"rubbery_hide","name":"ゴム質の皮","category":"item","desc":"アンコモン・素材","need":{"rubber":1,"fur":1}}];
-const names={"scrap":"ガラクタ","stone":"石ころ","wood":"木材","mystery":"謎の鉱石","pickaxe":"ピッケル","marble":"大理石","lighter":"ライター","bronze":"青銅","iron":"鉄","blackiron":"黒鉄","silver":"銀","whitesilver":"白銀","gold":"金","wonderore":"不思議な鉱石","wonderjewel":"ワンダージュエル","ruby":"ルビー","sapphire":"サファイヤ","diamond":"ダイヤモンド","superpickaxe":"スーパーピッケル","greatpickaxe":"グレートピッケル","redstone":"赤い石","bluestone":"青い石","whitestone":"白い石","obsidian":"黒曜石","meteorite":"メテオライト","cloth":"布","cell":"エネルギーセル","ragglove":"ボロ手袋","scissors":"ハサミ","charcoal":"木炭","core":"プラズマコア","glove":"グローブ","reinforced":"強化グローブ","steel":"鋼鉄","discharger":"放電装置","plasma":"プラズマグローブ","armguard":"簡易アームガード","kit":"応急キット","ration":"レーション","drink":"ドリンク","water":"水","seaweed":"海草","swimsuit":"水着","rubber":"ゴム","oil":"オイル","swordfish":"ソードフィッシュ","minefish":"ジライギョ","porcupinefish":"ハリセンボン","paradisefish":"ラクエンウオ","wood_sword":"木剣","survival_knife":"サバイバルナイフ","hotwater":"熱湯","seaweed_soup":"海草スープ","bikini_pants":"ビキニパンツ","passion_bikini":"情熱のビキニ","rubber_gloves":"ゴム手袋","rubber_suit":"ラバースーツ","insulated_suit":"耐電スーツ","charged_suit":"帯電スーツ","glue":"接着剤","heated_oil":"熱したオイル","sea_sword":"海魚剣","fried_swordfish":"剣魚の素揚げ","swordfish_sashimi":"剣魚の刺身","minefish_sashimi":"地雷魚の刺身","needle_suit":"ニードルスーツ","stinger_suit":"スティンガースーツ","onyx_suit":"オニキススーツ","paradise_sashimi":"楽園魚の刺身","paradise_platter":"楽園魚の造り","paradise_broth":"極楽湯","handgun":"ハンドガン","hand_blaster":"ハンドブラスター","magma_blaster":"マグマブラスター","rifle":"ライフル","sniper_rifle":"スナイパーライフル","laser_rifle":"レーザーライフル","cannon":"キャノン","blizzard_cannon":"ブリザードキャノン","telescope":"望遠鏡","optical_sight":"光学照準器","stargazing_telescope":"星見望遠鏡","mythic_telescope":"神話の望遠鏡","japanese_bow":"和弓","strong_bow":"強弓","reinforced_wire":"強化ワイヤー","mighty_bow":"剛弓","azusa_bow":"梓弓","unerring_bow":"名弓・百発百中","western_bow":"洋弓","longbow":"ロングボウ","silver_bow":"白銀の弓","golden_bow":"黄金の弓","angel_wing":"天使の羽","eros_bow":"エロスの弓","amalgam_bow":"アマルガムボウ","apollo_bow":"アポロンの弓","rubbery_hide":"ゴム質の皮","gunpowder":"火薬","wire":"ワイヤー","feather":"羽","fur":"毛皮","laurel":"月桂樹","bullets":"銃弾","arrows":"矢"};
-Object.assign(names,{egg:'卵',fish_scale:'魚鱗',beast_meat:'獣肉',premium_ration:'高級レーション',energy_drink:'エナジードリンク'});
+
+
+
 const EQUIPMENT_SLOTS={weapon:'武器',head:'頭',arm:'腕',body:'身体',legs:'脚',accessory:'アクセサリー'};
 const WEAPON_TYPES={fist:'拳',slash:'斬り',gun:'銃',bow:'弓',hammer:'ハンマー'};
-const EQUIPMENT_DEFS={
- ragglove:{slot:'weapon',weaponType:'fist',attack:5,defense:0},glove:{slot:'weapon',weaponType:'fist',attack:12,defense:0},
- reinforced:{slot:'weapon',weaponType:'fist',attack:24,defense:0},plasma:{slot:'weapon',weaponType:'fist',attack:46,defense:0},
- pickaxe:{slot:'weapon',weaponType:'slash',attack:10,defense:0},superpickaxe:{slot:'weapon',weaponType:'slash',attack:20,defense:0},
- greatpickaxe:{slot:'weapon',weaponType:'slash',attack:20,defense:0},
- wood_sword:{slot:'weapon',weaponType:'slash',attack:12,defense:0},survival_knife:{slot:'weapon',weaponType:'slash',attack:18,defense:0},
- sea_sword:{slot:'weapon',weaponType:'slash',attack:33,defense:0},rubber_gloves:{slot:'weapon',weaponType:'fist',attack:24,defense:0},
- swimsuit:{slot:'body',attack:0,defense:8},bikini_pants:{slot:'body',attack:0,defense:15},
- passion_bikini:{slot:'body',attack:0,defense:48},rubber_suit:{slot:'body',attack:0,defense:20},
- insulated_suit:{slot:'body',attack:0,defense:30},charged_suit:{slot:'body',attack:0,defense:46},
- needle_suit:{slot:'body',attack:0,defense:25},stinger_suit:{slot:'body',attack:0,defense:46},
- onyx_suit:{slot:'body',attack:0,defense:52},armguard:{slot:'arm',attack:0,defense:8}
-};
-Object.assign(names,{"goggles":"ゴーグル","night_goggles":"暗視ゴーグル","xray_goggles":"透視ゴーグル","machine_goggles":"機械ゴーグル","mechanic_goggles":"メカニックゴーグル","steampunk_goggles":"スチームパンクゴーグル","hat":"帽子","cloth_hat":"布の帽子","fur_hat":"毛皮の帽子","leather_hat":"レザーハット","feather_hat":"羽付き帽子","bluebird_hat":"青い鳥の帽子","glass_shard":"ガラス片","monitor":"モニター"});
-recipes.push(...[{"id":"night_goggles","category":"armor","name":"暗視ゴーグル","icon":"🥽","desc":"頭装備","need":{"goggles":1,"optical_sight":1}},{"id":"xray_goggles","category":"armor","name":"透視ゴーグル","icon":"🥽","desc":"頭装備","need":{"night_goggles":1,"stargazing_telescope":1}},{"id":"machine_goggles","category":"armor","name":"機械ゴーグル","icon":"🥽","desc":"頭装備","need":{"goggles":1,"scrap":1}},{"id":"mechanic_goggles","category":"armor","name":"メカニックゴーグル","icon":"🥽","desc":"頭装備","need":{"machine_goggles":1,"monitor":1}},{"id":"steampunk_goggles","category":"armor","name":"スチームパンクゴーグル","icon":"🥽","desc":"頭装備","need":{"mechanic_goggles":1,"steel":1}},{"id":"cloth_hat","category":"armor","name":"布の帽子","icon":"🎩","desc":"頭装備","need":{"hat":1,"cloth":1}},{"id":"fur_hat","category":"armor","name":"毛皮の帽子","icon":"🎩","desc":"頭装備","need":{"cloth_hat":1,"fur":1}},{"id":"leather_hat","category":"armor","name":"レザーハット","icon":"🎩","desc":"頭装備","need":{"fur_hat":1,"rubbery_hide":1}},{"id":"feather_hat","category":"armor","name":"羽付き帽子","icon":"🎩","desc":"頭装備","need":{"hat":1,"feather":1}},{"id":"bluebird_hat","category":"armor","name":"青い鳥の帽子","icon":"🎩","desc":"頭装備","need":{"feather_hat":1,"sapphire":1}},{"id":"monitor","category":"item","name":"モニター","icon":"🖥️","desc":"アンコモン・素材","need":{"glass_shard":1,"glue":1}}]);
-Object.assign(EQUIPMENT_DEFS,{"goggles":{"slot":"head","attack":0,"defense":6},"night_goggles":{"slot":"head","attack":0,"defense":26},"xray_goggles":{"slot":"head","attack":0,"defense":46},"machine_goggles":{"slot":"head","attack":0,"defense":14},"mechanic_goggles":{"slot":"head","attack":0,"defense":30},"steampunk_goggles":{"slot":"head","attack":0,"defense":48},"hat":{"slot":"head","attack":0,"defense":7},"cloth_hat":{"slot":"head","attack":0,"defense":14},"fur_hat":{"slot":"head","attack":0,"defense":26},"leather_hat":{"slot":"head","attack":0,"defense":38},"feather_hat":{"slot":"head","attack":0,"defense":12},"bluebird_hat":{"slot":"head","attack":0,"defense":44}});
-Object.assign(names,{"bracelet":"ブレスレット","ruby_bracelet":"紅玉のブレスレット","gold_bracelet":"金のブレスレット","silver_bracelet":"白銀のブレスレット","hermes_bracelet":"ヘルメスのブレスレット","simple_armguard":"簡易アームガード","armguard":"アームガード","iron_armguard":"鉄のアームガード","steel_armguard":"鋼のアームガード","obsidian_armguard":"黒曜石のアームガード"});
-recipes.push(...[{"id":"ruby_bracelet","name":"紅玉のブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"bracelet":1,"ruby":1}},{"id":"gold_bracelet","name":"金のブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"bracelet":1,"gold":1}},{"id":"silver_bracelet","name":"白銀のブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"gold_bracelet":1,"whitesilver":1}},{"id":"hermes_bracelet","name":"ヘルメスのブレスレット","category":"armor","icon":"💍","desc":"腕装備","need":{"gold_bracelet":1,"laurel":1}},{"id":"armguard","name":"アームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"simple_armguard":1,"bronze":1}},{"id":"iron_armguard","name":"鉄のアームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"armguard":1,"iron":1}},{"id":"steel_armguard","name":"鋼のアームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"iron_armguard":1,"steel":1}},{"id":"obsidian_armguard","name":"黒曜石のアームガード","category":"armor","icon":"🛡️","desc":"腕装備","need":{"iron_armguard":1,"obsidian":1}}]);
-Object.assign(EQUIPMENT_DEFS,{"bracelet":{"slot":"arm","attack":0,"defense":8},"ruby_bracelet":{"slot":"arm","attack":0,"defense":36},"gold_bracelet":{"slot":"arm","attack":0,"defense":25},"silver_bracelet":{"slot":"arm","attack":0,"defense":35},"hermes_bracelet":{"slot":"arm","attack":0,"defense":40},"simple_armguard":{"slot":"arm","attack":0,"defense":12},"armguard":{"slot":"arm","attack":0,"defense":18},"iron_armguard":{"slot":"arm","attack":0,"defense":25},"steel_armguard":{"slot":"arm","attack":0,"defense":35},"obsidian_armguard":{"slot":"arm","attack":0,"defense":40}});
-Object.assign(names,{"boots":"ブーツ","fur_boots":"毛皮のブーツ","synthetic_boots":"合皮ブーツ","amalgam_boots":"アマルガムブーツ","primal_boots":"原生獣のブーツ","wing_boots":"ウィングブーツ","spike_boots":"スパイクブーツ","diamond_boots":"金剛石のブーツ","gear_boots":"ギアブーツ","automation_boots":"オートメーションブーツ","leg_cover":"レッグカバー","steel_leg_cover":"鋼のレッグカバー","energy_socks":"エナジーソックス","small_gear":"小さな歯車","large_gear":"大きな歯車","energy_gear":"エネルギーギア"});
-recipes.push(...[{"id":"fur_boots","name":"毛皮のブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"boots":1,"fur":1}},{"id":"synthetic_boots","name":"合皮ブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"fur_boots":2}},{"id":"amalgam_boots","name":"アマルガムブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"synthetic_boots":1,"rubbery_hide":1}},{"id":"primal_boots","name":"原生獣のブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"synthetic_boots":2}},{"id":"wing_boots","name":"ウィングブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"boots":1,"feather":1}},{"id":"spike_boots","name":"スパイクブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"wing_boots":1,"porcupinefish":1}},{"id":"diamond_boots","name":"金剛石のブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"spike_boots":1,"diamond":1}},{"id":"gear_boots","name":"ギアブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"wing_boots":1,"small_gear":1}},{"id":"automation_boots","name":"オートメーションブーツ","category":"armor","icon":"🥾","desc":"脚装備","need":{"gear_boots":1,"energy_gear":1}},{"id":"leg_cover","name":"レッグカバー","category":"armor","icon":"🥾","desc":"脚装備","need":{"cloth":1,"fur":1}},{"id":"steel_leg_cover","name":"鋼のレッグカバー","category":"armor","icon":"🥾","desc":"脚装備","need":{"leg_cover":1,"steel":1}},{"id":"energy_socks","name":"エナジーソックス","category":"armor","icon":"🥾","desc":"脚装備","need":{"steel_leg_cover":1,"energy_drink":1}},{"id":"energy_gear","name":"エネルギーギア","category":"item","icon":"⚙️","desc":"レア・素材","need":{"cell":1,"large_gear":1}}]);
-Object.assign(EQUIPMENT_DEFS,{"boots":{"slot":"legs","attack":0,"defense":6},"fur_boots":{"slot":"legs","attack":0,"defense":12},"synthetic_boots":{"slot":"legs","attack":0,"defense":25},"amalgam_boots":{"slot":"legs","attack":0,"defense":44},"primal_boots":{"slot":"legs","attack":0,"defense":44},"wing_boots":{"slot":"legs","attack":0,"defense":11},"spike_boots":{"slot":"legs","attack":0,"defense":22},"diamond_boots":{"slot":"legs","attack":0,"defense":55},"gear_boots":{"slot":"legs","attack":0,"defense":24},"automation_boots":{"slot":"legs","attack":0,"defense":42},"leg_cover":{"slot":"legs","attack":0,"defense":12},"steel_leg_cover":{"slot":"legs","attack":0,"defense":25},"energy_socks":{"slot":"legs","attack":0,"defense":36}});
-Object.assign(names,{"suit":"スーツ","royal_suit":"ロイヤルスーツ","sailor_suit":"セーラースーツ","navy_suit":"ネイビースーツ","lab_coat":"白衣","apothecary_clothes":"薬師の服","holy_robe":"聖なるローブ","archangel_robe":"大天使のローブ","doctor_suit":"ドクタースーツ","black_doctor_gown":"黒医者のガウン","mad_doctor_gown":"マッドドクターガウン","fine_cloth":"上質な布","thread":"糸","gold_thread":"黄金の糸","sea_thread":"潮風の糸","black_thread":"黒い糸","herb_oil":"薬草油","poison_potion":"毒薬","herb":"薬草","healing_potion":"回復薬"});
-recipes.push(...[{"id":"suit","name":"スーツ","category":"armor","icon":"🥼","desc":"身体装備","need":{"fine_cloth":1,"scissors":1}},{"id":"royal_suit","name":"ロイヤルスーツ","category":"armor","icon":"🥼","desc":"身体装備","need":{"suit":1,"gold_thread":1}},{"id":"sailor_suit","name":"セーラースーツ","category":"armor","icon":"🥼","desc":"身体装備","need":{"suit":1,"sea_thread":1}},{"id":"navy_suit","name":"ネイビースーツ","category":"armor","icon":"🥼","desc":"身体装備","need":{"sailor_suit":1,"hand_blaster":1}},{"id":"apothecary_clothes","name":"薬師の服","category":"armor","icon":"🥼","desc":"身体装備","need":{"lab_coat":1,"kit":1}},{"id":"holy_robe","name":"聖なるローブ","category":"armor","icon":"🥼","desc":"身体装備","need":{"apothecary_clothes":1,"paradise_broth":1}},{"id":"archangel_robe","name":"大天使のローブ","category":"armor","icon":"🥼","desc":"身体装備","need":{"holy_robe":1,"angel_wing":1}},{"id":"doctor_suit","name":"ドクタースーツ","category":"armor","icon":"🥼","desc":"身体装備","need":{"lab_coat":1,"rubber_gloves":1}},{"id":"black_doctor_gown","name":"黒医者のガウン","category":"armor","icon":"🥼","desc":"身体装備","need":{"doctor_suit":1,"black_thread":1}},{"id":"mad_doctor_gown","name":"マッドドクターガウン","category":"armor","icon":"🥼","desc":"身体装備","need":{"black_doctor_gown":1,"poison_potion":1}},{"id":"fine_cloth","name":"上質な布","category":"item","icon":"🧪","desc":"アンコモン・素材","need":{"cloth":1,"oil":1}},{"id":"gold_thread","name":"黄金の糸","category":"item","icon":"🧵","desc":"レア・素材","need":{"thread":1,"gold":1}},{"id":"sea_thread","name":"潮風の糸","category":"item","icon":"🧵","desc":"アンコモン・素材","need":{"seaweed":1,"thread":1}},{"id":"black_thread","name":"黒い糸","category":"item","icon":"🧵","desc":"アンコモン・素材","need":{"thread":1,"charcoal":1}},{"id":"herb_oil","name":"薬草油","category":"item","icon":"🧪","desc":"アンコモン・素材","need":{"herb":1,"heated_oil":1}},{"id":"poison_potion","name":"毒薬","category":"item","icon":"🧪","desc":"レア・素材","need":{"herb_oil":1,"porcupinefish":1}},{"id":"healing_potion","name":"回復薬","category":"item","icon":"🧪","desc":"コモン・HP30回復","need":{"herb":1,"hotwater":1},"count":3}]);
-Object.assign(EQUIPMENT_DEFS,{"suit":{"slot":"body","attack":0,"defense":18},"royal_suit":{"slot":"body","attack":0,"defense":48},"sailor_suit":{"slot":"body","attack":0,"defense":32},"navy_suit":{"slot":"body","attack":0,"defense":49},"lab_coat":{"slot":"body","attack":0,"defense":10},"apothecary_clothes":{"slot":"body","attack":0,"defense":18},"holy_robe":{"slot":"body","attack":0,"defense":31},"archangel_robe":{"slot":"body","attack":0,"defense":46},"doctor_suit":{"slot":"body","attack":0,"defense":20},"black_doctor_gown":{"slot":"body","attack":0,"defense":32},"mad_doctor_gown":{"slot":"body","attack":0,"defense":47}});
+
+
+
+
+
+
+
+
+
+
+
+
+
 // User-confirmed equipment stats and capacities. New finite ranged instances start fully loaded.
-Object.assign(EQUIPMENT_DEFS,{"handgun":{"slot":"weapon","attack":18,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"hand_blaster":{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"magma_blaster":{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":8},"rifle":{"slot":"weapon","attack":19,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},"sniper_rifle":{"slot":"weapon","attack":32,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":6},"laser_rifle":{"slot":"weapon","attack":45,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":0,"unlimitedAmmo":true},"cannon":{"slot":"weapon","attack":30,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},"blizzard_cannon":{"slot":"weapon","attack":48,"defense":0,"weaponType":"gun","ammoType":"bullets","capacity":4},"telescope":{"slot":"accessory","attack":0,"defense":10},"optical_sight":{"slot":"accessory","attack":0,"defense":12},"stargazing_telescope":{"slot":"accessory","attack":0,"defense":16},"mythic_telescope":{"slot":"accessory","attack":0,"defense":22},"japanese_bow":{"slot":"weapon","attack":12,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"strong_bow":{"slot":"weapon","attack":18,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"mighty_bow":{"slot":"weapon","attack":30,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"azusa_bow":{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":20},"unerring_bow":{"slot":"weapon","attack":46,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},"western_bow":{"slot":"weapon","attack":14,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"longbow":{"slot":"weapon","attack":20,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"silver_bow":{"slot":"weapon","attack":32,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":12},"golden_bow":{"slot":"weapon","attack":35,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},"angel_wing":{"slot":"accessory","attack":0,"defense":16},"eros_bow":{"slot":"weapon","attack":47,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16},"amalgam_bow":{"slot":"weapon","attack":48,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":8},"apollo_bow":{"slot":"weapon","attack":50,"defense":0,"weaponType":"bow","ammoType":"arrows","capacity":16}});
-EQUIPMENT_DEFS.laser_rifle.capacity=Infinity;
-const EQUIPMENT_SPECIAL_EFFECTS={
- plasma:{name:'迸る電撃',description:'敵のスタミナが50以下なら追加5ダメージ。',lowStaminaThreshold:50,lowStaminaDamage:5},
- silver_bracelet:{name:'純然たる輝き',description:'アクティブスキルによって受けるダメージ－20%（軽減後切り捨て・最低1）。',activeDamageReduction:.2},
- passion_bikini:{name:'情熱の紅',description:'与ダメージ＋2・被発見率＋5%',damageBonus:2,discoveryRateBonus:0.05},
- charged_suit:{name:'帯電',description:'銃で被ダメージ時、攻撃者の銃耐久値－1（クールタイム90秒）',gunDurabilityRetaliation:1,cooldownSeconds:90},
- needle_suit:{name:'トゲ',description:'拳で被ダメージ時、攻撃者に2ダメージ',fistCounterDamage:2},
- stinger_suit:{name:'鋭いトゲ',description:'拳で被ダメージ時、攻撃者に4ダメージ',fistCounterDamage:4},
- onyx_suit:{name:'黒曜のトゲ',description:'拳の被ダメージ－10%・攻撃者に2ダメージ',fistDamageReduction:0.10,fistCounterDamage:2}
-};
 
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{
- unerring_bow:{name:'ガード突破',description:'ガードされる確率－5ポイント',accuracyBonus:5},
- sniper_rifle:{name:'ガード突破',description:'ガードされる確率－5ポイント',accuracyBonus:5},
- laser_rifle:{name:'ガード突破',description:'ガードされる確率－5ポイント。弾薬・リロード不要',accuracyBonus:5},
- optical_sight:{name:'ガード突破',description:'ガードされる確率－5ポイント',accuracyBonus:5},
- eros_bow:{name:'愛の矢',description:'与えた実ダメージの5%分HP回復（切り上げ）',lifesteal:0.05},
- amalgam_bow:{name:'合成皮質',description:'この武器は耐久値が下がらない',durabilityLossImmune:true},
- magma_blaster:{name:'噴火',description:'ガードを含め3回攻撃するごとに固定15ダメージ',attackInterval:3,fixedDamage:15},
- blizzard_cannon:{name:'豪雪',description:'攻撃時（ガードでも発動）に凍結を付与：4秒間回復アイテム使用不可（CT45秒・自動発動）',freezeMs:4000,cooldownMs:45000},
- stargazing_telescope:{name:'スターゲイザー',description:'15回探索ごとに空き枠があれば石・鉱石系素材を1個取得（低等級ほど高確率）',searchInterval:15},
- mythic_telescope:{name:'神の恵み',description:'10回探索ごとに空き枠があればレア以上の石・鉱石系素材を1個取得',searchInterval:10,mineralMinTier:'rare'}
-});
 
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{xray_goggles:{name:'ガード突破',description:'ガードされる確率－7ポイント',accuracyBonus:7},leather_hat:{name:'斬撃軽減',description:'斬りの被ダメージ－10%（軽減後切り捨て・最低1）',slashDamageReduction:0.10},bluebird_hat:{name:'幸福の予感',description:'4回探索するごとにスタミナを6回復',searchInterval:4,staminaRecovery:6}});
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{ruby_bracelet:{name:'ルビーの輝き',description:'HP・スタミナ回復アイテムの効果＋10%（端数切り上げ）',recoveryBonus:0.10},hermes_bracelet:{name:'伝令神の証',description:'区域移動時の消費スタミナ－1',movementDiscount:1},steel_armguard:{name:'鋼鉄の護り',description:'斬り武器の攻撃を受けたとき相手の武器耐久値－1（CT60秒・自動発動）',slashDurabilityRetaliation:1,cooldownSeconds:60}});
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{primal_boots:{name:'野生の本能',description:'敵撃破時、その死体にレア以下のランダム報酬を1個追加',corpseBonus:true},diamond_boots:{name:'5カラット',description:'探索時の消費スタミナ＋1',searchCostBonus:1},automation_boots:{name:'自動操縦',description:'敵発見率＋5ポイント',enemyDiscoveryBonus:0.05},energy_socks:{name:'ハイエナジー',description:'スタミナ上限値＋30',maxStaminaBonus:30}});
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{royal_suit:{name:'貴族の威光',description:'エピック以上の制作経験値＋10%',epicCraftXpBonus:0.10},navy_suit:{name:'対銃防護',description:'銃武器の被ダメージ－10%（軽減後切り捨て・最低1）',gunDamageReduction:0.10},archangel_robe:{name:'大天使の加護',description:'回復薬系統の制作個数＋1',potionCraftBonus:1},mad_doctor_gown:{name:'狂ったメス',description:'攻撃時に負傷付与（CT30秒）：5秒間、探索ごとにHP－4。命中を受けると残り時間が5秒に戻る',injuryMs:5000,cooldownMs:30000}});
-const PRACTICE_WEAPONS={practice_sword:['練習用の剣','slash'],practice_hammer:['練習用の槌','hammer'],practice_gauntlet:['練習用の小手','fist'],practice_bow:['練習用の弓','bow'],practice_gun:['練習用の銃','gun']};
-for(const [id,[name,type]] of Object.entries(PRACTICE_WEAPONS)){names[id]=name;EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack:8,defense:0,...(type==='bow'?{ammoType:'arrows',capacity:20}:type==='gun'?{ammoType:'bullets',capacity:20}:{})};}
+
+
+
+
+
+
+
+
+
+
 
 // Character catalog: add each character's metadata, art, skins, growth and skill definitions here.
 // Skill behavior and COM timing remain in the gameplay functions below.
@@ -904,18 +3375,12 @@ const LEVEL_XP_STEPS=[20,25,30,35,40,45,50,55,60,65,70,75,80,85];
 const MAX_LEVEL=15;
 const CRAFT_XP={common:3,uncommon:6,rare:10,epic:16,legendary:25};
 const CRAFT_MASTERY={common:1,uncommon:2,rare:3,epic:5,legendary:8};
-const RECIPE_RARITY={
- bronze:'uncommon',iron:'uncommon',steel:'rare',blackiron:'rare',charcoal:'common',
- silver:'rare',whitesilver:'epic',gold:'epic',wonderore:'rare',wonderjewel:'epic',
- ruby:'epic',sapphire:'epic',diamond:'epic',superpickaxe:'rare',greatpickaxe:'rare',
- glove:'uncommon',reinforced:'rare',discharger:'rare',plasma:'epic',armguard:'common',kit:'common',
- hotwater:'common',seaweed_soup:'common',bikini_pants:'uncommon',passion_bikini:'epic',rubber_gloves:'uncommon',rubber_suit:'uncommon',insulated_suit:'rare',charged_suit:'epic',glue:'uncommon',heated_oil:'uncommon',sea_sword:'rare',fried_swordfish:'rare',swordfish_sashimi:'uncommon',minefish_sashimi:'uncommon',needle_suit:'rare',stinger_suit:'epic',onyx_suit:'epic',paradise_sashimi:'uncommon',paradise_platter:'rare',paradise_broth:'uncommon'
-};
-Object.assign(RECIPE_RARITY,{"handgun":"uncommon","hand_blaster":"rare","magma_blaster":"epic","rifle":"uncommon","sniper_rifle":"rare","laser_rifle":"epic","cannon":"rare","blizzard_cannon":"epic","telescope":"uncommon","optical_sight":"uncommon","stargazing_telescope":"rare","mythic_telescope":"epic","japanese_bow":"common","strong_bow":"uncommon","reinforced_wire":"uncommon","mighty_bow":"rare","azusa_bow":"epic","unerring_bow":"epic","western_bow":"common","longbow":"uncommon","silver_bow":"rare","golden_bow":"rare","angel_wing":"rare","eros_bow":"epic","amalgam_bow":"epic","apollo_bow":"epic","rubbery_hide":"uncommon","gunpowder":"common","wire":"common","feather":"common","fur":"common","laurel":"epic","bullets":"common","arrows":"common"});
-Object.assign(RECIPE_RARITY,{"goggles":"common","night_goggles":"rare","xray_goggles":"epic","machine_goggles":"uncommon","mechanic_goggles":"rare","steampunk_goggles":"epic","hat":"common","cloth_hat":"uncommon","fur_hat":"rare","leather_hat":"epic","feather_hat":"uncommon","bluebird_hat":"epic","glass_shard":"common","monitor":"uncommon"});
-Object.assign(RECIPE_RARITY,{"bracelet":"common","ruby_bracelet":"epic","gold_bracelet":"rare","silver_bracelet":"epic","hermes_bracelet":"epic","simple_armguard":"common","armguard":"uncommon","iron_armguard":"rare","steel_armguard":"epic","obsidian_armguard":"epic"});
-Object.assign(RECIPE_RARITY,{"boots":"common","fur_boots":"uncommon","synthetic_boots":"rare","amalgam_boots":"epic","primal_boots":"epic","wing_boots":"common","spike_boots":"rare","diamond_boots":"epic","gear_boots":"rare","automation_boots":"epic","leg_cover":"uncommon","steel_leg_cover":"rare","energy_socks":"epic","small_gear":"common","large_gear":"uncommon","energy_gear":"rare"});
-Object.assign(RECIPE_RARITY,{"suit":"uncommon","royal_suit":"epic","sailor_suit":"rare","navy_suit":"epic","lab_coat":"common","apothecary_clothes":"uncommon","holy_robe":"rare","archangel_robe":"epic","doctor_suit":"uncommon","black_doctor_gown":"rare","mad_doctor_gown":"epic","fine_cloth":"uncommon","thread":"common","gold_thread":"rare","sea_thread":"uncommon","black_thread":"uncommon","herb_oil":"uncommon","poison_potion":"rare","herb":"common","healing_potion":"common"});
+
+
+
+
+
+
 const MASTERY_ACCURACY=[85,86,87,88,89,90,91,92,93,94,95,96,97,98,99];
 function actorMax(actor,stat){const growth=CHARACTER_GROWTH[actor.character]||ACTOR_STATS;return stat==='hp'?baseCharacterStat(actor,'hp'):baseCharacterStat(actor,'stamina')+Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.maxStaminaBonus||0),0)}
 function maxHp(){return actorMax(S,'hp')}
@@ -1211,8 +3676,8 @@ function resolveCharacterSkill(actor,target,skillId,hit,now,gale=null,dealt=0){
  if(actor===S)addLog(def.name+(applied?'！ 相手の行動を5秒間遅くした':hit?'で撃破！':'：効果なし'));
  return {id:skillId,applied};
 }
-const SKILL_ART_DATA={"assets/skills/equipment/judgment_thunder.webp":"assets/inline-art/skills/equipment/judgment_thunder.webp","assets/skills/equipment/eruption.webp":"assets/inline-art/skills/equipment/eruption.webp","assets/skills/equipment/electrification.webp":"assets/inline-art/skills/equipment/electrification.webp","assets/skills/equipment/steel_protection.webp":"assets/inline-art/skills/equipment/steel_protection.webp","assets/skills/equipment/mad_scalpel.webp":"assets/inline-art/skills/equipment/mad_scalpel.webp","assets/skills/equipment/wild_power.webp":"assets/inline-art/skills/equipment/wild_power.webp","assets/skills/equipment/stargazer.webp":"assets/inline-art/skills/equipment/stargazer.webp","assets/skills/equipment/divine_blessing.webp":"assets/inline-art/skills/equipment/divine_blessing.webp","assets/skills/equipment/deadly_balance.webp":"assets/inline-art/skills/equipment/deadly_balance.webp","assets/skills/equipment/happy_premonition.webp":"assets/inline-art/skills/equipment/happy_premonition.webp"};
-function equipmentSkillArt(id){return SKILL_ART_DATA["assets/skills/equipment/"+EQUIPMENT_SKILL_ICONS[id]+".webp"]+"#"+EQUIPMENT_SKILL_ICONS[id]+".webp"}
+
+function equipmentSkillArt(id){const icon=ITEM_BY_ID[id]?.skillIcon;return icon?icon.art+'#'+icon.id+'.webp':''}
 function characterSkillIconHTML(id){const icon=CHARACTER_SKILL_BY_ID[id]?.icon;return icon?'<img class="bp-skill-art" src="'+icon+'#'+id+'.webp" alt="">':''}
 function setCharacterSkillArt(element,id){const html=characterSkillIconHTML(id);if(element.dataset?.skillArt===id)return;const counter=element.querySelector?.('.bp-skill-count');element.innerHTML=html;if(counter)element.appendChild(counter);if(element.dataset)element.dataset.skillArt=id}
 function currentSkillTarget(){return S.enemyPlayerId?findActor(S.enemyPlayerId):S.enemy?drones[S.enemyKind]:null}
@@ -1312,37 +3777,37 @@ function addMastery(type,amount,actor=S){if(!WEAPON_TYPES[type]||amount<=0)retur
 function recordAttack(type){addMastery(type,1)}
 
 // HP food and potion expansion, approved 2026-10-26.
-Object.assign(EQUIPMENT_DEFS,{scissors:{slot:'weapon',weaponType:'slash',attack:8,defense:0}});
-Object.assign(names,{"roast_meat":"焼いた肉","smoked_meat":"燻製肉","medium_ration":"中級レーション","boiled_egg":"ゆで卵","rock_salt":"岩塩","seasoned_egg":"味付き卵","frying_pan":"フライパン","heated_frying_pan":"熱したフライパン","fried_egg":"目玉焼き","salted_meat":"塩漬け肉","steak":"ステーキ","small_flower":"小さな花","medium_healing_potion":"中級回復薬","advanced_healing_potion":"上級回復薬","premium_ration":"高級レーション"});
-Object.assign(RECIPE_RARITY,{"roast_meat":"uncommon","smoked_meat":"rare","medium_ration":"uncommon","boiled_egg":"common","rock_salt":"common","seasoned_egg":"uncommon","frying_pan":"common","heated_frying_pan":"uncommon","fried_egg":"uncommon","salted_meat":"uncommon","steak":"epic","small_flower":"common","medium_healing_potion":"rare","advanced_healing_potion":"rare","premium_ration":"rare"});
-Object.assign(EQUIPMENT_DEFS,{"frying_pan":{"slot":"weapon","weaponType":"hammer","attack":7,"defense":0},"heated_frying_pan":{"slot":"weapon","weaponType":"hammer","attack":16,"defense":0}});
-for(let i=recipes.length-1;i>=0;i--)if(recipes[i].id==='premium_ration')recipes.splice(i,1);
-recipes.push(...[{"id":"roast_meat","name":"焼いた肉","category":"item","desc":"アンコモン・HP80回復","need":{"beast_meat":1,"lighter":1},"count":1},{"id":"smoked_meat","name":"燻製肉","category":"item","desc":"レア・HP60回復","need":{"beast_meat":1,"charcoal":1},"count":3},{"id":"medium_ration","name":"中級レーション","category":"item","desc":"アンコモン・HP40回復","need":{"ration":1,"egg":1},"count":2},{"id":"boiled_egg","name":"ゆで卵","category":"item","desc":"コモン・HP60回復","need":{"egg":1,"hotwater":1},"count":1},{"id":"seasoned_egg","name":"味付き卵","category":"item","desc":"アンコモン・HP60回復","need":{"boiled_egg":1,"rock_salt":1},"count":3},{"id":"heated_frying_pan","name":"熱したフライパン","category":"weapon","desc":"アンコモン・鈍器・攻撃16","need":{"frying_pan":1,"lighter":1},"count":1},{"id":"fried_egg","name":"目玉焼き","category":"item","desc":"アンコモン・HP50回復","need":{"egg":1,"heated_frying_pan":1},"count":2},{"id":"salted_meat","name":"塩漬け肉","category":"item","desc":"アンコモン・HP20回復","need":{"beast_meat":1,"rock_salt":1},"count":1},{"id":"steak","name":"ステーキ","category":"item","desc":"エピック・HP150回復","need":{"salted_meat":1,"heated_frying_pan":1},"count":1},{"id":"medium_healing_potion","name":"中級回復薬","category":"item","desc":"レア・HP60回復","need":{"healing_potion":1,"small_flower":1},"count":3},{"id":"advanced_healing_potion","name":"上級回復薬","category":"item","desc":"レア・HP90回復","need":{"medium_healing_potion":1,"paradisefish":1},"count":3},{"id":"premium_ration","name":"高級レーション","category":"item","desc":"レア・HP80回復","need":{"medium_ration":1,"salted_meat":1},"count":3}]);
+
+
+
+
+
+
 
 // Stamina recovery expansion, approved 2026-10-26.
-Object.assign(names,{"energy_fruit":"エナジーフルーツ","milk":"牛乳","hot_milk":"ホットミルク","fruit_milk":"フルーツ牛乳","stamina_potion":"S回復薬","advanced_stamina_potion":"上級S回復薬","soda":"ソーダ","fruit_punch":"フルーツポンチ","craft_cola":"クラフトコーラ","drink":"ドリンク","energy_drink":"エナジードリンク"});
-Object.assign(RECIPE_RARITY,{"energy_fruit":"common","milk":"uncommon","hot_milk":"uncommon","fruit_milk":"rare","stamina_potion":"uncommon","advanced_stamina_potion":"epic","soda":"rare","fruit_punch":"epic","craft_cola":"epic"});
-for(let i=recipes.length-1;i>=0;i--)if(['drink','energy_drink'].includes(recipes[i].id))recipes.splice(i,1);
-recipes.push(...[{"id":"hot_milk","name":"ホットミルク","category":"item","desc":"アンコモン・スタミナ20回復","need":{"milk":1,"lighter":1},"count":3},{"id":"fruit_milk","name":"フルーツ牛乳","category":"item","desc":"コモン・スタミナ50回復","need":{"energy_fruit":1,"milk":1},"count":3},{"id":"stamina_potion","name":"S回復薬","category":"item","desc":"アンコモン・スタミナ30回復","need":{"hotwater":1,"small_flower":1},"count":3},{"id":"advanced_stamina_potion","name":"上級S回復薬","category":"item","desc":"エピック・スタミナ80回復","need":{"stamina_potion":1,"herb_oil":1},"count":3},{"id":"fruit_punch","name":"フルーツポンチ","category":"item","desc":"エピック・スタミナ60回復","need":{"soda":1,"energy_fruit":1},"count":5},{"id":"craft_cola","name":"クラフトコーラ","category":"item","desc":"エピック・スタミナ150回復","need":{"soda":1,"herb_oil":1},"count":1},{"id":"drink","name":"ドリンク","category":"item","desc":"コモン・スタミナ20回復","need":{"energy_fruit":1,"water":1},"count":2},{"id":"energy_drink","name":"エナジードリンク","category":"item","desc":"コモン・スタミナ50回復","need":{"drink":1,"fish_scale":1},"count":3}]);
+
+
+
+
 
 // Hammer weapon expansion 2026-10-26.
-Object.assign(names,{"wood_mallet":"木槌","wood_hammer":"ウッドハンマー","steel_hammer":"スチールハンマー","keraunos_hammer":"ケラウノスハンマー","bone_crusher":"ボーンクラッシャー","wild_hammer":"ワイルドハンマー","super_wild_hammer":"超野生ハンマー","squeaky_hammer":"ピコピコハンマー","bamboo_pole":"竹竿","drying_pole":"物干し竿","super_drying_pole":"超・物干し竿","true_drying_pole":"真・物干し竿","jade_club":"玉砕棍","diamond_jade_club":"金剛玉砕棍"});
-Object.assign(RECIPE_RARITY,{"wood_mallet":"common","wood_hammer":"uncommon","steel_hammer":"rare","keraunos_hammer":"epic","bone_crusher":"epic","wild_hammer":"rare","super_wild_hammer":"epic","squeaky_hammer":"rare","bamboo_pole":"common","drying_pole":"uncommon","super_drying_pole":"rare","true_drying_pole":"epic","jade_club":"rare","diamond_jade_club":"epic"});
-Object.assign(EQUIPMENT_DEFS,{"wood_mallet":{"slot":"weapon","weaponType":"hammer","attack":15,"defense":0},"wood_hammer":{"slot":"weapon","weaponType":"hammer","attack":25,"defense":0},"steel_hammer":{"slot":"weapon","weaponType":"hammer","attack":36,"defense":0},"keraunos_hammer":{"slot":"weapon","weaponType":"hammer","attack":46,"defense":0},"bone_crusher":{"slot":"weapon","weaponType":"hammer","attack":48,"defense":0},"wild_hammer":{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},"super_wild_hammer":{"slot":"weapon","weaponType":"hammer","attack":35,"defense":0},"squeaky_hammer":{"slot":"weapon","weaponType":"hammer","attack":30,"defense":0},"bamboo_pole":{"slot":"weapon","weaponType":"hammer","attack":12,"defense":0},"drying_pole":{"slot":"weapon","weaponType":"hammer","attack":20,"defense":0},"super_drying_pole":{"slot":"weapon","weaponType":"hammer","attack":34,"defense":0},"true_drying_pole":{"slot":"weapon","weaponType":"hammer","attack":48,"defense":10},"jade_club":{"slot":"weapon","weaponType":"hammer","attack":33,"defense":0},"diamond_jade_club":{"slot":"weapon","weaponType":"hammer","attack":50,"defense":0}});
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{"keraunos_hammer":{"name":"裁きの雷","description":"攻撃時（ガードでも発動）、相手の6装備枠のうちエピック以上でない枠×2の追加ダメージ（CT30秒）","judgment":true,"cooldownMs":30000},"bone_crusher":{"name":"骨砕き","description":"命中時の敵負傷率＋1％（負傷5秒）","injuryChance":0.01,"weaponInjuryMs":5000},"super_wild_hammer":{"name":"ワイルドパワー","description":"外れを含む3回攻撃ごとに、この武器個体の攻撃力＋1。破壊されない","growthInterval":3,"durabilityLossImmune":true}});
-recipes.push(...[{"id":"wood_hammer","name":"ウッドハンマー","category":"weapon","desc":"鈍器","need":{"wood_mallet":1,"wood":1}},{"id":"steel_hammer","name":"スチールハンマー","category":"weapon","desc":"鈍器","need":{"wood_hammer":1,"steel":1}},{"id":"keraunos_hammer","name":"ケラウノスハンマー","category":"weapon","desc":"鈍器","need":{"steel_hammer":1,"discharger":1}},{"id":"bone_crusher","name":"ボーンクラッシャー","category":"weapon","desc":"鈍器","need":{"steel_hammer":1,"blackiron":1}},{"id":"wild_hammer","name":"ワイルドハンマー","category":"weapon","desc":"鈍器","need":{"wood_hammer":1,"fur":1}},{"id":"super_wild_hammer","name":"超野生ハンマー","category":"weapon","desc":"鈍器","need":{"wild_hammer":2}},{"id":"squeaky_hammer","name":"ピコピコハンマー","category":"weapon","desc":"鈍器","need":{"wood_mallet":1,"rubber":1}},{"id":"drying_pole","name":"物干し竿","category":"weapon","desc":"鈍器","need":{"bamboo_pole":1,"cloth":1}},{"id":"super_drying_pole","name":"超・物干し竿","category":"weapon","desc":"鈍器","need":{"drying_pole":1,"fine_cloth":1}},{"id":"true_drying_pole","name":"真・物干し竿","category":"weapon","desc":"鈍器","need":{"super_drying_pole":1,"sailor_suit":1}},{"id":"jade_club","name":"玉砕棍","category":"weapon","desc":"鈍器","need":{"bamboo_pole":1,"wonderjewel":1}},{"id":"diamond_jade_club","name":"金剛玉砕棍","category":"weapon","desc":"鈍器","need":{"jade_club":1,"diamond":1}}]);
+
+
+
+
+
 // Fist weapon expansion 2026-10-27.
-Object.assign(names,{"knuckle":"ナックル","iron_knuckle":"アイアンナックル","glass_knuckle":"ガラスナックル","brilliant_knuckle":"ブリリアントナックル","poseidon_knuckle":"ポセイドンナックル","sea_god_amulet":"海神の護符","bandage":"包帯","fighting_wraps":"バンテージ","reinforced_wraps":"強化バンテージ","leather_wraps":"革のバンテージ","beast_fang":"ビーストファング"});
-Object.assign(RECIPE_RARITY,{"knuckle":"common","iron_knuckle":"uncommon","glass_knuckle":"rare","brilliant_knuckle":"epic","poseidon_knuckle":"epic","sea_god_amulet":"rare","bandage":"common","fighting_wraps":"uncommon","reinforced_wraps":"rare","leather_wraps":"rare","beast_fang":"epic"});
-Object.assign(EQUIPMENT_DEFS,{"knuckle":{"slot":"weapon","attack":10,"defense":0,"weaponType":"fist"},"iron_knuckle":{"slot":"weapon","attack":22,"defense":0,"weaponType":"fist"},"glass_knuckle":{"slot":"weapon","attack":34,"defense":0,"weaponType":"fist"},"brilliant_knuckle":{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},"poseidon_knuckle":{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"},"sea_god_amulet":{"slot":"accessory","attack":0,"defense":20},"fighting_wraps":{"slot":"weapon","attack":18,"defense":0,"weaponType":"fist"},"reinforced_wraps":{"slot":"weapon","attack":32,"defense":0,"weaponType":"fist"},"leather_wraps":{"slot":"weapon","attack":26,"defense":0,"weaponType":"fist"},"beast_fang":{"slot":"weapon","attack":47,"defense":0,"weaponType":"fist"}});
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{beast_fang:{name:'ワイルドハント',description:'敵撃破時、死体の空き枠に毛皮と羽を各1個追加（最大12枠・毛皮優先）',wildHunt:true}});
-recipes.push(...[{"id":"iron_knuckle","name":"アイアンナックル","category":"weapon","desc":"拳武器・攻撃＋22","need":{"knuckle":1,"iron":1}},{"id":"glass_knuckle","name":"ガラスナックル","category":"weapon","desc":"拳武器・攻撃＋34","need":{"iron_knuckle":1,"glass_shard":1}},{"id":"brilliant_knuckle","name":"ブリリアントナックル","category":"weapon","desc":"拳武器・攻撃＋47","need":{"glass_knuckle":1,"diamond":1}},{"id":"poseidon_knuckle","name":"ポセイドンナックル","category":"weapon","desc":"拳武器・攻撃＋47","need":{"iron_knuckle":1,"sea_god_amulet":1}},{"id":"sea_god_amulet","name":"海神の護符","category":"armor","desc":"アクセサリー・防御＋20","need":{"fish_scale":1,"sea_thread":1}},{"id":"fighting_wraps","name":"バンテージ","category":"weapon","desc":"拳武器・攻撃＋18","need":{"ragglove":1,"bandage":1}},{"id":"reinforced_wraps","name":"強化バンテージ","category":"weapon","desc":"拳武器・攻撃＋32","need":{"fighting_wraps":1,"fine_cloth":1}},{"id":"leather_wraps","name":"革のバンテージ","category":"weapon","desc":"拳武器・攻撃＋26","need":{"fighting_wraps":1,"fur":1}},{"id":"beast_fang","name":"ビーストファング","category":"weapon","desc":"拳武器・攻撃＋47","need":{"reinforced_wraps":1,"leather_wraps":1}}]);
+
+
+
+
+
 // Slashing expansion and universal critical hits, 2026-10-27.
-Object.assign(names,{"iron_sword":"鉄の剣","steel_sword":"鋼の剣","zantetsu_sword":"斬鉄剣","hero_sword":"勇者の剣","spirit_sword":"精霊の剣","army_knife":"アーミーナイフ","assassin_knife":"アサシンナイフ","mermaid_knife":"マーメイドナイフ","jail_knife":"ジェイルナイフ","jambiya":"ジャンビーヤ","orichalcum":"オリハルコン","kukri":"ククリ","battle_axe":"バトルアックス","golden_axe":"ゴールデンアックス","platinum_axe":"プラチナムアックス","booster_axe":"ブースターアックス","double_gear":"ダブルギア","automaton_axe":"オートマトンアックス"});
-Object.assign(RECIPE_RARITY,{"iron_sword":"uncommon","steel_sword":"rare","zantetsu_sword":"epic","hero_sword":"epic","spirit_sword":"epic","army_knife":"rare","assassin_knife":"epic","mermaid_knife":"rare","jail_knife":"epic","jambiya":"rare","orichalcum":"epic","kukri":"epic","battle_axe":"uncommon","golden_axe":"rare","platinum_axe":"epic","booster_axe":"rare","double_gear":"rare","automaton_axe":"epic"});
-Object.assign(EQUIPMENT_DEFS,{"iron_sword":{"slot":"weapon","weaponType":"slash","attack":20,"defense":0},"steel_sword":{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},"zantetsu_sword":{"slot":"weapon","weaponType":"slash","attack":46,"defense":0},"hero_sword":{"slot":"weapon","weaponType":"slash","attack":48,"defense":0},"spirit_sword":{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},"army_knife":{"slot":"weapon","weaponType":"slash","attack":35,"defense":0},"assassin_knife":{"slot":"weapon","weaponType":"slash","attack":44,"defense":0},"mermaid_knife":{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},"jail_knife":{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},"jambiya":{"slot":"weapon","weaponType":"slash","attack":30,"defense":0},"orichalcum":{"slot":"weapon","weaponType":"slash","attack":47,"defense":0},"kukri":{"slot":"weapon","weaponType":"slash","attack":45,"defense":0},"battle_axe":{"slot":"weapon","weaponType":"slash","attack":26,"defense":0},"golden_axe":{"slot":"weapon","weaponType":"slash","attack":38,"defense":0},"platinum_axe":{"slot":"weapon","weaponType":"slash","attack":50,"defense":0},"booster_axe":{"slot":"weapon","weaponType":"slash","attack":32,"defense":0},"automaton_axe":{"slot":"weapon","weaponType":"slash","attack":47,"defense":0}});
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{"hero_sword":{"name":"勇気の印","description":"ドローンへの与ダメージ＋30%・ドローンからの被ダメージ－30%","droneDamageBonus":0.3,"droneDamageReduction":0.3},"spirit_sword":{"name":"アカシアの精霊","description":"治療1回（1秒）ごとのHP回復量＋3","treatmentBonus":3},"assassin_knife":{"name":"蝕む劇毒","description":"攻撃時（ガードでも発動）、蠍の紫毒を1付与しスタック数の追加ダメージ（最大10・5秒ごとに1減少）","purplePoison":true},"jail_knife":{"name":"クリティカル補正","description":"クリティカル率＋3ポイント（合計6%）","criticalBonus":0.03},"orichalcum":{"name":"不滅の刃","description":"この武器は耐久値が下がらない","durabilityLossImmune":true},"automaton_axe":{"name":"機械の照準","description":"ガードされる確率－5ポイント","accuracyBonus":5}});
-recipes.push(...[{"id":"iron_sword","name":"鉄の剣","category":"weapon","desc":"斬り武器・攻撃＋20","need":{"wood_sword":1,"iron":1}},{"id":"steel_sword","name":"鋼の剣","category":"weapon","desc":"斬り武器・攻撃＋30","need":{"iron_sword":1,"steel":1}},{"id":"zantetsu_sword","name":"斬鉄剣","category":"weapon","desc":"斬り武器・攻撃＋46","need":{"steel_sword":1,"blackiron":1}},{"id":"hero_sword","name":"勇者の剣","category":"weapon","desc":"斬り武器・攻撃＋48","need":{"steel_sword":1,"ruby":1}},{"id":"spirit_sword","name":"精霊の剣","category":"weapon","desc":"斬り武器・攻撃＋47","need":{"iron_sword":1,"laurel":1}},{"id":"army_knife","name":"アーミーナイフ","category":"weapon","desc":"斬り武器・攻撃＋35","need":{"survival_knife":1,"handgun":1}},{"id":"assassin_knife","name":"アサシンナイフ","category":"weapon","desc":"斬り武器・攻撃＋44","need":{"army_knife":1,"poison_potion":1}},{"id":"mermaid_knife","name":"マーメイドナイフ","category":"weapon","desc":"斬り武器・攻撃＋30","need":{"survival_knife":1,"fish_scale":1}},{"id":"jail_knife","name":"ジェイルナイフ","category":"weapon","desc":"斬り武器・攻撃＋47","need":{"mermaid_knife":1,"sapphire":1}},{"id":"jambiya","name":"ジャンビーヤ","category":"weapon","desc":"斬り武器・攻撃＋30","need":{"survival_knife":1,"marble":1}},{"id":"orichalcum","name":"オリハルコン","category":"weapon","desc":"斬り武器・攻撃＋47","need":{"jambiya":1,"obsidian":1}},{"id":"kukri","name":"ククリ","category":"weapon","desc":"斬り武器・攻撃＋45","need":{"jambiya":2}},{"id":"battle_axe","name":"バトルアックス","category":"weapon","desc":"斬り武器・攻撃＋26","need":{"bamboo_pole":1,"iron":1}},{"id":"golden_axe","name":"ゴールデンアックス","category":"weapon","desc":"斬り武器・攻撃＋38","need":{"battle_axe":1,"gold":1}},{"id":"platinum_axe","name":"プラチナムアックス","category":"weapon","desc":"斬り武器・攻撃＋50","need":{"golden_axe":1,"whitesilver":1}},{"id":"booster_axe","name":"ブースターアックス","category":"weapon","desc":"斬り武器・攻撃＋32","need":{"battle_axe":1,"large_gear":1}},{"id":"double_gear","name":"ダブルギア","category":"item","desc":"レア・素材","need":{"large_gear":1,"small_gear":1}},{"id":"automaton_axe","name":"オートマトンアックス","category":"weapon","desc":"斬り武器・攻撃＋47","need":{"booster_axe":1,"double_gear":1}}]);
+
+
+
+
+
 function craftConsumption(r,actor=S){
  let stacks=actor.bag.map(x=>({...x})),equipment={...actor.equipment},equipmentAmmo={...actor.equipmentAmmo},equipmentEffects={...actor.equipmentEffects};
  for(const [id,count] of Object.entries(r.need)){
@@ -1406,7 +3871,7 @@ function renderStageArt(){
 }
 
 
-const EQUIPMENT_SKILL_ICONS={keraunos_hammer:'judgment_thunder',super_wild_hammer:'wild_power',magma_blaster:'eruption',bluebird_hat:'happy_premonition',steel_armguard:'steel_protection',charged_suit:'electrification',mad_doctor_gown:'mad_scalpel',stargazing_telescope:'stargazer',mythic_telescope:'divine_blessing',life_death_scales:'deadly_balance'};
+const EQUIPMENT_SKILL_ICONS=Object.fromEntries(ITEM_DEFS.filter(item=>item.skillIcon).map(item=>[item.id,item.skillIcon.id]));
 const equipmentSkillNotices=new WeakMap();
 function notifyEquipmentSkill(actor,id,message,now=Date.now(),blocked=false){
  if(actor!==S||!EQUIPMENT_SKILL_ICONS[id])return;
@@ -1497,26 +3962,11 @@ function renderCombat(){$('enemy').classList.toggle('is-dragon',!!S.enemy&&S.ene
  $('combatWeapon').textContent='自分の武器：'+(id?names[id]+ammoLabel(id,S.equipmentAmmo.weapon)+weaponDurabilityLabel(id,S.equipmentEffects?.weapon):'素手')+(fighting&&equipmentDef(id)?.ammoType&&!weaponAmmo()?' → 弾切れ・素手で攻撃':'');
 }
 
-const NEW_ACCESSORIES=[["quiver","矢筒","uncommon",12,{"bamboo_pole":1,"fur":1},{"bowCapacity":8},"弓装備時、装填可能数＋8"],["sturdy_quiver","丈夫な矢筒","rare",18,{"quiver":1,"fish_scale":1},{"bowCapacity":12},"弓装備時、装填可能数＋12"],["snakeskin_quiver","ヘビ皮の矢筒","rare",26,{"sturdy_quiver":1,"rubbery_hide":1},{"bowCapacity":18},"弓装備時、装填可能数＋18"],["magic_quiver","魔法の矢筒","rare",12,{"quiver":1,"wonderore":1},{"arrowSaveChance":0.5},"弓攻撃時、50%の確率で矢を消費しない"],["artemis_quiver","アルテミスの矢筒","epic",18,{"magic_quiver":1,"sapphire":1},{"arrowSaveChance":0.9},"弓攻撃時、90%の確率で矢を消費しない"],["apollo_quiver","アポロンの矢筒","epic",18,{"magic_quiver":1,"laurel":1},{"arrowSaveChance":1},"弓攻撃時、矢を消費しない"],["simple_magazine","簡易マガジン","uncommon",8,{"gunpowder":1,"scrap":1},{"gunCapacity":20},"銃装備時、装填可能数＋20"],["auto_magazine","オートマガジン","epic",20,{"simple_magazine":1,"double_gear":1},{"gunCapacity":99},"銃装備時、装填可能数＋99"],["life_death_scales","生と死の天秤","epic",20,{"poison_potion":1,"advanced_healing_potion":1},{"deadlyBalance":true},"デッドリィバランス：現在HPを超えるダメージを受けるとHP1で耐える。CT300秒"]];
-for(const [id,name,rarity,defense,need,effect,description] of NEW_ACCESSORIES){
- names[id]=name;RECIPE_RARITY[id]=rarity;
- EQUIPMENT_DEFS[id]={slot:'accessory',attack:0,defense};
- EQUIPMENT_SPECIAL_EFFECTS[id]={...effect,name:effect.deadlyBalance?'デッドリィバランス':name,description};
- recipes.push({id,name,category:'armor',need,desc:description});
-}
+
+
 // Alternative stone recipes and the action-recovery accessory branch.
-for(const [id,ingredient] of [['whitestone','marble'],['bluestone','fish_scale'],['redstone','minefish']]){
- recipes.push({id,name:names[id],category:'item',need:{stone:1,[ingredient]:1},desc:'鉱石系素材'});
-}
-for(const [id,name,rarity,defense,need,skill,recovery] of [
- ['medical_stone','薬石','rare',16,{stone:1,kit:1},'薬効あり',1],
- ['philosophers_stone','賢者の石','epic',20,{medical_stone:1,herb_oil:1},'ヒーリングオーラ',2]
-]){
- names[id]=name;RECIPE_RARITY[id]=rarity;EQUIPMENT_DEFS[id]={slot:'accessory',attack:0,defense};
- const description='行動時、HP＋'+recovery+'（最大HPまで）。探索・攻撃・移動・製作・アイテム使用・装填・フィールドスキルで発動。';
- EQUIPMENT_SPECIAL_EFFECTS[id]={name:skill,description,actionRecovery:recovery};
- recipes.push({id,name,category:'armor',need,desc:description});
-}
+
+
 function actionRecoveryAmount(actor){return Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.actionRecovery||0),0)}
 function recoverOnAction(actor,now=Date.now(),amount=actionRecoveryAmount(actor)){
  if(actor.hp<=0||!matchClock||matchClock.section===0||matchClock.ended||!amount)return 0;
@@ -1547,34 +3997,22 @@ function endureDamage(actor,damage,now=Date.now()){
 }
 
 
-const DRAGON_WEAPONS=[["dragon_heart","ドラゴンハート","fist",58,"ragglove",{"lifesteal":0.3},"龍の魂","攻撃時、実際に与えたダメージの30%をHP回復。耐久値が下がらない。"],["dragon_buster","ドラゴンバスター","slash",60,"wood_sword",{"droneDamageBonus":2,"killRewardMultiplier":4},"屠龍の証","ドローンへのダメージ＋200%。敵撃破時の経験値・熟練度＋300%。耐久値が下がらない。"],["drag_eater","ドラグイーター","hammer",60,"wood_mallet",{"criticalBonus":0.05,"criticalMultiplier":1.5},"龍喰らいの槌","クリティカル率＋5ポイント。クリティカル倍率1.5倍。耐久値が下がらない。"],["drag_energy_07","ドラグエナジー07","gun",55,"handgun",{"accuracyBonus":20,"reloadGrowth":true},"龍の息吹","命中率＋20ポイント。リロード1回ごとにこの武器の攻撃力＋1。耐久値が下がらない。"],["dragon_killer","ドラゴンキラー","bow",60,"western_bow",{"staminaDrain":5},"龍殺しの弓","攻撃時、敵のスタミナ－5。不足分×4の追加ダメージ。耐久値が下がらない。"]];
 
-names.dragon_scale='逆鱗';names.drago_core='ドラゴコア';RECIPE_RARITY.dragon_scale='epic';RECIPE_RARITY.drago_core='epic';
-recipes.push({id:'drago_core',name:'ドラゴコア',category:'item',desc:'エピック・ドラゴン素材',need:{dragon_scale:1,discharger:1}});
-for(const [id,name,type,attack,base,effect,skill,description] of DRAGON_WEAPONS){
- names[id]=name;RECIPE_RARITY[id]='legendary';EQUIPMENT_DEFS[id]={slot:'weapon',weaponType:type,attack,defense:0,...(type==='gun'?{ammoType:'bullets',capacity:20}:type==='bow'?{ammoType:'arrows',capacity:Infinity,unlimitedAmmo:true}:{})};
- EQUIPMENT_SPECIAL_EFFECTS[id]={...effect,name:skill,description,durabilityLossImmune:true};
- recipes.push({id,name,category:'weapon',desc:description,need:{drago_core:1,[base]:1}});
-}
-const DRAGON_ARMOR=[
- ['dragon_suit','ドラゴンスーツ','body',100,{dragon_scale:1,suit:1},'legendary'],
- ['dragon_sage_robe','龍賢者のローブ','body',88,{drago_core:1,apothecary_clothes:1},'legendary'],
- ['scale_boots','鱗のブーツ','legs',15,{boots:1,fish_scale:1},'uncommon'],
- ['dragon_scale_boots','逆鱗ブーツ','legs',48,{dragon_scale:1,scale_boots:1},'legendary']
-];
-for(const [id,name,slot,defense,need,rarity] of DRAGON_ARMOR){names[id]=name;RECIPE_RARITY[id]=rarity;EQUIPMENT_DEFS[id]={slot,attack:0,defense};recipes.push({id,name,category:'armor',desc:'防御＋'+defense,need})}
-Object.assign(EQUIPMENT_SPECIAL_EFFECTS,{
- dragon_sage_robe:{name:'超再生力',description:'HP治療の回復量が毎秒20になる。怪我の治療時間－9秒。',treatmentOverride:20,injuryTreatmentReduction:9000},
- dragon_scale_boots:{name:'龍の翼',description:'探索時の消費スタミナ－1。',searchCostBonus:-1}
-});
-for(const [id,name,base,desc] of [['dragon_meat','ドラゴンミート','beast_meat','HP150回復'],['dragon_fruit','ドラゴンフルーツ','energy_fruit','スタミナ200回復']]){names[id]=name;RECIPE_RARITY[id]='epic';recipes.push({id,name,category:'item',count:4,desc,need:{dragon_scale:1,[base]:1}})}
+
+
+
+
+
+
+
+
 function bodyTreatmentDuration(actor=S){return Math.max(1000,10000-Object.values(actor.equipment||{}).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.injuryTreatmentReduction||0),0))}
 function recordWeaponReload(actor){if(EQUIPMENT_SPECIAL_EFFECTS[actor.equipment.weapon]?.reloadGrowth){const state=equipmentState(actor,'weapon');state.bonusAttack=(state.bonusAttack||0)+1;}}
 
-const FISH_ITEMS=new Set(['swordfish','minefish','porcupinefish','paradisefish']);
+
 // Provisional: arrows share the 99-item carried cap; reloading is immediate and costs no stamina.
-const AMMO_LIMITS={bullets:99,arrows:99};
-function itemSetCount(id){return AMMO_LIMITS[id]?20:(id==='water'||id==='lighter'||id==='energy_fruit'||id==='bandage')?3:1}
+
+function itemSetCount(id){return ITEM_BY_ID[id]?.findCount||1}
 function stackLimit(id){return AMMO_LIMITS[id]||(FISH_ITEMS.has(id)||!!equipmentDef(id)?1:10)}
 function totalIn(stacks,id){return stacks.reduce((sum,x)=>sum+(x.id===id?x.count:0),0)}
 function syncInventory(actor=S){const obj={};for(const x of actor.bag)obj[x.id]=(obj[x.id]||0)+x.count;actor.inventory=obj}
@@ -2754,18 +5192,10 @@ function skill(){
  toggleRecoveryMode('hp');
 }
 const RECOVERY_COOLDOWN_MS=5000;
-const RECOVERY_ITEMS={
- herb:{group:'hp',amount:10},healing_potion:{group:'hp',amount:30},
- egg:{group:'hp',amount:10},beast_meat:{group:'hp',amount:30},premium_ration:{group:'hp',amount:80},energy_drink:{group:'stamina',amount:50},
- ration:{group:'hp',amount:20},kit:{group:'hp',amount:60},
- seaweed:{group:'hp',amount:10},seaweed_soup:{group:'hp',amount:30},fried_swordfish:{group:'hp',amount:40},
- swordfish_sashimi:{group:'hp',amount:30},minefish_sashimi:{group:'hp',amount:25},paradise_sashimi:{group:'hp',amount:20},
- paradise_platter:{group:'hp',amount:100},paradise_broth:{group:'hp',amount:30},
- drink:{group:'stamina',amount:20},water:{group:'stamina',amount:10}
-};
-Object.assign(RECOVERY_ITEMS,{"roast_meat":{"group":"hp","amount":80},"smoked_meat":{"group":"hp","amount":60},"medium_ration":{"group":"hp","amount":40},"boiled_egg":{"group":"hp","amount":60},"rock_salt":{"group":"hp","amount":5},"seasoned_egg":{"group":"hp","amount":60},"fried_egg":{"group":"hp","amount":50},"salted_meat":{"group":"hp","amount":20},"steak":{"group":"hp","amount":150},"small_flower":{"group":"hp","amount":4},"medium_healing_potion":{"group":"hp","amount":60},"advanced_healing_potion":{"group":"hp","amount":90},"premium_ration":{"group":"hp","amount":80}});
-Object.assign(RECOVERY_ITEMS,{"energy_fruit":{"group":"stamina","amount":10},"milk":{"group":"stamina","amount":20},"hot_milk":{"group":"stamina","amount":20},"fruit_milk":{"group":"stamina","amount":50},"stamina_potion":{"group":"stamina","amount":30},"advanced_stamina_potion":{"group":"stamina","amount":80},"soda":{"group":"stamina","amount":40},"fruit_punch":{"group":"stamina","amount":60},"craft_cola":{"group":"stamina","amount":150},"drink":{"group":"stamina","amount":20},"energy_drink":{"group":"stamina","amount":50}});
-Object.assign(RECOVERY_ITEMS,{dragon_meat:{group:'hp',amount:150},dragon_fruit:{group:'stamina',amount:200},bandage:{group:'hp',amount:25}});
+
+
+
+
 function recoveryWait(group,now=Date.now()){return Math.max(0,(S.recoveryReadyAt[group]||0)-now,(S.frozenUntil||0)-now)}
 function recoveryButtonHTML(id,label){
  const group=RECOVERY_ITEMS[id].group,wait=recoveryWait(group);
@@ -2801,16 +5231,11 @@ function useItem(id){
  closeModal();refresh();
 }
 // Approved recovery/reward revision, 2026-10-31.
-Object.assign(names,{jewel_meat:'ジュエルミート',heaven_pot:'天国鍋',compressed_ration:'圧縮レーション',life_elixir:'生命の秘薬'});
-Object.assign(RECIPE_RARITY,{energy_drink:'uncommon',healing_potion:'common',stamina_potion:'common',medium_healing_potion:'uncommon',jewel_meat:'epic',heaven_pot:'epic',compressed_ration:'rare',life_elixir:'legendary'});
-Object.assign(RECOVERY_ITEMS,{medium_healing_potion:{group:'hp',amount:45},advanced_healing_potion:{group:'hp',amount:70},jewel_meat:{group:'hp',amount:140},heaven_pot:{group:'hp',amount:120},compressed_ration:{group:'hp',amount:150},life_elixir:{group:'hp',amount:220}});
-recipes.push(
- {id:'jewel_meat',name:names.jewel_meat,category:'item',need:{beast_meat:1,wonderjewel:1},count:2,desc:'エピック・HP140回復'},
- {id:'heaven_pot',name:names.heaven_pot,category:'item',need:{paradisefish:1,herb_oil:1},count:3,desc:'エピック・HP120回復'},
- {id:'compressed_ration',name:names.compressed_ration,category:'item',need:{premium_ration:1,cell:1},count:1,desc:'レア・HP150回復'},
- {id:'life_elixir',name:names.life_elixir,category:'item',need:{laurel:1,poison_potion:1},count:1,desc:'レジェンダリー・HP220回復'}
-);
-for(const [id,desc]of Object.entries({healing_potion:'コモン・HP30回復',stamina_potion:'コモン・スタミナ30回復',medium_healing_potion:'アンコモン・HP45回復',advanced_healing_potion:'レア・HP70回復',energy_drink:'アンコモン・スタミナ50回復'})){const r=recipes.find(r=>r.id===id);if(r)r.desc=desc}
+
+
+
+
+
 // Provisional recovery rates, in points per second. Modes share a single active state.
 const RECOVERY_MODE_RATES={stamina:5,hp:2};
 function stopRecoveryMode(){S.recoveryMode=null;S.recoveryTickAt=0;cancelBodyTreatment(S)}
@@ -2847,58 +5272,24 @@ function receiveAttackDamage(amount,reason,killerId=null){
  if(S.hp===0)eliminatePlayer(reason||'攻撃を受けて脱落しました。',killerId);
 }
 function modal(title,body){$('back').classList.toggle('bp-play-records',title==='📒 プレイ記録');craftTargetView=false;$('modalTitle').textContent=title;$('modalBody').innerHTML=body;hydrateItemArt();$('modalCloseBtn').textContent=S.pendingFound?'📦 残りをすべて保留':'✕ 閉じる';$('back').classList.add('on');colorItemNames($('modalBody'));colorItemNames($('modalTitle'))};function closeModal(){craftTargetView=false;S.corpseVisit=null;if(S.pendingFound){deferAllDiscoveries();return}if(S.busy&&$('modalTitle').textContent.startsWith('📦 ストック'))return;$('back').classList.remove('on')}
-const itemArt={
- stone:['basic',0],wood:['basic',1],mystery:['basic',2],marble:['basic',3],
- lighter:['tools',0],pickaxe:['tools',1],superpickaxe:['tools',2],greatpickaxe:['tools',3],
- bronze:['metal',0],iron:['metal',1],blackiron:['metal',2],whitesilver:['metal',3],
- silver:['advanced',0],gold:['advanced',1],wonderore:['advanced',2],wonderjewel:['advanced',3],
- ruby:['gems',0],sapphire:['gems',1],diamond:['gems',2],obsidian:['gems',3],
- redstone:['stones',0],bluestone:['stones',1],whitestone:['stones',2],meteorite:['stones',3],
- ragglove:['gloves',0],glove:['gloves',1],reinforced:['gloves',2],plasma:['gloves',3],
- scrap:['materials',0],cloth:['materials',1],scissors:['materials',2],charcoal:['materials',3],
- core:['energy',0],cell:['energy',1],steel:['energy',2],discharger:['energy',3],
- armguard:['gear',0],ration:['gear',1],drink:['gear',2],kit:['gear',3],
- water:['water_1',0],seaweed:['water_1',1],oil:['water_1',2],rubber:['water_1',3],
- swordfish:['water_2',0],minefish:['water_2',1],porcupinefish:['water_2',2],paradisefish:['water_2',3],
- hotwater:['water_3',0],heated_oil:['water_3',1],glue:['water_3',2],seaweed_soup:['water_3',3],
- fried_swordfish:['water_4',0],swordfish_sashimi:['water_4',1],minefish_sashimi:['water_4',2],paradise_sashimi:['water_4',3],
- paradise_platter:['water_5',0],paradise_broth:['water_5',1],wood_sword:['water_5',2],survival_knife:['water_5',3],
- swimsuit:['water_gear_1',0],bikini_pants:['water_gear_1',1],passion_bikini:['water_gear_1',2],rubber_gloves:['water_gear_1',3],
- rubber_suit:['water_gear_2',0],insulated_suit:['water_gear_2',1],charged_suit:['water_gear_2',2],sea_sword:['water_gear_2',3],
- needle_suit:['water_gear_3',0],stinger_suit:['water_gear_3',1],onyx_suit:['water_gear_3',2]
-};
-Object.assign(itemArt,{"handgun":["guns_1",0],"hand_blaster":["guns_1",1],"magma_blaster":["guns_1",2],"rifle":["guns_1",3],"sniper_rifle":["guns_2",0],"laser_rifle":["guns_2",1],"cannon":["guns_2",2],"blizzard_cannon":["guns_2",3],"japanese_bow":["bows_1",0],"strong_bow":["bows_1",1],"mighty_bow":["bows_1",2],"azusa_bow":["bows_1",3],"unerring_bow":["bows_2",0],"western_bow":["bows_2",1],"longbow":["bows_2",2],"silver_bow":["bows_2",3],"golden_bow":["bows_3",0],"eros_bow":["bows_3",1],"amalgam_bow":["bows_3",2],"apollo_bow":["bows_3",3],"telescope":["optics",0],"optical_sight":["optics",1],"stargazing_telescope":["optics",2],"mythic_telescope":["optics",3],"angel_wing":["hides_feathers",0],"feather":["hides_feathers",1],"fur":["hides_feathers",2],"rubbery_hide":["hides_feathers",3],"gunpowder":["ranged_materials",0],"wire":["ranged_materials",1],"reinforced_wire":["ranged_materials",2],"laurel":["ranged_materials",3],"bullets":["ammo",0],"arrows":["ammo",1]});
-Object.assign(itemArt,{egg:['drone_drops_1',0],fish_scale:['drone_drops_1',1],beast_meat:['drone_drops_1',2],premium_ration:['drone_drops_1',3],energy_drink:['drone_drops_2',0]});
-Object.assign(itemArt,{practice_sword:['practice_1',0],practice_hammer:['practice_1',1],practice_gauntlet:['practice_1',2],practice_bow:['practice_1',3],practice_gun:['practice_2',0]});
-const itemArtSheets={
- practice_1:'assets/icon_practice_1.webp',practice_2:'assets/icon_practice_2.webp',
- drone_drops_1:'assets/icon_drone_drops_1.webp',drone_drops_2:'assets/icon_drone_drops_2.webp',
- basic:'assets/icon_basic.png',tools:'assets/icon_tools.png',metal:'assets/icon_metal.png',
- advanced:'assets/icon_advanced.png',gems:'assets/icon_gems.png',stones:'assets/icon_stones.png',
- gloves:'assets/icon_gloves.png',materials:'assets/icon_materials.png',
- energy:'assets/icon_energy.png',gear:'assets/icon_gear.png',
- water_1:'assets/icon_water_1.png',
- water_2:'assets/icon_water_2.png',
- water_3:'assets/icon_water_3.png',
- water_4:'assets/icon_water_4.png',
- water_5:'assets/icon_water_5.png',
- water_gear_1:'assets/icon_water_gear_1.png',
- water_gear_2:'assets/icon_water_gear_2.png',
- water_gear_3:'assets/icon_water_gear_3.png'
-};
-Object.assign(itemArtSheets,{"guns_1":"assets/icon_guns_1.webp","guns_2":"assets/icon_guns_2.webp","bows_1":"assets/icon_bows_1.webp","bows_2":"assets/icon_bows_2.webp","bows_3":"assets/icon_bows_3.webp","optics":"assets/icon_optics.webp","hides_feathers":"assets/icon_hides_feathers.webp","ranged_materials":"assets/icon_ranged_materials.webp","ammo":"assets/icon_ammo.webp"});
-itemArtSheets.dragon_dragon_suit='assets/dragon/dragon_suit.webp';itemArt.dragon_suit=['dragon_dragon_suit',0,'single'];
-itemArtSheets.dragon_dragon_sage_robe='assets/dragon/dragon_sage_robe.webp';itemArt.dragon_sage_robe=['dragon_dragon_sage_robe',0,'single'];
-itemArtSheets.dragon_dragon_meat='assets/dragon/dragon_meat.webp';itemArt.dragon_meat=['dragon_dragon_meat',0,'single'];
-itemArtSheets.dragon_dragon_fruit='assets/dragon/dragon_fruit.webp';itemArt.dragon_fruit=['dragon_dragon_fruit',0,'single'];
-itemArtSheets.dragon_scale_boots='assets/dragon/scale_boots.webp';itemArt.scale_boots=['dragon_scale_boots',0,'single'];
-itemArtSheets.dragon_dragon_scale_boots='assets/dragon/dragon_scale_boots.webp';itemArt.dragon_scale_boots=['dragon_dragon_scale_boots',0,'single'];
-const itemFallback={water:'💧',hotwater:'♨️',seaweed:'🌿',seaweed_soup:'🍲',swimsuit:'🩳',bikini_pants:'🩳',passion_bikini:'🩳',rubber:'⚫',rubber_gloves:'🧤',rubber_suit:'🦺',insulated_suit:'🦺',charged_suit:'⚡',glue:'🧴',oil:'🛢️',heated_oil:'🫕',swordfish:'🐟',minefish:'🐡',porcupinefish:'🐡',paradisefish:'🐠',wood_sword:'🗡️',survival_knife:'🔪',sea_sword:'⚔️',fried_swordfish:'🍤',swordfish_sashimi:'🍣',minefish_sashimi:'🍣',needle_suit:'🦔',stinger_suit:'🦔',onyx_suit:'🛡️',paradise_sashimi:'🍣',paradise_platter:'🍱',paradise_broth:'🍵',ragglove:'🧤',glove:'🥊',reinforced:'🥊',plasma:'⚡',scrap:'🔩',cloth:'🧵',scissors:'✂️',charcoal:'⚫',core:'🔮',cell:'🔋',steel:'🔧',discharger:'⚡',armguard:'🛡️',ration:'🥪',drink:'🧃',kit:'🩹'};
-Object.assign(itemFallback,{medical_stone:'💊',philosophers_stone:'🔮'});
-Object.assign(itemFallback,{"handgun":"🔫","hand_blaster":"🔫","magma_blaster":"🔫","rifle":"🔫","sniper_rifle":"🔫","laser_rifle":"🔫","cannon":"🔫","blizzard_cannon":"🔫","telescope":"🔭","optical_sight":"🔭","stargazing_telescope":"🔭","mythic_telescope":"🔭","japanese_bow":"🏹","strong_bow":"🏹","reinforced_wire":"➰","mighty_bow":"🏹","azusa_bow":"🏹","unerring_bow":"🏹","western_bow":"🏹","longbow":"🏹","silver_bow":"🏹","golden_bow":"🏹","angel_wing":"🪽","eros_bow":"🏹","amalgam_bow":"🏹","apollo_bow":"🏹","rubbery_hide":"🟤","gunpowder":"💥","wire":"➰","feather":"🪶","fur":"🐾","laurel":"🌿","bullets":"▥","arrows":"➶"});
-Object.assign(itemFallback,{egg:'🥚',fish_scale:'🔹',beast_meat:'🥩',premium_ration:'🥫',energy_drink:'🥤'});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Individual transparent icons for medicinal stones and late recovery.
-for(const id of ['medical_stone','philosophers_stone','jewel_meat','heaven_pot','compressed_ration','life_elixir']){itemArtSheets['item_'+id]='assets/icon_'+id+'.webp';itemArt[id]=['item_'+id,0,'single']}
+
 const readySheets={},loadedSheetUrls={},itemSheetStates={},itemSheetQueue=[];
 let activeItemSheetLoads=0,itemSheetPumpScheduled=false;
 const ITEM_SHEET_CONCURRENCY=4,ITEM_SHEET_MAX_ATTEMPTS=3;
@@ -2942,43 +5333,43 @@ function retryFailedItemArt(){
  }
  scheduleItemSheetPump();hydrateItemArt();
 }
-Object.assign(itemFallback,{"goggles":"🥽","night_goggles":"🥽","xray_goggles":"🥽","machine_goggles":"🥽","mechanic_goggles":"🥽","steampunk_goggles":"🥽","hat":"🎩","cloth_hat":"🎩","fur_hat":"🎩","leather_hat":"🎩","feather_hat":"🎩","bluebird_hat":"🎩","glass_shard":"🔹","monitor":"🖥️"});
-itemArt.simple_armguard=itemArt.armguard;
-Object.assign(itemFallback,{"bracelet":"💍","ruby_bracelet":"💍","gold_bracelet":"💍","silver_bracelet":"💍","hermes_bracelet":"💍","simple_armguard":"🛡️","armguard":"🛡️","iron_armguard":"🛡️","steel_armguard":"🛡️","obsidian_armguard":"🛡️"});
-Object.assign(itemFallback,{"boots":"🥾","fur_boots":"🥾","synthetic_boots":"🥾","amalgam_boots":"🥾","primal_boots":"🥾","wing_boots":"🥾","spike_boots":"🥾","diamond_boots":"🥾","gear_boots":"🥾","automation_boots":"🥾","leg_cover":"🥾","steel_leg_cover":"🥾","energy_socks":"🥾","small_gear":"⚙️","large_gear":"⚙️","energy_gear":"⚙️"});
-Object.assign(itemArt,{"goggles":["equipment_01",0],"machine_goggles":["equipment_01",1],"night_goggles":["equipment_01",2],"xray_goggles":["equipment_01",3],"mechanic_goggles":["equipment_02",0],"steampunk_goggles":["equipment_02",1],"hat":["equipment_02",2],"cloth_hat":["equipment_02",3],"fur_hat":["equipment_03",0],"leather_hat":["equipment_03",1],"feather_hat":["equipment_03",2],"bluebird_hat":["equipment_03",3],"glass_shard":["equipment_04",0],"monitor":["equipment_04",1],"small_gear":["equipment_04",2],"large_gear":["equipment_04",3],"bracelet":["equipment_05",0],"ruby_bracelet":["equipment_05",1],"gold_bracelet":["equipment_05",2],"silver_bracelet":["equipment_05",3],"hermes_bracelet":["equipment_06",0],"armguard":["equipment_06",1],"iron_armguard":["equipment_06",2],"steel_armguard":["equipment_06",3],"obsidian_armguard":["equipment_07",0],"boots":["equipment_07",1],"fur_boots":["equipment_07",2],"synthetic_boots":["equipment_07",3],"amalgam_boots":["equipment_08",0],"primal_boots":["equipment_08",1],"wing_boots":["equipment_08",2],"spike_boots":["equipment_08",3],"diamond_boots":["equipment_09",0],"gear_boots":["equipment_09",1],"automation_boots":["equipment_09",2],"energy_socks":["equipment_09",3],"leg_cover":["equipment_10",0],"steel_leg_cover":["equipment_10",1],"energy_gear":["equipment_10",2]});
-Object.assign(itemArtSheets,{"equipment_01":"assets/icon_equipment_01.webp","equipment_02":"assets/icon_equipment_02.webp","equipment_03":"assets/icon_equipment_03.webp","equipment_04":"assets/icon_equipment_04.webp","equipment_05":"assets/icon_equipment_05.webp","equipment_06":"assets/icon_equipment_06.webp","equipment_07":"assets/icon_equipment_07.webp","equipment_08":"assets/icon_equipment_08.webp","equipment_09":"assets/icon_equipment_09.webp","equipment_10":"assets/icon_equipment_10.webp"});
-Object.assign(itemFallback,{"suit":"🥼","royal_suit":"🥼","sailor_suit":"🥼","navy_suit":"🥼","lab_coat":"🥼","apothecary_clothes":"🥼","holy_robe":"🥼","archangel_robe":"🥼","doctor_suit":"🥼","black_doctor_gown":"🥼","mad_doctor_gown":"🥼","fine_cloth":"🧵","thread":"🧵","gold_thread":"🧵","sea_thread":"🧵","black_thread":"🧵","herb_oil":"🧪","poison_potion":"🧪","herb":"🌿","healing_potion":"🧪"});
-Object.assign(itemArt,{"suit":["body_01",0],"royal_suit":["body_01",1],"sailor_suit":["body_01",2],"navy_suit":["body_01",3],"lab_coat":["body_02",0],"apothecary_clothes":["body_02",1],"holy_robe":["body_02",2],"archangel_robe":["body_02",3],"doctor_suit":["body_03",0],"black_doctor_gown":["body_03",1],"mad_doctor_gown":["body_03",2],"fine_cloth":["body_03",3],"thread":["body_04",0],"gold_thread":["body_04",1],"sea_thread":["body_04",2],"black_thread":["body_04",3],"herb_oil":["body_05",0],"poison_potion":["body_05",1],"herb":["body_05",2],"healing_potion":["body_05",3]});
-Object.assign(itemArtSheets,{"body_01":"assets/icon_body_01.webp","body_02":"assets/icon_body_02.webp","body_03":"assets/icon_body_03.webp","body_04":"assets/icon_body_04.webp","body_05":"assets/icon_body_05.webp"});
-Object.assign(itemArtSheets,{"food_01":"assets/icon_food_01.webp","food_02":"assets/icon_food_02.webp","food_03":"assets/icon_food_03.webp","food_04":"assets/icon_food_04.webp"});
-Object.assign(itemArt,{"roast_meat":["food_01",0],"smoked_meat":["food_01",1],"medium_ration":["food_01",2],"boiled_egg":["food_01",3],"rock_salt":["food_02",0],"seasoned_egg":["food_02",1],"frying_pan":["food_02",2],"heated_frying_pan":["food_02",3],"fried_egg":["food_03",0],"salted_meat":["food_03",1],"steak":["food_03",2],"small_flower":["food_03",3],"medium_healing_potion":["food_04",0],"advanced_healing_potion":["food_04",1]});
-Object.assign(itemFallback,{"roast_meat":"🍖","smoked_meat":"🍖","medium_ration":"🥫","boiled_egg":"🥚","rock_salt":"🧂","seasoned_egg":"🥚","frying_pan":"🍳","heated_frying_pan":"🍳","fried_egg":"🍳","salted_meat":"🍖","steak":"🍖","small_flower":"🌼","medium_healing_potion":"🧪","advanced_healing_potion":"🧪"});
-Object.assign(itemArtSheets,{"stamina_01":"assets/icon_stamina_01.webp","stamina_02":"assets/icon_stamina_02.webp","stamina_03":"assets/icon_stamina_03.webp"});
-Object.assign(itemArt,{"energy_fruit":["stamina_01",0],"milk":["stamina_01",1],"hot_milk":["stamina_01",2],"fruit_milk":["stamina_01",3],"stamina_potion":["stamina_02",0],"advanced_stamina_potion":["stamina_02",1],"soda":["stamina_02",2],"fruit_punch":["stamina_02",3],"craft_cola":["stamina_03",0]});
-Object.assign(itemFallback,{"energy_fruit":"🍊","milk":"🥛","hot_milk":"🥛","fruit_milk":"🥛","stamina_potion":"🧪","advanced_stamina_potion":"🧪","soda":"🥤","fruit_punch":"🥤","craft_cola":"🥤"});
-Object.assign(itemArtSheets,{"hammer_01":"assets/icon_hammer_01.webp","hammer_02":"assets/icon_hammer_02.webp","hammer_03":"assets/icon_hammer_03.webp","hammer_04":"assets/icon_hammer_04.webp"});
-Object.assign(itemArt,{"wood_mallet":["hammer_01",0],"wood_hammer":["hammer_01",1],"steel_hammer":["hammer_01",2],"keraunos_hammer":["hammer_01",3],"bone_crusher":["hammer_02",0],"wild_hammer":["hammer_02",1],"super_wild_hammer":["hammer_02",2],"squeaky_hammer":["hammer_02",3],"bamboo_pole":["hammer_03",0],"drying_pole":["hammer_03",1],"super_drying_pole":["hammer_03",2],"true_drying_pole":["hammer_03",3],"jade_club":["hammer_04",0],"diamond_jade_club":["hammer_04",1]});
-Object.assign(itemFallback,{"wood_mallet":"🔨","wood_hammer":"🔨","steel_hammer":"🔨","keraunos_hammer":"🔨","bone_crusher":"🔨","wild_hammer":"🔨","super_wild_hammer":"🔨","squeaky_hammer":"🔨","bamboo_pole":"🔨","drying_pole":"🔨","super_drying_pole":"🔨","true_drying_pole":"🔨","jade_club":"🔨","diamond_jade_club":"🔨"});
-Object.assign(itemArtSheets,{"fist_01":"assets/icon_fist_01.webp","fist_02":"assets/icon_fist_02.webp","fist_03":"assets/icon_fist_03.webp"});
-Object.assign(itemArt,{"knuckle":["fist_01",0],"iron_knuckle":["fist_01",1],"glass_knuckle":["fist_01",2],"brilliant_knuckle":["fist_01",3],"poseidon_knuckle":["fist_02",0],"sea_god_amulet":["fist_02",1],"bandage":["fist_02",2],"fighting_wraps":["fist_02",3],"reinforced_wraps":["fist_03",0],"leather_wraps":["fist_03",1],"beast_fang":["fist_03",2]});
-Object.assign(itemFallback,{"knuckle":"🥊","iron_knuckle":"🥊","glass_knuckle":"🥊","brilliant_knuckle":"🥊","poseidon_knuckle":"🥊","sea_god_amulet":"🔱","bandage":"🩹","fighting_wraps":"🥊","reinforced_wraps":"🥊","leather_wraps":"🥊","beast_fang":"🥊"});
-Object.assign(itemArtSheets,{"slash_01":"assets/icon_slash_01.webp","slash_02":"assets/icon_slash_02.webp","slash_03":"assets/icon_slash_03.webp","slash_04":"assets/icon_slash_04.webp","slash_05":"assets/icon_slash_05.webp"});
-Object.assign(itemArt,{"iron_sword":["slash_01",0],"steel_sword":["slash_01",1],"zantetsu_sword":["slash_01",2],"hero_sword":["slash_01",3],"spirit_sword":["slash_02",0],"army_knife":["slash_02",1],"assassin_knife":["slash_02",2],"mermaid_knife":["slash_02",3],"jail_knife":["slash_03",0],"jambiya":["slash_03",1],"orichalcum":["slash_03",2],"kukri":["slash_03",3],"battle_axe":["slash_04",0],"golden_axe":["slash_04",1],"platinum_axe":["slash_04",2],"booster_axe":["slash_04",3],"double_gear":["slash_05",0],"automaton_axe":["slash_05",1]});
-Object.assign(itemFallback,{"iron_sword":"🗡️","steel_sword":"🗡️","zantetsu_sword":"🗡️","hero_sword":"🗡️","spirit_sword":"🗡️","army_knife":"🗡️","assassin_knife":"🗡️","mermaid_knife":"🗡️","jail_knife":"🗡️","jambiya":"🗡️","orichalcum":"🗡️","kukri":"🗡️","battle_axe":"🗡️","golden_axe":"🗡️","platinum_axe":"🗡️","booster_axe":"🗡️","double_gear":"⚙️","automaton_axe":"🗡️"});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Standalone replacement keeps the other three swords in the original atlas intact.
-itemArtSheets.hero_sword_v2='assets/icon_hero_sword_v2.webp';
-itemArt.hero_sword=['hero_sword_v2',0,'single'];
-for(const [id] of NEW_ACCESSORIES)itemFallback[id]=id.includes('quiver')?'🏹':id.includes('magazine')?'▣':'⚖️';
-itemArtSheets.acc_quiver='assets/accessories/quiver.webp';itemArt.quiver=['acc_quiver',0,'single'];
-itemArtSheets.acc_sturdy_quiver='assets/accessories/sturdy_quiver.webp';itemArt.sturdy_quiver=['acc_sturdy_quiver',0,'single'];
-itemArtSheets.acc_snakeskin_quiver='assets/accessories/snakeskin_quiver.webp';itemArt.snakeskin_quiver=['acc_snakeskin_quiver',0,'single'];
-itemArtSheets.acc_magic_quiver='assets/accessories/magic_quiver.webp';itemArt.magic_quiver=['acc_magic_quiver',0,'single'];
-itemArtSheets.acc_artemis_quiver='assets/accessories/artemis_quiver.webp';itemArt.artemis_quiver=['acc_artemis_quiver',0,'single'];
-itemArtSheets.acc_apollo_quiver='assets/accessories/apollo_quiver.webp';itemArt.apollo_quiver=['acc_apollo_quiver',0,'single'];
-itemArtSheets.acc_simple_magazine='assets/accessories/simple_magazine.webp';itemArt.simple_magazine=['acc_simple_magazine',0,'single'];
-itemArtSheets.acc_auto_magazine='assets/accessories/auto_magazine.webp';itemArt.auto_magazine=['acc_auto_magazine',0,'single'];
-itemArtSheets.acc_life_death_scales='assets/accessories/life_death_scales.webp';itemArt.life_death_scales=['acc_life_death_scales',0,'single'];
+
+
+
+
+
+
+
+
+
+
+
+
 
 let rarityNamePattern=null,rarityNameIds=null;
 function colorItemNames(root){
@@ -3009,13 +5400,13 @@ function colorItemNames(root){
  }
 }
 
-itemArtSheets.dragon_dragon_scale='assets/dragon/dragon_scale.webp';itemArt.dragon_scale=['dragon_dragon_scale',0,'single'];
-itemArtSheets.dragon_drago_core='assets/dragon/drago_core.webp';itemArt.drago_core=['dragon_drago_core',0,'single'];
-itemArtSheets.dragon_dragon_heart='assets/dragon/dragon_heart.webp';itemArt.dragon_heart=['dragon_dragon_heart',0,'single'];
-itemArtSheets.dragon_dragon_buster='assets/dragon/dragon_buster.webp';itemArt.dragon_buster=['dragon_dragon_buster',0,'single'];
-itemArtSheets.dragon_drag_eater='assets/dragon/drag_eater.webp';itemArt.drag_eater=['dragon_drag_eater',0,'single'];
-itemArtSheets.dragon_drag_energy_07='assets/dragon/drag_energy_07.webp';itemArt.drag_energy_07=['dragon_drag_energy_07',0,'single'];
-itemArtSheets.dragon_dragon_killer='assets/dragon/dragon_killer.webp';itemArt.dragon_killer=['dragon_dragon_killer',0,'single'];
+
+
+
+
+
+
+
 function itemIconHTML(id){
  const cfg=itemArt[id];
  if(cfg&&readySheets[cfg[0]]){
@@ -3164,16 +5555,10 @@ const CRAFT_SUBCATEGORIES={
  armor:[['head','頭'],['arm','腕'],['body','身体'],['legs','脚'],['accessory','アクセ']],
  item:[['recovery','回復'],['mineral','鉱石・金属系'],['plant','植物系'],['other','その他']]
 };
-const ITEM_CRAFT_GROUP={
- herb:'recovery',healing_potion:'recovery',kit:'recovery',bronze:'mineral',iron:'mineral',steel:'mineral',blackiron:'mineral',
- silver:'mineral',whitesilver:'mineral',gold:'mineral',wonderore:'mineral',
- wonderjewel:'mineral',ruby:'mineral',sapphire:'mineral',diamond:'mineral',
- whitestone:'mineral',bluestone:'mineral',redstone:'mineral',charcoal:'plant',discharger:'other',
- hotwater:'other',seaweed_soup:'recovery',glue:'other',heated_oil:'other',fried_swordfish:'recovery',swordfish_sashimi:'recovery',minefish_sashimi:'recovery',paradise_sashimi:'recovery',paradise_platter:'recovery',paradise_broth:'recovery'
-};
-Object.assign(ITEM_CRAFT_GROUP,{"roast_meat":"recovery","smoked_meat":"recovery","medium_ration":"recovery","boiled_egg":"recovery","rock_salt":"recovery","seasoned_egg":"recovery","fried_egg":"recovery","salted_meat":"recovery","steak":"recovery","small_flower":"recovery","medium_healing_potion":"recovery","advanced_healing_potion":"recovery","premium_ration":"recovery"});
-Object.assign(ITEM_CRAFT_GROUP,{"energy_fruit":"recovery","milk":"recovery","hot_milk":"recovery","fruit_milk":"recovery","stamina_potion":"recovery","advanced_stamina_potion":"recovery","soda":"recovery","fruit_punch":"recovery","craft_cola":"recovery","drink":"recovery","energy_drink":"recovery"});
-Object.assign(ITEM_CRAFT_GROUP,{dragon_meat:'recovery',dragon_fruit:'recovery'});
+
+
+
+
 let selectedCraftSubcategory=null;
 function recipeSubcategory(r){
  if(r.category==='weapon')return EQUIPMENT_DEFS[r.id]?.weaponType||'fist';
@@ -3181,8 +5566,8 @@ function recipeSubcategory(r){
  return ITEM_CRAFT_GROUP[r.id]||'other';
 }
 let materialSourceReturn=null;
-Object.assign(ITEM_CRAFT_GROUP,{jewel_meat:'recovery',heaven_pot:'recovery',compressed_ration:'recovery',life_elixir:'recovery'});
-Object.assign(itemFallback,{jewel_meat:'🥩',heaven_pot:'🍲',compressed_ration:'🥫',life_elixir:'⚗️'});
+
+
 function showMaterialSource(id,fromRecipe){
  const modalEl=document.querySelector('.modal');
  materialSourceReturn={title:$('modalTitle').textContent,html:$('modalBody').innerHTML,scroll:modalEl?.scrollTop||0,fromRecipe,craftTarget:craftTargetView};
