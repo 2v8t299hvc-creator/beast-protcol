@@ -4920,7 +4920,7 @@ function renderMatchStatus(){
   if(mapRenderKey!==key)showMap(false);else $('mapSectionClock').textContent=formatTime(sectionSeconds());
  }
 }
-function tickMatchClock(){syncMatchClock();refresh();const c=S.corpseVisit&&findCorpse(S.corpseVisit.id);if(c&&c.kind==='drone')$('corpseLifetime').textContent='消滅まで '+formatTime(Math.max(0,Math.ceil((c.expiresAt-Date.now())/1000)))}
+function tickMatchClock(){syncMatchClock();refresh();const c=S.corpseVisit&&findCorpse(S.corpseVisit.id);if(c&&c.kind==='drone')$('corpseLifetime').textContent=c.expiresAt===null?'区域封鎖まで残ります':'消滅まで '+formatTime(Math.max(0,Math.ceil((c.expiresAt-Date.now())/1000)))}
 function drawRegionItem(area,actor=S,excluded=[]){
  const seen=actor===S?regionSeen[area]:(actor.seen[area]||(actor.seen[area]=new Set()));
  const objects=regionObjects[area]||[];
