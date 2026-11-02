@@ -1,0 +1,24 @@
+name: Raz draft targeted checks
+on:
+  push:
+    paths:
+      - index.html
+      - tests/raz.test.cjs
+      - .github/workflows/raz-validation.yml
+  pull_request:
+    paths:
+      - index.html
+      - tests/raz.test.cjs
+      - .github/workflows/raz-validation.yml
+permissions:
+  contents: read
+jobs:
+  test-raz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify Raz abilities
+        run: node --test tests/raz.test.cjs
