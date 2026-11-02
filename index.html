@@ -5861,7 +5861,7 @@ function primary(){
   if(resolveEfficientPlayerSearch()){refresh();return}
   const opponent=pvpEnabled()?chooseLocalOpponent(S):null;
   if(opponent&&Math.random()<actorDiscoveryRate(opponent)){discoverOpponent(opponent);refresh();return}
-  const bodies=corpses.filter(c=>corpseAvailable(c)&&c.area===S.place&&c.items.length>0);
+  const bodies=corpses.filter(c=>corpseAvailable(c)&&c.area===S.place&&(c.items.length>0||(c.kind==='player'&&hasCharacterSkill(S,'carrion_scavenger')&&!S.razFoundCorpses?.has(c.ownerId||c.id))));
   const body=bodies.length?bodies[rand(bodies.length)]:null;
   if(body&&Math.random()<corpseDiscoveryRate(body)){openCorpse(body.id);refresh();return}
   const present=Object.values(drones).some(d=>d.spawned&&d.hp>0&&d.area===S.place);
@@ -6352,7 +6352,7 @@ function showMap(updateClock=true){
  const targetAreas=craftTargetAreaNeeds();
  const cards=Object.keys(regionStock).map(area=>{
   const current=area===S.place,art=stageArtRegistry.backgrounds[area]||'',locked=isBlocked(area),warning=!locked&&next.includes(area);
-  const scent=razScentAreas(S).has(area);const label=locked?'⛔ 封鎖中':warning?'⚠ 次に封鎖':scent?'☠ 死臭あり':'';
+  const scent=razScentAreas(S).has(area);const label=locked?'⛔ 封鎖中':(warning?'⚠ 次に封鎖':'')+(scent?' ☠ 死臭あり':'');
   const unavailable=(S.place==='待機所'&&!S.starterWeapon)||locked||current||!!matchClock?.result||matchClock?.ended;
   return `<button type="button" class="bp-region-card ${current?'current':''} ${locked?'locked':''} ${warning?'warning':''}" onclick="move('${area}')" ${unavailable?'disabled':''} aria-label="${area} ${label}${current?' 現在地':'へ移動'}">
    <span class="bp-region-image" style="background-image:${art?`linear-gradient(0deg,#07111cf0 0%,#07111c00 72%),url(\'${art}\')`:`linear-gradient(135deg,#203e53,#0c1623)`}"></span>
@@ -6609,7 +6609,7 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
  const needs=Object.keys(plan.missing);
  if(!plan.recovery&&comAmmoType(actor)&&!needs.includes(comAmmoType(actor))&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory[comAmmoType(actor)]||0)<20)needs.push(comAmmoType(actor));
  if(!plan.recovery&&actor.st<60)needs.push('water','drink','energy_drink');
- if(needs.length&&!forced){safe=safe.filter(area=>!actor.exhausted[area]&&needs.some(id=>regionStock[area][id]>0));if(!safe.length)return false;}
+ if(needs.length&&!forced){safe=safe.filter(area=>(razScentAreas(actor,now).has(area)||(!actor.exhausted[area]&&needs.some(id=>regionStock[area][id]>0))));if(!safe.length)return false;}
  const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100*Math.min(3,plan.missing[id]||1),0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5-(actor.previousArea===area&&now-(actor.lastMovedAt||0)<8000?8:0);
  const coverage=area=>needs.filter(id=>regionStock[area][id]>0).length*3+score(area)+(razScentAreas(actor,now).has(area)?35:0);
  const best=Math.max(...safe.map(coverage)),choices=safe.filter(a=>coverage(a)===best);
@@ -6851,7 +6851,7 @@ function stepCom(actor,now){
  const efficient=consumeEfficiency(actor);if(efficient)comLog(actor,'効率重視：アイテム3個を探索',now);
  const opponent=!efficient&&pvpEnabled()?chooseLocalOpponent(actor):null;
  if(opponent&&Math.random()<actorDiscoveryRate(opponent,actor,now)){observeOpponent(actor,opponent,now);actor.restMode=null;comLog(actor,'探索：'+actorName(opponent)+'を発見',now);return}
- const bodies=efficient?[]:corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&c.items.length>0&&S.corpseVisit?.id!==c.id);
+ const bodies=efficient?[]:corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&(c.items.length>0||(c.kind==='player'&&hasCharacterSkill(actor,'carrion_scavenger')&&!actor.razFoundCorpses?.has(c.ownerId||c.id)))&&S.corpseVisit?.id!==c.id);
  const body=bodies.length?bodies[rand(bodies.length)]:null;
  if(body&&Math.random()<corpseDiscoveryRate(body,actor)){razFindCorpse(actor,body,now);actor.loot=body.id;comLog(actor,'探索：死体を発見',now);return}
  const present=efficient?[]:Object.values(drones).filter(d=>d.spawned&&d.hp>0&&d.area===actor.place);
