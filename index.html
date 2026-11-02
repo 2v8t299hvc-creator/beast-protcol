@@ -6393,7 +6393,7 @@ const COM_GUN_GOALS=['sniper_rifle','simple_armguard','rubber_suit','laser_rifle
 const COM_HAMMER_GOALS=['wood_hammer','simple_armguard','rubber_suit','steel_hammer','keraunos_hammer'];
 const COM_SLASH_GOALS=['iron_sword','simple_armguard','rubber_suit','steel_sword','hero_sword'];
 const COM_FIST_GOALS=['iron_knuckle','simple_armguard','rubber_suit','glass_knuckle','brilliant_knuckle'];
-const COM_COUNT=PLAYABLE_CHARACTERS.length-1;
+const COM_COUNT=9;
 const RAKU_WEAPON_TYPES=['fist','slash','hammer','bow','gun'];
 function initializeRakuMastery(actor,rng=Math.random){
  const points=CHARACTER_BY_ID[actor.character]?.randomWeaponMastery;if(points==null||actor.randomMasteryType)return;
@@ -6411,7 +6411,7 @@ function payMovementCost(actor,now=Date.now()){
 function comLog(actor,text,now){actor.action=text;actor.history.push({at:now,text});if(actor.history.length>60)actor.history.shift()}
 function initializeComActors(count=COM_COUNT){
  comActors.length=0;
- const roster=PLAYABLE_CHARACTERS.filter(c=>c.id!==S.character).slice(0,count);
+ const roster=PLAYABLE_CHARACTERS.filter(c=>c.id!==S.character);while(roster.length>count)roster.splice(1+rand(roster.length-1),1);
  for(const character of roster){
   const type=character.weapon||'bow',goals=({fist:COM_FIST_GOALS,slash:COM_SLASH_GOALS,hammer:COM_HAMMER_GOALS,bow:COM_GOALS,gun:COM_GUN_GOALS})[type];
   comActors.push({id:'com-'+character.id,name:character.name,character:character.id,skin:randomComSkin(character.id),preferredWeaponType:type,startArea:character.startArea,goals:[...goals],level:1,xp:0,hp:180,st:120,
