@@ -5862,7 +5862,7 @@ function primary(){
   const opponent=pvpEnabled()?chooseLocalOpponent(S):null;
   if(opponent&&Math.random()<actorDiscoveryRate(opponent)){discoverOpponent(opponent);refresh();return}
   const bodies=corpses.filter(c=>corpseAvailable(c)&&c.area===S.place&&(c.items.length>0||(c.kind==='player'&&hasCharacterSkill(S,'carrion_scavenger')&&!S.razFoundCorpses?.has(c.ownerId||c.id))));
-  const body=bodies.length?bodies[rand(bodies.length)]:null;
+  const trackedBodies=bodies.filter(c=>razScentMarked(S,c));const body=(trackedBodies.length?trackedBodies:bodies).length?(trackedBodies.length?trackedBodies:bodies)[rand((trackedBodies.length?trackedBodies:bodies).length)]:null;
   if(body&&Math.random()<corpseDiscoveryRate(body)){openCorpse(body.id);refresh();return}
   const present=Object.values(drones).some(d=>d.spawned&&d.hp>0&&d.area===S.place);
   const r=Math.random();
@@ -6852,7 +6852,7 @@ function stepCom(actor,now){
  const opponent=!efficient&&pvpEnabled()?chooseLocalOpponent(actor):null;
  if(opponent&&Math.random()<actorDiscoveryRate(opponent,actor,now)){observeOpponent(actor,opponent,now);actor.restMode=null;comLog(actor,'探索：'+actorName(opponent)+'を発見',now);return}
  const bodies=efficient?[]:corpses.filter(c=>corpseAvailable(c,now)&&c.area===actor.place&&(c.items.length>0||(c.kind==='player'&&hasCharacterSkill(actor,'carrion_scavenger')&&!actor.razFoundCorpses?.has(c.ownerId||c.id)))&&S.corpseVisit?.id!==c.id);
- const body=bodies.length?bodies[rand(bodies.length)]:null;
+ const trackedBodies=bodies.filter(c=>razScentMarked(actor,c,now));const eligibleBodies=trackedBodies.length?trackedBodies:bodies;const body=eligibleBodies.length?eligibleBodies[rand(eligibleBodies.length)]:null;
  if(body&&Math.random()<corpseDiscoveryRate(body,actor)){razFindCorpse(actor,body,now);actor.loot=body.id;comLog(actor,'探索：死体を発見',now);return}
  const present=efficient?[]:Object.values(drones).filter(d=>d.spawned&&d.hp>0&&d.area===actor.place);
  if(present.length&&Math.random()<droneDiscoveryRate(actor)){
