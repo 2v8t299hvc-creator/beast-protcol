@@ -1,0 +1,47 @@
+[
+  {
+    "character": "kaito",
+    "skinId": "halloween_2026",
+    "name": "満月の暴れ屋カイト",
+    "sourceFile": "満月の暴れ屋カイト・完全装備.png",
+    "sourceLibraryId": "libfile_51c29a78163081919a41ed005199e61c",
+    "sourceSha256": "fa467f98a0dd0aa43f08a2835d97d4379c69f5cc421c06844e42260cc3a5198f",
+    "art": "assets/skins/kaito_halloween_2026.webp",
+    "sha256": "650196e6c90662c851484b476585acb53ef3275c657dbf73b405bee642e2ac4d",
+    "size": [
+      768,
+      1152
+    ],
+    "bytes": 128268
+  },
+  {
+    "character": "bjorn",
+    "skinId": "halloween_2026",
+    "name": "マッドドクタービヨルン",
+    "sourceFile": "ゴシック錬金術師のウサギ医師.png",
+    "sourceLibraryId": "libfile_ccac02c49d148191a9ac2f8affd91183",
+    "sourceSha256": "da07ed3ce9c8b8eb2069b423516481eda1d2deba10b6a94e4b197efcc772c8fc",
+    "art": "assets/skins/bjorn_halloween_2026.webp",
+    "sha256": "a8c3703f9f9e3ab038aae57a4c2e361b6d130c36d8f11e1f271595f2921feb99",
+    "size": [
+      768,
+      1152
+    ],
+    "bytes": 128358
+  },
+  {
+    "character": "bat",
+    "skinId": "halloween_2026",
+    "name": "夜天の吸血鬼ノクス",
+    "sourceFile": "吸血鬼バットと小さなコウモリ使い魔.png",
+    "sourceLibraryId": "libfile_861b66c3cc8881919783383084379832",
+    "sourceSha256": "015ca81036500e34977688c0e30077f3af0ac22c7fd60ef75d70b112dc43e20b",
+    "art": "assets/skins/bat_halloween_2026.webp",
+    "sha256": "d4a83a8130e8aa2cfb60967112d8a9500760186d0035a91a9b17a38146d8fe49",
+    "size": [
+      768,
+      1024
+    ],
+    "bytes": 95242
+  }
+]
