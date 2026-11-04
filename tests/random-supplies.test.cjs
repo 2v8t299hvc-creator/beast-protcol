@@ -32,7 +32,14 @@ for(const type of ['weapon','armor','other'])for(const [roll,tier]of (type==='ot
 }
 for(const id of ['meteorite','arrows','bullets','dragon_scale','drago_core','dragon_meat','dragon_fruit','fruit_punch','craft_cola','jewel_meat','heaven_pot','life_elixir'])eq(`supplyCandidates('other').includes('${id}')`,false);
 for(const id of ['laurel','obsidian','swordfish','minefish','porcupinefish','paradisefish','small_flower','seaweed','herb','rock_salt','charcoal','hotwater','core','boiled_egg','paradise_broth','soda','compressed_ration'])eq(`supplyCandidates('other').includes('${id}')`,true);
-eq("supplyCandidates('weapon').includes('scissors')",true);eq("supplyCandidates('weapon').includes('frying_pan')",true);assert(run(`Object.keys(EQUIPMENT_DEFS).filter(id=>['common','uncommon'].includes(RECIPE_RARITY[id]||'common')).every(id=>supplyCandidates(equipmentDef(id).slot==='weapon'?'weapon':'armor').includes(id))`));
+eq("supplyCandidates('weapon').includes('scissors')",true);eq("supplyCandidates('weapon').includes('frying_pan')",true);assert(run(`Object.keys(EQUIPMENT_DEFS).filter(id=>!PRACTICE_WEAPONS[id]&&['common','uncommon'].includes(RECIPE_RARITY[id]||'common')).every(id=>supplyCandidates(equipmentDef(id).slot==='weapon'?'weapon':'armor').includes(id))`));
+// All six training weapons remain selectable, but cannot enter starting/drone reward pools.
+eq('Object.keys(PRACTICE_WEAPONS).length',6);
+for(const id of ['practice_sword','practice_hammer','practice_gauntlet','practice_bow','practice_gun','practice_spear']){
+ eq(`supplyCandidates('weapon').includes('${id}')`,false);eq(`isRandomSupplyItem('${id}')`,false);
+ eq(`encyclopediaSources('${id}').practice`,true);eq(`encyclopediaSources('${id}').random`,false);
+ run(`matchClock.section=0;S.place='待機所';selectPracticeWeapon('${id}')`);eq('S.starterWeapon',id);eq('S.equipment.weapon',id);
+}
 // Seeded sampling catches accidentally weighting individual items instead of tiers.
 run(`var seed=147;Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};var counts={};for(let i=0;i<20000;i++){const id=rollSupply('other').id,t=RECIPE_RARITY[id]||'common';counts[t]=(counts[t]||0)+1}`);
 for(const [tier,rate]of Object.entries({common:.6,uncommon:.2,rare:.15,epic:.05}))assert(Math.abs(run(`counts.${tier}/20000`)-rate)<.015);

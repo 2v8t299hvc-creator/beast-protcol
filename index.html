@@ -2998,6 +2998,7 @@ ITEM_DEFS.push(...[
   "id": "needle",
   "name": "針",
   "rarity": "common",
+  "art": ["material_needle", 0, "single"],
   "fallback": "🪡",
   "displayOrder": 4100
  },
@@ -3606,7 +3607,7 @@ const ITEM_ART_SHEETS={
  "dragon_drag_energy_07": "assets/dragon/drag_energy_07.webp",
  "dragon_dragon_killer": "assets/dragon/dragon_killer.webp"
 };
-Object.assign(ITEM_ART_SHEETS,Object.fromEntries(ITEM_DEFS.filter(i=>i.equipment?.weaponType==='thrust').map(i=>['thrust_'+i.id,'assets/expansion/'+i.id+'.svg'])));
+Object.assign(ITEM_ART_SHEETS,{material_needle:'assets/thrust/needle.webp'},Object.fromEntries(ITEM_DEFS.filter(i=>i.equipment?.weaponType==='thrust').map(i=>['thrust_'+i.id,'assets/thrust/'+i.id+'.webp'])));
 // Preserve existing enumeration order for random draws, COM tie-breaks and recipe display.
 // New records are appended automatically; do not add IDs to this compatibility index.
 const ITEM_TABLE_ORDER={
@@ -6317,7 +6318,7 @@ Object.assign(DRONE_DEFS.scorpion,{drops:['wonderjewel','cell']});
 Object.assign(DRONE_DEFS.dragon,{drops:['dragon_scale','advanced_healing_potion','advanced_stamina_potion','diamond','ruby','sapphire']});
 function supplyCandidates(tableId){
  if(tableId==='other')return [...RANDOM_OTHER_ITEMS].filter(id=>names[id]&&!equipmentDef(id));
- return Object.keys(EQUIPMENT_DEFS).filter(id=>tableId==='weapon'?equipmentDef(id).slot==='weapon':tableId==='armor'&&equipmentDef(id).slot!=='weapon').filter(id=>['common','uncommon'].includes(RECIPE_RARITY[id]||'common'));
+ return Object.keys(EQUIPMENT_DEFS).filter(id=>tableId==='weapon'?equipmentDef(id).slot==='weapon'&&!PRACTICE_WEAPONS[id]:tableId==='armor'&&equipmentDef(id).slot!=='weapon').filter(id=>['common','uncommon'].includes(RECIPE_RARITY[id]||'common'));
 }
 function isRandomSupplyItem(id){return Object.keys(RANDOM_SUPPLY_TABLES).some(t=>supplyCandidates(t).includes(id))}
 function supplySetCount(id){
