@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-05",
+  "generator": "built-in image generation",
+  "icons": [
+    {
+      "id": "scavenger",
+      "name": "屍肉漁り",
+      "prompt": "Use case: stylized-concept. Asset type: final square character skill icon for BEAST PROTOCOL. Subject: A powerful spotted golden-brown hyena beastman's clawed paw claiming a small weathered skull and bone, amber-orange life-force rising into the paw. Clear scavenging-and-growing-stronger symbol, no flesh, no blood or gore. Style: polished hand-painted anime RPG ability icon, bold clean outlines, simplified dramatic shapes, vivid controlled magical highlights, coherent with existing game icons. Composition: central close-up emblem filling square canvas, readable at 40px, dark navy background, one thin inset dark steel double-line square border matching classic game skill buttons. No words, letters, numbers, logo, watermark, UI labels, collage or multiple panels. Entire composition contained inside border.",
+      "art": "assets/skills/characters/scavenger.webp",
+      "sourceFile": "exec-a4742f4e-c2ab-4dd7-9ba7-311adb24ab20.png",
+      "sourceSha256": "beaa11279d0cd3714c808d983491989f478769b2a55877a3219c18ed1cb7ae0c",
+      "sha256": "3534ff365bcc0365daf23da1bce99a149c6385c48857e50591aaa1967cf211bb",
+      "size": [
+        256,
+        256
+      ],
+      "bytes": 16140
+    },
+    {
+      "id": "death_scent",
+      "name": "死臭追跡",
+      "prompt": "Use case: stylized-concept. Asset type: final square character skill icon for BEAST PROTOCOL. Subject: Side-profile silhouette of a spotted golden-brown hyena beastman's muzzle and alert ear, sniffing a luminous purple scent trail that curls from a tiny skull-shaped waypoint. Strong tracking and scent visual, no blood or gore. Style: polished hand-painted anime RPG ability icon, bold clean outlines, simplified dramatic shapes, vivid controlled magical highlights, coherent with existing game icons. Composition: central close-up emblem filling square canvas, readable at 40px, dark navy background, one thin inset dark steel double-line square border matching classic game skill buttons. No words, letters, numbers, logo, watermark, UI labels, collage or multiple panels. Entire composition contained inside border.",
+      "art": "assets/skills/characters/death_scent.webp",
+      "sourceFile": "exec-3e5c18f9-c8a1-41b4-9eec-2d9e9c3759e9.png",
+      "sourceSha256": "37d247b560e3d6758d616424b7c9a161708dd3164d1aab6314d02b0b3633c52e",
+      "sha256": "ab43d588fda9a96203be442da8169df37a22c1662b39f7c13754e484f5f2258e",
+      "size": [
+        256,
+        256
+      ],
+      "bytes": 13074
+    },
+    {
+      "id": "lightning_flash",
+      "name": "紫電一閃",
+      "prompt": "Use case: stylized-concept. Asset type: final square character skill icon for BEAST PROTOCOL. Subject: A bright silver spearhead thrusting diagonally upward through a dramatic violet lightning slash, five small electric sparks along its trailing path with the last one a brilliant starburst. Sharp decisive critical-hit symbol, no text or numerals. Style: polished hand-painted anime RPG ability icon, bold clean outlines, simplified dramatic shapes, vivid controlled magical highlights, coherent with existing game icons. Composition: central close-up emblem filling square canvas, readable at 40px, dark navy background, one thin inset dark steel double-line square border matching classic game skill buttons. No words, letters, numbers, logo, watermark, UI labels, collage or multiple panels. Entire composition contained inside border.",
+      "art": "assets/skills/characters/lightning_flash.webp",
+      "sourceFile": "exec-8c889761-810a-442e-8f5a-34bc5a5e75c1.png",
+      "sourceSha256": "027328a014bf19c3110ac5d0e8e34d5b8711eb8d05ea6ffd49c70d901be22f94",
+      "sha256": "09e969a856ec89a8f3395694b5ea40e4e11f84b53fc0e3908376eb5c38f0cc09",
+      "size": [
+        256,
+        256
+      ],
+      "bytes": 13612
+    },
+    {
+      "id": "wood_gathering",
+      "name": "木材調達",
+      "prompt": "Use case: stylized-concept. Asset type: final square character skill icon for BEAST PROTOCOL. Subject: A white-and-tan furred deer beastman's clawed hand gathering three freshly cut sturdy wooden branches, warm exposed wood rings and a small green leaf. Practical forest gathering symbol, focus on the hand and timber, no human bare hand. Style: polished hand-painted anime RPG ability icon, bold clean outlines, simplified dramatic shapes, vivid controlled magical highlights, coherent with existing game icons. Composition: central close-up emblem filling square canvas, readable at 40px, dark navy background, one thin inset dark steel double-line square border matching classic game skill buttons. No words, letters, numbers, logo, watermark, UI labels, collage or multiple panels. Entire composition contained inside border.",
+      "art": "assets/skills/characters/wood_gathering.webp",
+      "sourceFile": "exec-fc19ffec-129f-438d-97ba-27d76263cdc5.png",
+      "sourceSha256": "1bdfa115912b5fb1effde40430a73e3dd4afd25666991a8d21b6af3db0b1c66f",
+      "sha256": "74fe5f128e2dc800ca015f0c417983de4e04b79418334947d55f8c621a8d8c4c",
+      "size": [
+        256,
+        256
+      ],
+      "bytes": 13202
+    }
+  ]
+}
