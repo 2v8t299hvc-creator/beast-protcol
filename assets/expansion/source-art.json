@@ -5,12 +5,12 @@
     "source": "ハイエナ獣人のタクティカル装備姿.png",
     "sourceLibraryId": "libfile_a5918f5475ac81918ded4e3802725854",
     "sourceSha256": "c19be7ed3dd77fe0a93c8a09e10fa7f03fe90c7bfa9693ac2991f7021bbdcd14",
-    "art": "assets/characters/raz.webp",
-    "sha256": "bd92d8664868aa15ff25f5af170d70661a168a80c5847140d729f38662e16155",
+    "art": "assets/characters/raz_v2.webp",
+    "sha256": "72d73363b7d16ddbdfe10606ef1d7ad55025768a7d62f36ba3cb6bbdf292690c",
     "width": 768,
     "height": 1022,
-    "bytes": 51468,
-    "mode": "RGB"
+    "bytes": 76986,
+    "mode": "RGBA"
   },
   {
     "character": "miroku",
@@ -18,11 +18,11 @@
     "source": "装甲を纏う鹿の精鋭レンジャー.png",
     "sourceLibraryId": "libfile_c129e987bbe8819191007699aaa850cb",
     "sourceSha256": "b52f2736754c3645470c72970ed8ff3ec505bb4697eb6f593488af0ed313a930",
-    "art": "assets/characters/miroku.webp",
-    "sha256": "6659ad28c52f5bba697a5bf3ccb31174d71a872c8c848491e81e751b34bf707b",
+    "art": "assets/characters/miroku_v2.webp",
+    "sha256": "fa6c31fb698885c34591b1cab7e64b0871fc4df40de61fcdfb1201452bba0a79",
     "width": 768,
     "height": 1022,
-    "bytes": 76738,
+    "bytes": 76028,
     "mode": "RGBA"
   },
   {
@@ -57,11 +57,11 @@
     "source": "白い眉のミロクと光輝く精霊鹿.png",
     "sourceLibraryId": "libfile_d929392bd4dc8191897760177ea68aaa",
     "sourceSha256": "8b78283b8bf7b49a1f09d6fbccd44c032536e0f330d526b6e31d4c1a2240fd10",
-    "art": "assets/skins/miroku_autumn_2026.webp",
-    "sha256": "77d4a94359d12df8b3a4a0db9682a158095ccae64be8998361a5eff56f12e5af",
+    "art": "assets/skins/miroku_autumn_2026_v2.webp",
+    "sha256": "158d3c9680cfa41dc73e4650d9f987862bd39acdc6d8e9a04b7f9c7f34b244fd",
     "width": 768,
     "height": 1024,
-    "bytes": 109078,
-    "mode": "RGB"
+    "bytes": 155704,
+    "mode": "RGBA"
   }
 ]

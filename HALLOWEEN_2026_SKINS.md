@@ -7,3 +7,5 @@ The approved source files were retrieved and inspected. Nox uses the final illus
 Backgrounds were removed from the source art where necessary; Bjorn's existing alpha was retained. Source character pixels and composition were retained before resizing and WebP compression. A generated Kaito cutout trial changed the artwork and was discarded; it is not a game asset. Final assets use the approved source images themselves. Kaito/Bjorn are 768×1152, Nox is 768×1024; all include alpha.
 
 Validation: basic/content/UI suites (67 results), each new skin selected through `selectCharacterSkin`, match start carries the selected skin, `actorArt` resolves its new file, and all character definitions excluding `skins` equal their pre-change values. Rendering was inspected against a dark background. Safari gameplay remains user-tested.
+
+2026-11-04: カイトの輪郭に残った白い縁を除去し、明暗両背景で確認。修正版は別ファイル名で配信し、以前の画像キャッシュを回避。能力・バランスの変更なし。

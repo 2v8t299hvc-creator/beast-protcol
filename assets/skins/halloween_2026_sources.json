@@ -6,13 +6,14 @@
     "sourceFile": "満月の暴れ屋カイト・完全装備.png",
     "sourceLibraryId": "libfile_51c29a78163081919a41ed005199e61c",
     "sourceSha256": "fa467f98a0dd0aa43f08a2835d97d4379c69f5cc421c06844e42260cc3a5198f",
-    "art": "assets/skins/kaito_halloween_2026.webp",
-    "sha256": "650196e6c90662c851484b476585acb53ef3275c657dbf73b405bee642e2ac4d",
+    "art": "assets/skins/kaito_halloween_2026_v2.webp",
+    "sha256": "441fa2f31b4624feccfc21098d8cf3968498793fee47195a3282631baa94a1fc",
     "size": [
       768,
       1152
     ],
-    "bytes": 128268
+    "bytes": 125032,
+    "mode": "RGBA"
   },
   {
     "character": "bjorn",
