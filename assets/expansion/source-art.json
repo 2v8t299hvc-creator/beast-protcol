@@ -1,0 +1,67 @@
+[
+  {
+    "character": "raz",
+    "name": "ラズ",
+    "source": "ハイエナ獣人のタクティカル装備姿.png",
+    "sourceLibraryId": "libfile_a5918f5475ac81918ded4e3802725854",
+    "sourceSha256": "c19be7ed3dd77fe0a93c8a09e10fa7f03fe90c7bfa9693ac2991f7021bbdcd14",
+    "art": "assets/characters/raz.webp",
+    "sha256": "bd92d8664868aa15ff25f5af170d70661a168a80c5847140d729f38662e16155",
+    "width": 768,
+    "height": 1022,
+    "bytes": 51468,
+    "mode": "RGB"
+  },
+  {
+    "character": "miroku",
+    "name": "ミロク",
+    "source": "装甲を纏う鹿の精鋭レンジャー.png",
+    "sourceLibraryId": "libfile_c129e987bbe8819191007699aaa850cb",
+    "sourceSha256": "b52f2736754c3645470c72970ed8ff3ec505bb4697eb6f593488af0ed313a930",
+    "art": "assets/characters/miroku.webp",
+    "sha256": "6659ad28c52f5bba697a5bf3ccb31174d71a872c8c848491e81e751b34bf707b",
+    "width": 768,
+    "height": 1022,
+    "bytes": 76738,
+    "mode": "RGBA"
+  },
+  {
+    "character": "hayate",
+    "name": "秋天の射手ハヤテ",
+    "source": "鷹人弓兵の和装立ち絵.png",
+    "sourceLibraryId": "libfile_1fd3ba86589c8191966af3c304f21227",
+    "sourceSha256": "6db43f944518abd1b34e22c5ddca434488755b29b635936c9475d90c23a372ed",
+    "art": "assets/skins/hayate_autumn_2026.webp",
+    "sha256": "a6dfbad22ccfd591739705ed5ff79605db714f0370303814d77a4cb26ae3cdcd",
+    "width": 768,
+    "height": 1024,
+    "bytes": 149258,
+    "mode": "RGBA"
+  },
+  {
+    "character": "flugel",
+    "name": "紅葉の風来坊フリューゲル",
+    "source": "紅葉装束の狐侍戦士.png",
+    "sourceLibraryId": "libfile_0db64b684c5081919525ce215585ab9f",
+    "sourceSha256": "013700447a019685c038603d8649bec3143db42572fde63f1581bf39ae74abab",
+    "art": "assets/skins/flugel_autumn_2026.webp",
+    "sha256": "312d7172d837aa604e66f92830d40170fe36cdb8c41dc5ea0a248afdbf454332",
+    "width": 768,
+    "height": 1024,
+    "bytes": 139804,
+    "mode": "RGBA"
+  },
+  {
+    "character": "miroku",
+    "name": "錦秋の神鹿ミロク",
+    "source": "白い眉のミロクと光輝く精霊鹿.png",
+    "sourceLibraryId": "libfile_d929392bd4dc8191897760177ea68aaa",
+    "sourceSha256": "8b78283b8bf7b49a1f09d6fbccd44c032536e0f330d526b6e31d4c1a2240fd10",
+    "art": "assets/skins/miroku_autumn_2026.webp",
+    "sha256": "77d4a94359d12df8b3a4a0db9682a158095ccae64be8998361a5eff56f12e5af",
+    "width": 768,
+    "height": 1024,
+    "bytes": 109078,
+    "mode": "RGB"
+  }
+]

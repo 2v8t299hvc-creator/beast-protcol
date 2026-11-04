@@ -25,7 +25,7 @@ Smoke is automatically included when selecting any feature suite:
 
 Multiple groups: `node tools/test.cjs --suite smoke,com,combat`. File selections are deduplicated. Do not infer coverage from the number of assertions. Negative registration tests deliberately try invalid inputs; they belong in content checks, not every small UI change. Do not rely on the default smoke suite alone when modifying feature behavior.
 
-`--maintained` runs all 25 maintained files (93 reported Node test results at this review). Node counts some older script-style files as a single result even when they contain many assertions, so this is not a uniform count of scenarios. `--list` lists groups; `--dry-run` shows selected files without executing.
+`--maintained` runs all 26 maintained files (103 reported Node test results after the Raz/Miroku update). Node counts some older script-style files as a single result even when they contain many assertions, so this is not a uniform count of scenarios. `--list` lists groups; `--dry-run` shows selected files without executing.
 
 ## Existing tests pending review
 

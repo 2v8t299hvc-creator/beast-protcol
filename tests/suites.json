@@ -26,7 +26,8 @@
       "com-endgame-decisions.test.cjs",
       "com-recovery-stacks-regression.test.cjs",
       "com-search-build.test.cjs",
-      "com-weapon-upgrades.test.cjs"
+      "com-weapon-upgrades.test.cjs",
+      "raz-miroku.test.cjs"
     ],
     "ui": [
       "compact-crafting-ui.test.cjs",
