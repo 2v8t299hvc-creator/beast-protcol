@@ -1,0 +1,30 @@
+[
+  {
+    "character": "raz",
+    "skinId": "street",
+    "name": "ストリートラズ",
+    "art": "assets/skins/raz_street_2026.webp",
+    "source": "ネオンライムのストリートハイエナ.png",
+    "sourceLibraryId": "libfile_e7b9c48ce8f4819184c69239efa13823",
+    "sourceSha256": "dac89661f17dc102ef84f88a0ee4307690abbcb7d3f3280b5bc6a8a42f2b934b",
+    "sha256": "242fe5f7ad0c2e5f70f40b4a4348bfa56e4ef8f5494e642f6d69bb30bd48f4f1",
+    "width": 683,
+    "height": 1024,
+    "bytes": 79820,
+    "mode": "RGBA"
+  },
+  {
+    "character": "miroku",
+    "skinId": "naginata_club",
+    "name": "薙刀部ミロク",
+    "art": "assets/skins/miroku_naginata_2026.webp",
+    "source": "金紫装飾の鹿武者、薙刀を構える躍動姿.png",
+    "sourceLibraryId": "libfile_40de76b3666c8191bfa86fb6545c1771",
+    "sourceSha256": "45613b2070826c7eaba85532fb3e8ff61a4aad56ee7a76e143b5ebde88c3fdd5",
+    "sha256": "d7bcccfa53213adfdd7af5430d808b76cb8d1fa42575ec7d2816e1b793182901",
+    "width": 768,
+    "height": 840,
+    "bytes": 102000,
+    "mode": "RGBA"
+  }
+]
