@@ -6,13 +6,13 @@
     "sourceFile": "満月の暴れ屋カイト・完全装備.png",
     "sourceLibraryId": "libfile_51c29a78163081919a41ed005199e61c",
     "sourceSha256": "fa467f98a0dd0aa43f08a2835d97d4379c69f5cc421c06844e42260cc3a5198f",
-    "art": "assets/skins/kaito_halloween_2026_v2.webp",
-    "sha256": "441fa2f31b4624feccfc21098d8cf3968498793fee47195a3282631baa94a1fc",
+    "art": "assets/skins/kaito_halloween_2026_v3.webp",
+    "sha256": "ff7863375273e94fca47afac02db461b9d8fd5896a333a433745175c14fa051d",
     "size": [
       768,
       1152
     ],
-    "bytes": 125032,
+    "bytes": 139982,
     "mode": "RGBA"
   },
   {
