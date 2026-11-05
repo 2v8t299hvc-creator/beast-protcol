@@ -4337,7 +4337,7 @@ const CHARACTER_DEFS=[
     "id": "death_scent",
     "name": "死臭追跡",
     "cooldownMs": 60000,
-    "description": "発動時に死体がある区画へ印を付ける。印の対象となった死体は次の探索で必ず発見する。死体の数は表示しない。死体消滅・封鎖で印は消える。",
+    "description": "発動時に死体がある区画へ印を付ける。最初の死体を1つ発見するまで死体発見率＋100ポイント（上限100%）。発見後は通常の発見率へ戻る。死体の数は表示しない。死体消滅・封鎖で印は消える。",
     "icon": "assets/skills/characters/death_scent.webp"
    }
   }
@@ -4535,7 +4535,7 @@ const SKILL_BEHAVIORS={
  scavenger:{kind:'passive',statMultiplier(actor,stat){return stat==='attack'?1+(actor.scavengerStacks||0)*.03:1},criticalBonus(actor){return (actor.scavengerStacks||0)*.01},view(actor){const stacks=actor.scavengerStacks||0;return {stacks,max:9,count:String(stacks),suffix:'（攻撃＋'+stacks*3+'%／クリティカル＋'+stacks+'ポイント）'}}},
  lightning_flash:{kind:'passive',onAttack(actor){actor.flashAttacks=(actor.flashAttacks||0)+1},forceCritical(actor){return (actor.flashAttacks||0)>0&&actor.flashAttacks%5===0},view(actor){return {stacks:(actor.flashAttacks||0)%5,max:5,suffix:'（5回目の攻撃は確定クリティカル）'}}},
  wood_gathering:{kind:'field',comPhase:'afterRecovery',execute(actor,now=Date.now()){if(actor.hp<=0||now<(actor.characterFieldReadyAt||0)||!receive('wood',1,null,actor))return false;actor.characterFieldReadyAt=now+30000;recordMatchEvent(actor,'fieldSkill','木材調達：木材を1個入手',now);recoverOnAction(actor,now);return true},playerUse(actor,now){if(this.execute(actor,now))refresh();else toast('バッグ満杯、または再使用待ちです')},comUse(actor,plan,now){return (plan.needed?.wood||0)>(actor.inventory.wood||0)&&this.execute(actor,now)}},
- death_scent:{kind:'field',comPhase:'afterRecovery',execute(actor,now=Date.now()){if(actor.hp<=0||now<(actor.characterFieldReadyAt||0))return false;actor.scentCorpseIds=corpses.filter(c=>corpseAvailable(c,now)&&!isBlocked(c.area)).map(c=>c.id);actor.characterFieldReadyAt=now+60000;recordMatchEvent(actor,'fieldSkill','死臭追跡：死体のある区画へ印を付けた',now);return true},playerUse(actor,now){if(this.execute(actor,now)){refresh();showMap()}},comUse(actor,plan,now){return corpses.some(c=>corpseAvailable(c,now)&&!isBlocked(c.area))&&this.execute(actor,now)}} ,
+ death_scent:{kind:'field',comPhase:'afterRecovery',count(actor){return actor.scentDiscoveryBoost?'追跡中':'発動'},execute(actor,now=Date.now()){if(actor.hp<=0||now<(actor.characterFieldReadyAt||0))return false;actor.scentDiscoveryBoost=true;actor.scentCorpseIds=corpses.filter(c=>corpseAvailable(c,now)&&!isBlocked(c.area)).map(c=>c.id);actor.characterFieldReadyAt=now+60000;recordMatchEvent(actor,'fieldSkill','死臭追跡：死体のある区画へ印を付けた',now);return true},playerUse(actor,now){if(this.execute(actor,now)){refresh();showMap()}},comUse(actor,plan,now){return corpses.some(c=>corpseAvailable(c,now)&&!isBlocked(c.area))&&this.execute(actor,now)}} ,
 
  fighting_instinct:{kind:'passive',
   extraMastery(actor,target,definition){const key=skillTargetKey(target);let state=actor.fightingInstinct;if(!state||state.targetKey!==key)state=actor.fightingInstinct={targetKey:key,stacks:0};const bonus=state.stacks;state.stacks=Math.min(definition.maxStacks,state.stacks+1);return bonus},
@@ -6296,15 +6296,15 @@ function actorIdentity(actor){if(!actor)return null;if(typeof actor==='string')r
 function activeScentCorpses(actor,now=Date.now()){return (actor.scentCorpseIds||[]).map(id=>corpses.find(c=>c.id===id)).filter(c=>c&&corpseAvailable(c,now)&&!isBlocked(c.area))}
 function scentAreas(actor=S,now=Date.now()){return [...new Set(activeScentCorpses(actor,now).map(c=>c.area))]}
 function discoverCorpseFor(actor,c,now=Date.now()){
- if(!c)return;actor.scentCorpseIds=(actor.scentCorpseIds||[]).filter(id=>id!==c.id);
+ if(!c)return;actor.scentDiscoveryBoost=false;actor.scentCorpseIds=(actor.scentCorpseIds||[]).filter(id=>id!==c.id);
  if(!hasCharacterSkill(actor,'scavenger')||c.kind!=='player')return;
  actor.scavengedCorpseIds||=[];if(actor.scavengedCorpseIds.includes(c.id))return;actor.scavengedCorpseIds.push(c.id);actor.scavengerStacks=(actor.scavengerStacks||0)+1;
  const text='屍肉漁り：'+actor.scavengerStacks+'スタック';recordMatchEvent(actor,'passive',text,now);if(actor===S)addLog(text);else comLog(actor,text,now);
 }
 function corpseSearchable(c,actor,now=Date.now()){return corpseAvailable(c,now)&&c.area===actor.place&&(c.items.length>0||hasCharacterSkill(actor,'scavenger')&&c.kind==='player'&&!(actor.scavengedCorpseIds||[]).includes(c.id))}
-function markedLocalCorpse(actor,now=Date.now()){return activeScentCorpses(actor,now).find(c=>c.area===actor.place)}
+function markedLocalCorpse(actor,now=Date.now()){return actor.scentDiscoveryBoost?activeScentCorpses(actor,now).find(c=>c.area===actor.place):null}
 
-function corpseDiscoveryRate(corpse,actor=S){if(activeScentCorpses(actor).some(c=>c.id===corpse.id))return 1;const id=actorIdentity(actor);return corpse.killerId&&corpse.killerId===id?CORPSE_DISCOVERY_RATES.killer:CORPSE_DISCOVERY_RATES.other}
+function corpseDiscoveryRate(corpse,actor=S){if(actor.scentDiscoveryBoost)return 1;const id=actorIdentity(actor);return corpse.killerId&&corpse.killerId===id?CORPSE_DISCOVERY_RATES.killer:CORPSE_DISCOVERY_RATES.other}
 const corpses=[];
 function corpseAvailable(c,now=Date.now()){return !!c&&!(c.droneKind==='dragon'&&isBlocked(c.area))&&(c.expiresAt===null||now<c.expiresAt)}
 function findCorpse(id){return corpses.find(c=>c.id===id&&corpseAvailable(c))}

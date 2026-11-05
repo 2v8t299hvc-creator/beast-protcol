@@ -51,3 +51,21 @@ test('new skills and thrust routes work for COMs without inspecting hidden oppon
  const {run}=setup('kaito');run(`initializeComActors(PLAYABLE_CHARACTERS.length-1);var a=comActors.find(x=>x.character==='miroku');a.place='森林区画';a.equipment.weapon='practice_spear';a.equipmentEffects={weapon:equipmentInstanceEffects('practice_spear')};a.bag=[];syncInventory(a);var plan=comPlan(a,'machine_spear')`);assert(run('plan.missing.survival_knife>0'));assert(run('plan.missing.bamboo_pole>0'));assert.equal(run('comWeaponTypes(a)[0]'),'thrust');run("a.bag=[{id:'survival_knife',count:1}];syncInventory(a);comEquipBetter(a,now)");assert.equal(run('a.preferredWeaponType'),'thrust');assert.equal(run('comWeaponTypes(a)[0]'),'thrust');
  run(`a=comActors.find(x=>x.character==='raz');a.place='山岳区画';a.hp=actorMax(a,'hp');a.st=100;var c=createCorpse('player','死体','森林区画',[],now);SKILL_BEHAVIORS.death_scent.execute(a,now);stepCom(a,now+1000)`);assert.equal(run('a.place'),'森林区画');run('stepCom(a,now+2000)');assert.equal(run('a.scavengerStacks'),1);
 });
+
+test('death scent boosts only the first corpse discovery, including later corpses; markers persist without guarantees',()=>{
+ const {run}=setup('raz');
+ run(`var first=createCorpse('player','印1',S.place,[],now),second=createDroneCorpse('bird','森林区画',now);var firstBase=corpseDiscoveryRate(first,S),secondBase=corpseDiscoveryRate(second,S);SKILL_BEHAVIORS.death_scent.execute(S,now);var later=createDroneCorpse('fish',S.place,now);`);
+ assert.equal(run('corpseDiscoveryRate(later,S)'),1);
+ run('discoverCorpseFor(S,later,now)');assert.equal(run('S.scentDiscoveryBoost'),false);
+ assert.equal(run('corpseDiscoveryRate(first,S)'),run('firstBase'));
+ assert.equal(run('corpseDiscoveryRate(second,S)'),run('secondBase'));
+ assert.equal(run('markedLocalCorpse(S,now)'),null);assert(run('scentAreas(S,now).includes("森林区画")'));
+ assert.equal(run('S.scavengerStacks||0'),0);
+ run('SKILL_BEHAVIORS.death_scent.execute(S,now+60000);discoverCorpseFor(S,first,now+60000)');
+ assert.equal(run('S.scentDiscoveryBoost'),false);assert.equal(run('S.scavengerStacks'),1);
+ assert.equal(run('corpseDiscoveryRate(second,S)'),run('secondBase'));
+});
+test('COM corpse discovery consumes its own single boost without consuming player boost',()=>{
+ const {run}=setup('raz');run(`var a=comActors[0];a.character='raz';a.characterFieldReadyAt=0;var c=createCorpse('player','死体',a.place,[],now);SKILL_BEHAVIORS.death_scent.execute(a,now);SKILL_BEHAVIORS.death_scent.execute(S,now);discoverCorpseFor(a,c,now)`);
+ assert.equal(run('a.scentDiscoveryBoost'),false);assert.equal(run('S.scentDiscoveryBoost'),true);assert.equal(run('a.scavengerStacks'),1);
+});
