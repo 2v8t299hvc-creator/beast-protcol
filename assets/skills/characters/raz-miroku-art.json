@@ -47,16 +47,16 @@
     {
       "id": "wood_gathering",
       "name": "木材調達",
-      "prompt": "Use case: stylized-concept. Asset type: final square character skill icon for BEAST PROTOCOL. Subject: A white-and-tan furred deer beastman's clawed hand gathering three freshly cut sturdy wooden branches, warm exposed wood rings and a small green leaf. Practical forest gathering symbol, focus on the hand and timber, no human bare hand. Style: polished hand-painted anime RPG ability icon, bold clean outlines, simplified dramatic shapes, vivid controlled magical highlights, coherent with existing game icons. Composition: central close-up emblem filling square canvas, readable at 40px, dark navy background, one thin inset dark steel double-line square border matching classic game skill buttons. No words, letters, numbers, logo, watermark, UI labels, collage or multiple panels. Entire composition contained inside border.",
-      "art": "assets/skills/characters/wood_gathering.webp",
-      "sourceFile": "exec-fc19ffec-129f-438d-97ba-27d76263cdc5.png",
-      "sourceSha256": "1bdfa115912b5fb1effde40430a73e3dd4afd25666991a8d21b6af3db0b1c66f",
-      "sha256": "74fe5f128e2dc800ca015f0c417983de4e04b79418334947d55f8c621a8d8c4c",
+      "prompt": "White-silver spirit deer dispatched into a dark forest, pale violet magical trail and green leaves; clear central silhouette readable at 40px; hand-painted anime RPG skill icon with inset steel border, no text.",
+      "art": "assets/skills/characters/wood_gathering_spirit_deer.webp",
+      "sourceFile": "exec-7921d064-cbc4-4f25-9203-8c4c53a1446b.png",
+      "sourceSha256": "56b13b2ed5e07e0d49a9e4b1b78ef15ae50692d1e85f64fffd84acbea03a9782",
+      "sha256": "8f6f792b0b65b8ca8aa3d000cfe8db276bcaf6a7b8275b9ae5e8ca51a747167b",
       "size": [
         256,
         256
       ],
-      "bytes": 13202
+      "bytes": 13544
     }
   ]
 }
