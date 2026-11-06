@@ -19,3 +19,14 @@ COM injury treatment requires a quiet interval of its treatment duration plus 8 
 Shared inventory removal consumes matching stacks in ascending quantity order, preserving surviving slot order and instance metadata. This covers player and COM consumables, crafting ingredients, ammunition, and field-skill materials.
 
 Regression: `node --test tests/com-recovery-stacks-regression.test.cjs tests/com-weapon-upgrades.test.cjs tests/com-endgame-decisions.test.cjs`.
+
+## 2026-11-06: stalled early builds and HP-funded progress
+
+The November 6 replay showed Bjorn consuming his equipped heated frying pan for fried eggs after dropping his practice hammer, then spending roughly four minutes unarmed. Both Bjorn and Jerk also repeatedly visited water areas while their actual weapon plans needed bamboo/cloth. Three shared decisions are corrected:
+
+- The post-hit quiet interval restricts stationary treatment/rest; it no longer redirects otherwise ordinary early-game building to the final-area PvP-only search. Immediate under-fire reactions, deliberate injury pressure and actual final-area decisions remain separate priorities.
+- Material movement uses the current plan's materials. Low stamina no longer silently adds water/drinks to its destination scoring. Explicit recovery plans still gather stamina supplies.
+- A COM with spare HP continues at low/zero stamina instead of resting to half its stamina bar. It budgets the real stamina deficit for three searches plus a relocation, including temporary injury costs, and requires at least 35% of maximum HP (minimum 20 HP) left afterward. Actual searches/movement still pay their ordinary HP costs; free crafting/equipping do not gain an added cost. Low HP retains treatment/rest. Lethal movement is rejected, and the last-resort search checks injury costs as well as the stamina deficit.
+- COM cooking plans exclude recipes that would spend the sole equipped weapon. All COM crafting checks likewise require either a usable weapon result or a spare usable weapon if the equipped weapon is consumed. Normal weapon upgrades can still use their equipped predecessor. Core/player crafting and recipe consumption rules are unchanged.
+
+Validation: `node tools/test.cjs --suite com,content` (96 checks). `tests/com-growth-recovery.test.cjs` covers quiet-period gathering, zero-ST movement/search and crafting with real costs, low-HP survival, sole-weapon cooking, spare re-equipping and normal weapon upgrades. Match-level growth/win-rate improvements must still be evaluated in subsequent play records.

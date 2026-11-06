@@ -6207,7 +6207,7 @@ function comFinalSearch(actor,now){
  if(st&&actor.st<searchStaminaCost(actor))recoverActor(actor,st.id,now);
  if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)===0&&reloadActor(actor,now)){comLog(actor,'最終区画：弾薬を装填',now);return}
  const cost=searchStaminaCost(actor);
- if(actor.hp<=Math.max(0,cost-actor.st)){actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+treatmentRate(actor));comLog(actor,'最終区画：次の索敵に必要な体力を治療',now);return}
+ if(actor.hp<=Math.max(0,cost-actor.st)+((actor.injuryUntil||0)>now?4:0)){actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+treatmentRate(actor));comLog(actor,'最終区画：次の索敵に必要な体力を治療',now);return}
  if(!paySearchCost(actor,now))return;recordExploration(actor,now);actor.searches++;
  const corpse=markedLocalCorpse(actor,now);if(corpse){discoverCorpseFor(actor,corpse,now);actor.loot=corpse.id;comLog(actor,'死臭追跡：印の死体を発見',now);return}
  const target=chooseLocalOpponent(actor);
@@ -7015,9 +7015,12 @@ function initializeRakuMastery(actor,rng=Math.random){
  actor.masteryAttacks={...initialMastery(actor.character),[type]:points};
  actor.goals=[...({fist:COM_FIST_GOALS,slash:COM_SLASH_GOALS,hammer:COM_HAMMER_GOALS,bow:COM_GOALS,gun:COM_GUN_GOALS,thrust:COM_THRUST_GOALS}[type])];
 }
+function movementStaminaCost(actor,now=Date.now(),stacks=breezeStacks(actor,now)){
+ const discount=stacks>=4?4:stacks>=2?2:0;
+ return matchClock.section>0?Math.max(0,5-(actor.sapphireMantle?1:0)+(hasBodyInjury(actor,'leg')?1:0)-discount-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.movementDiscount||0),0)):0;
+}
 function payMovementCost(actor,now=Date.now()){
- const stacks=breezeStacks(actor,now),discount=stacks>=4?4:stacks>=2?2:0;
- const cost=matchClock.section>0?Math.max(0,5-(actor.sapphireMantle?1:0)+(hasBodyInjury(actor,'leg')?1:0)-discount-Object.values(actor.equipment).reduce((n,id)=>n+(EQUIPMENT_SPECIAL_EFFECTS[id]?.movementDiscount||0),0)):0;
+ const stacks=breezeStacks(actor,now),cost=movementStaminaCost(actor,now,stacks);
  const staminaCost=Math.min(actor.st,cost),hpCost=cost-staminaCost;
  actor.st-=staminaCost;actor.hp=Math.max(0,actor.hp-hpCost);characterSkillHook(actor,'passive','onMove',now,stacks);recoverOnAction(actor,now);bumpMatchStat(actor,'moves');recordMatchEvent(actor,'move',actor.place+'へ移動',now);return {staminaCost,hpCost};
 }
@@ -7208,6 +7211,7 @@ function comAmmoResupplyPlan(actor,plan,now=Date.now()){
  return {id:null,missing:{[ammo]:count},needed:{...plan.needed,[ammo]:count},crafts:[],ammunition:true};
 }
 function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
+ if(actor.hp<=Math.max(0,movementStaminaCost(actor,now)-actor.st))return false;
  if(isMovementLocked(actor,now))return false;
  if(now<(actor.moveDecisionReadyAt||0)&&!isBlocked(actor.place))return false;
  cancelBodyTreatment(actor);
@@ -7223,7 +7227,6 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
  if(plan.hunting&&!scentDestination&&!forced){safe=safe.filter(area=>plan.huntAreas.includes(area));if(!safe.length)return false;}
  const needs=scentDestination||plan.hunting?[]:Object.keys(plan.missing);
  if(!plan.recovery&&comAmmoType(actor)&&!needs.includes(comAmmoType(actor))&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory[comAmmoType(actor)]||0)<20)needs.push(comAmmoType(actor));
- if(!scentDestination&&!plan.recovery&&actor.st<60)needs.push('water','drink','energy_drink');
  if(needs.length&&!forced){safe=safe.filter(area=>!actor.exhausted[area]&&needs.some(id=>regionStock[area][id]>0));if(!safe.length)return false;}
  const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100*Math.min(3,plan.missing[id]||1),0)-(!plan.hunting&&actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5-(actor.previousArea===area&&now-(actor.lastMovedAt||0)<8000?8:0);
  const coverage=area=>needs.filter(id=>regionStock[area][id]>0).length*3+score(area);
@@ -7358,6 +7361,20 @@ function comRecoveryHuntPlan(actor,now,gearPlan,readyRecipe=false){
  return {id:null,missing:{},needed,crafts:[],recovery:true,hunting:true,management:choice.management,huntKind:choice.kind,huntAreas:choice.areas};
 }
 
+// Keep a usable weapon when consuming equipped tools; player crafting is unchanged.
+function comUsableBackup(actor,stacks){return stacks.some(x=>equipmentDef(x.id)?.slot==='weapon'&&weaponTypesFor(equipmentDef(x.id)).some(t=>comWeaponTypes(actor).includes(t)))}
+function comCraftConsumption(r,actor){
+ const after=craftConsumption(r,actor);if(!after)return null;
+ const weaponResult=equipmentDef(r.id)?.slot==='weapon'&&weaponTypesFor(equipmentDef(r.id)).some(t=>comWeaponTypes(actor).includes(t));
+ if(actor.equipment.weapon&&!after.equipment.weapon&&!weaponResult&&!comUsableBackup(actor,after.stacks))return null;
+ return after;
+}
+// Budget three searches and a relocation using only own HP/ST and public action costs.
+function comCanSpendHpForProgress(actor,now){
+ const search=searchStaminaCost(actor),injury=(actor.injuryUntil||0)>now?12:0;
+ const hpCost=Math.max(0,search*3+movementStaminaCost(actor,now)-actor.st)+injury;
+ return actor.hp-hpCost>=Math.max(20,actorMax(actor,'hp')*.35);
+}
 function comRecoveryPlan(actor,now=Date.now(),gearPlan={needed:{}}){
  const policy=comRecoveryPolicy(actor),hp=comRecoveryTotal(actor),st=comRecoveryTotal(actor,'stamina'),large=comRecoveryTotal(actor,'hp',120);
  const needHP=hp<policy.hpTarget||large<policy.largeTarget,needST=st<policy.stTarget;if(!needHP&&!needST)return null;
@@ -7376,10 +7393,13 @@ function comRecoveryPlan(actor,now=Date.now(),gearPlan={needed:{}}){
   if(net<=0)continue;
   // Rare equipment ingredients remain reserved while building the main loadout.
   if(Object.entries(r.need).some(([id,n])=>['dragon_scale','drago_core'].includes(id)&&(gearPlan.needed?.[id]||0)>0&&(actor.inventory[id]||0)<=n)&&policy.open>3)continue;
-  const plan=comPlan(actor,r.id,actorOwned(actor,r.id)+count);let cost=1+plan.crafts.length*.8,feasible=true;
+  const plan=comPlan(actor,r.id,actorOwned(actor,r.id)+count);
+  const weapon=actor.equipment.weapon;
+  if(weapon&&(plan.needed[weapon]||0)>(actor.inventory[weapon]||0)&&!comUsableBackup(actor,actor.bag))continue;
+  let cost=1+plan.crafts.length*.8,feasible=true;
   for(const [id,n]of Object.entries(plan.missing)){if(rates[id]===undefined){feasible=false;break}cost+=n*rates[id]/itemSetCount(id)}
   if(!feasible)continue;
-  const after=craftConsumption(r,actor),ready=!!after&&!!addToStacks(after.stacks,r.id,count);
+  const after=comCraftConsumption(r,actor),ready=!!after&&!!addToStacks(after.stacks,r.id,count);
   choices.push({plan:{...plan,recovery:true,reserve:true,recipeId:r.id,routeKey:'craft:'+r.id,group:item.group,expectedHeal:amount},score:(net+amount*count*.2)*quality/cost*(ready?1.5:1),ready});
  }
  // Direct supplies are a real alternative to cooking, not an omniscient read of live stock.
@@ -7415,7 +7435,7 @@ function comReserveTurn(actor,gearPlan,reservePlan,gearReady,now){
  if((actor.recoveryTripUntil||0)&&now>=actor.recoveryTripUntil){
   actor.recoveryTripUntil=0;actor.recoveryBuildPauseUntil=now+(comBuildReady(actor)?20000:45000);
  }
- const recipe=reservePlan.recipeId&&recipes.find(r=>r.id===reservePlan.recipeId),after=recipe&&craftConsumption(recipe,actor);
+ const recipe=reservePlan.recipeId&&recipes.find(r=>r.id===reservePlan.recipeId),after=recipe&&comCraftConsumption(recipe,actor);
  if(after&&addToStacks(after.stacks,recipe.id,craftOutputCount(actor,recipe)))return true;
  if(now<(actor.recoveryBuildPauseUntil||0)&&!emergency)return false;
  const building=!!gearPlan.id&&!comBuildReady(actor);
@@ -7448,7 +7468,7 @@ function comReadyWeaponTurn(actor,plan,now){
  if(comEquipBetter(actor,now))return true;
  if(EQUIPMENT_DEFS[plan.id]?.slot!=='weapon')return false;
  for(const id of plan.crafts){
-  const r=recipes.find(r=>r.id===id);if(!r||!craftConsumption(r,actor))continue;
+  const r=recipes.find(r=>r.id===id);if(!r||!comCraftConsumption(r,actor))continue;
   if(craftActor(actor,r,now)){actor.noProgress=0;actor.gearCraftsSinceReserve=(actor.gearCraftsSinceReserve||0)+1;comLog(actor,'武器更新を進めるため製作：'+names[id],now);return true}
   if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return true;
  }
@@ -7481,29 +7501,29 @@ function stepCom(actor,now){
  const hpChoice=comSelectRecovery(actor,'hp',now);
  const reservePlan=comRecoveryPlan(actor,now,plan);
  // Small stocks can be cooked before being spent, while emergencies use whatever is available.
- const upgradeReady=reservePlan?.recipeId&&craftConsumption(recipes.find(r=>r.id===reservePlan.recipeId),actor);
+ const upgradeReady=reservePlan?.recipeId&&comCraftConsumption(recipes.find(r=>r.id===reservePlan.recipeId),actor);
  if(hpChoice&&(actor.hp<actorMax(actor,'hp')*.65||hpMissing>=hpChoice.amount*.8)&&(!upgradeReady||actor.hp<actorMax(actor,'hp')*.4||hpChoice.amount>=60)){
   if(recoverActor(actor,hpChoice.id,now)){actor.restMode=null;actor.recoverySeeking=false;comLog(actor,names[hpChoice.id]+'を使用',now);return}
  }
  // A ready meal can restore a stranded COM; do not enter treatment before cooking it.
  if(reservePlan?.recipeId&&comRecoveryTotal(actor)<60){
-  const r=recipes.find(r=>r.id===reservePlan.recipeId),after=r&&craftConsumption(r,actor);
+  const r=recipes.find(r=>r.id===reservePlan.recipeId),after=r&&comCraftConsumption(r,actor);
   if(RECOVERY_ITEMS[r?.id]?.group==='hp'&&after&&addToStacks(after.stacks,r.id,craftOutputCount(actor,r))&&craftActor(actor,r,now)){actor.restMode=null;comLog(actor,'手持ち素材で回復を製作：'+names[r.id],now);return}
  }
  const minHp=Math.max(actorMax(actor,'hp')*.2,Math.max(0,searchStaminaCost(actor)-actor.st)+((actor.injuryUntil||0)>now?4:0)+Math.max(0,5-actor.st)+1);
  // In the last phase, spend supplies and keep searching instead of filling a rest bar.
- if((!comEndgamePressure()&&!comShouldTreatInjury(actor,now))||comEndgamePressure()&&(actor.hp<=minHp||actor.st<searchStaminaCost(actor)+5||actor.restMode)){comFinalSearch(actor,now);return}
- if(actor.hp<=minHp||actor.restMode==='hp'&&actor.hp<actorMax(actor,'hp')*.5){
+ if(comEndgamePressure()&&(actor.hp<=minHp||actor.st<searchStaminaCost(actor)+5||actor.restMode)){comFinalSearch(actor,now);return}
+ if(comShouldTreatInjury(actor,now)&&(actor.hp<=minHp||actor.restMode==='hp'&&actor.hp<actorMax(actor,'hp')*.5)){
   actor.restMode='hp';actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+treatmentRate(actor));comLog(actor,'物資を探せる体力まで治療',now);return;
  }
  const stChoice=comSelectRecovery(actor,'stamina',now);
  if(actor.st<actorMax(actor,'stamina')*.3&&stChoice&&recoverActor(actor,stChoice.id,now)){actor.restMode=null;comLog(actor,names[stChoice.id]+'を使用',now);return}
  if(comReadyWeaponTurn(actor,plan,now))return;
- if(actor.st<searchStaminaCost(actor)+5||actor.restMode==='stamina'&&actor.st<actorMax(actor,'stamina')*.5){
+ if(comShouldTreatInjury(actor,now)&&!comCanSpendHpForProgress(actor,now)&&(actor.st<searchStaminaCost(actor)+5||actor.restMode==='stamina'&&actor.st<actorMax(actor,'stamina')*.5)){
   actor.restMode='stamina';actor.st=Math.min(actorMax(actor,'stamina'),actor.st+restRecoveryRate(actor));comLog(actor,'行動できるスタミナまで休憩',now);return;
  }
  actor.restMode=null;
- const gearReady=plan.crafts.some(id=>{const r=recipes.find(r=>r.id===id),after=r&&craftConsumption(r,actor);return after&&!!addToStacks(after.stacks,r.id,craftOutputCount(actor,r))});
+ const gearReady=plan.crafts.some(id=>{const r=recipes.find(r=>r.id===id),after=r&&comCraftConsumption(r,actor);return after&&!!addToStacks(after.stacks,r.id,craftOutputCount(actor,r))});
  const huntPlan=!gearReady&&comRecoveryHuntPlan(actor,now,plan,!!upgradeReady);
  const reservePriority=!huntPlan&&comReserveTurn(actor,plan,reservePlan,gearReady,now);
  if(!reservePriority&&reservePlan){
@@ -7520,7 +7540,7 @@ function stepCom(actor,now){
  if(comEquipBetter(actor,now))return;
  if(comDiscardRedundantWeapon(actor,plan,now))return;
  if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=Math.floor(weaponCapacity(actor.equipment.weapon,actor)/4)&&reloadActor(actor,now)){comLog(actor,(equipmentDef(actor.equipment.weapon)?.ammoType==='bullets'?'銃弾':'矢')+'を補充・装填',now);return}
- for(const id of plan.crafts){const r=recipes.find(x=>x.id===id);if(!craftConsumption(r,actor))continue;
+ for(const id of plan.crafts){const r=recipes.find(x=>x.id===id);if(!comCraftConsumption(r,actor))continue;
   if(craftActor(actor,r,now)){actor.noProgress=0;if(plan.recovery){if(id===plan.recipeId){actor.recoveryBuildPauseUntil=now+(comBuildReady(actor)?20000:45000);actor.recoveryTripUntil=0;actor.gearCraftsSinceReserve=0}}else actor.gearCraftsSinceReserve=(actor.gearCraftsSinceReserve||0)+1;comLog(actor,(plan.recovery?'回復を備蓄するため製作：':'目標のため製作：')+names[id],now);return}
   if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return;
  }
@@ -7534,6 +7554,7 @@ function stepCom(actor,now){
   actor.searches=0;actor.noProgress=0;
  }
  // Discover only local corpses and drones during a paid search, matching player search probabilities.
+ if(actor.hp<=Math.max(0,searchStaminaCost(actor)-actor.st)+((actor.injuryUntil||0)>now?4:0)){comFinalSearch(actor,now);return;}
  if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;if(plan.hunting&&actor.recoveryHunt)actor.recoveryHunt.searches++;recordExploration(actor,now);
  const marked=markedLocalCorpse(actor,now);if(marked){discoverCorpseFor(actor,marked,now);actor.loot=marked.id;comLog(actor,'死臭追跡：印の死体を発見',now);return}
  const efficient=consumeEfficiency(actor);if(efficient)comLog(actor,'効率重視：アイテム3個を探索',now);
