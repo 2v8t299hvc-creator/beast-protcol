@@ -30,3 +30,15 @@ The November 6 replay showed Bjorn consuming his equipped heated frying pan for 
 - COM cooking plans exclude recipes that would spend the sole equipped weapon. All COM crafting checks likewise require either a usable weapon result or a spare usable weapon if the equipped weapon is consumed. Normal weapon upgrades can still use their equipped predecessor. Core/player crafting and recipe consumption rules are unchanged.
 
 Validation: `node tools/test.cjs --suite com,content` (96 checks). `tests/com-growth-recovery.test.cjs` covers quiet-period gathering, zero-ST movement/search and crafting with real costs, low-HP survival, sole-weapon cooking, spare re-equipping and normal weapon upgrades. Match-level growth/win-rate improvements must still be evaluated in subsequent play records.
+
+## 2026-11-06: conserve combat supplies after completing the build
+
+The 13:43 replay showed improved Bjorn growth, but repeated HP-funded searches drained endgame supplies (recorded search-deficit costs alone: Flugel at least 1,673 HP; Zakuro at least 1,373 HP).
+
+- Outside urgent combat, late-game COM preserves HP consumables worth 60 or more per use while above 35% HP. Smaller supplies remain usable. At or below 35% HP, or in combat/under fire, the reserve remains available; freezing and cooldown rules still apply. Stamina supplies worth at least 50 require at least 90% of their amount to be missing outside combat.
+- Final-search recovery no longer treats every blind search as combat. After three failed PvP searches, a COM short of search stamina takes one short stamina-rest action at most once per three seconds. Search continues afterward; there is no half-bar rest requirement. Recent incoming attacks and deliberate injury pressure bypass this breather.
+- After six misses, a safe COM can reconsider its area through ordinary paid movement, with at least 12 seconds between patrol attempts. Destination scoring uses public legal areas and personal visits, never live opponent positions. A confirmed local death-scent mark retains priority. Relocation resets miss history.
+- Once an epic weapon and rare-or-better main armor are equipped, optional armor/accessory crafting waits until medium/large HP stock (60+ per use) reaches 300 total, or the policy's smaller large-recovery target. Weapon updates and opportunistic found-equipment swaps remain available. Personal reserve changes invalidate the plan cache.
+- Without a crafting, recovery, ammunition or hunting objective, three ordinary searches at low stamina are followed by a short stamina-rest action when the personal quiet-period rule permits it. Purposeful HP-funded building/gathering continues under the existing survival budget.
+
+Validation: `node tools/test.cjs --suite com,content` (104 checks), including `tests/com-reserve-conservation.test.cjs`. These rules do not grant supplies or opponent knowledge, and their match-level effect still requires subsequent play records.

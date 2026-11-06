@@ -29,7 +29,8 @@
       "com-weapon-upgrades.test.cjs",
       "raz-miroku.test.cjs",
       "com-drone-hunting.test.cjs",
-      "com-growth-recovery.test.cjs"
+      "com-growth-recovery.test.cjs",
+      "com-reserve-conservation.test.cjs"
     ],
     "ui": [
       "compact-crafting-ui.test.cjs",

@@ -6202,17 +6202,27 @@ function invalidateLocationSight(actor){
 function comFinalArea(){return Object.keys(regionStock).filter(area=>!isBlocked(area)).length===1}
 function comFinalSearch(actor,now){
  actor.enemy=null;actor.leaveDanger=false;actor.restMode=null;cancelBodyTreatment(actor);
- const hp=comSelectRecovery(actor,'hp',now,true),st=comSelectRecovery(actor,'stamina',now);
+ const urgent=comUnderFire(actor,now)||comShouldPressInjury(actor,now);
+ const hp=comSelectRecovery(actor,'hp',now,urgent),st=comSelectRecovery(actor,'stamina',now,urgent);
  if(hp&&actorMax(actor,'hp')-actor.hp>=hp.amount*.8)recoverActor(actor,hp.id,now);
  if(st&&actor.st<searchStaminaCost(actor))recoverActor(actor,st.id,now);
  if(weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)===0&&reloadActor(actor,now)){comLog(actor,'最終区画：弾薬を装填',now);return}
  const cost=searchStaminaCost(actor);
+ // Reconsider a personally unproductive area without consulting anybody else's location.
+ if(!urgent&&(actor.emptyPvpSearches||0)>=6&&!markedLocalCorpse(actor,now)&&now>=(actor.searchPatrolReadyAt||0)){
+  actor.searchPatrolReadyAt=now+12000;
+  if(comMove(actor,now,'索敵の空振りが続いたため別区画を巡回',{id:null,missing:{},needed:{},crafts:[]}))return;
+ }
+ // A short breather after repeated misses keeps blind searches from eating combat food.
+ if(!urgent&&(actor.emptyPvpSearches||0)>=3&&actor.st<cost&&now>=(actor.searchBreatherReadyAt||0)){
+  actor.st=Math.min(actorMax(actor,'stamina'),actor.st+restRecoveryRate(actor));actor.searchBreatherReadyAt=now+3000;comLog(actor,'索敵の空振りが続いたため短くスタミナを回復',now);return;
+ }
  if(actor.hp<=Math.max(0,cost-actor.st)+((actor.injuryUntil||0)>now?4:0)){actor.hp=Math.min(actorMax(actor,'hp'),actor.hp+treatmentRate(actor));comLog(actor,'最終区画：次の索敵に必要な体力を治療',now);return}
  if(!paySearchCost(actor,now))return;recordExploration(actor,now);actor.searches++;
  const corpse=markedLocalCorpse(actor,now);if(corpse){discoverCorpseFor(actor,corpse,now);actor.loot=corpse.id;comLog(actor,'死臭追跡：印の死体を発見',now);return}
  const target=chooseLocalOpponent(actor);
- if(target&&Math.random()<actorDiscoveryRate(target,actor,now)){observeOpponent(actor,target,now);comLog(actor,'最終区画：探索で'+actorName(target)+'を発見',now)}
- else comLog(actor,'最終区画：探索したが相手を発見できなかった',now);
+ if(target&&Math.random()<actorDiscoveryRate(target,actor,now)){actor.emptyPvpSearches=0;observeOpponent(actor,target,now);comLog(actor,'最終区画：探索で'+actorName(target)+'を発見',now)}
+ else{actor.emptyPvpSearches=(actor.emptyPvpSearches||0)+1;comLog(actor,'最終区画：探索したが相手を発見できなかった',now);}
 }
 function comFightOpponent(actor,now){
  const target=findActor(actor.opponent?.id);
@@ -7113,7 +7123,7 @@ function comWeaponValue(actor,id,instance=null){
 function comAdaptivePlan(actor,now=Date.now()){
  // Cache only personal/public inputs. No live regionObjects, enemy inventory or hidden stock counts.
  const areas=comMaterialAreas(actor,now);
- const key=JSON.stringify([actor.inventory,actor.equipment,actor.equipmentEffects?.weapon,actor.bag.map(x=>[x.id,x.effects]),actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4)]);
+ const key=JSON.stringify([actor.inventory,actor.equipment,actor.equipmentEffects?.weapon,actor.bag.map(x=>[x.id,x.effects]),actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4),comRecoveryTotal(actor),comRecoveryTotal(actor,'hp',120),comRecoveryPolicy(actor).late]);
  if(actor.adaptivePlanCache?.key===key)return actor.adaptivePlanCache.plan;
  const rates={};
  for(const area of areas){
@@ -7126,7 +7136,10 @@ function comAdaptivePlan(actor,now=Date.now()){
  }
  const replacement=comWeaponNeedsReplacement(actor),current=comWeaponValue(actor,actor.equipment.weapon),weaponTier=RECIPE_RARITY[actor.equipment.weapon],weakWeapon=!['rare','epic','legendary'].includes(weaponTier);
  const choices=[];
+ const preserveReserve=comBuildReady(actor)&&comRecoveryTotal(actor,'hp',60)<Math.min(300,comRecoveryPolicy(actor).largeTarget);
  for(const [id,def] of Object.entries(EQUIPMENT_DEFS)){
+  // Finish combat reserves before optional armor/accessory refinements to an already complete build.
+  if(preserveReserve&&def.slot!=='weapon')continue;
   const replacing=replacement&&def.slot==='weapon'&&comWeaponValue(actor,id,{})>=current*.85&&recipes.some(r=>r.id===id);
   if(actorOwned(actor,id)&&!(replacing&&id===actor.equipment.weapon&&totalIn(actor.bag,id)===0)||(actor.place==='待機所'&&def.slot!=='weapon'))continue;
   // A reliable weapon needs no accessory crafting detour; found/corpse upgrades are still evaluated.
@@ -7234,7 +7247,7 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
  const start=actor.place==='待機所'&&comWeaponTypes(actor).length===1&&safe.includes(actor.startArea)?actor.startArea:null;
  actor.visited[actor.place]=(actor.visited[actor.place]||0)+1;actor.previousArea=actor.place;actor.lastMovedAt=now;invalidateLocationSight(actor);actor.place=start||scentDestination||choices[rand(choices.length)];
  actor.moveDecisionReadyAt=now+COM_MOVE_DECISION_MS+rand(701);
- actor.searches=0;actor.noProgress=0;actor.seen={};actor.enemy=null;actor.opponent=null;actor.loot=null;actor.restMode=null;actor.leaveDanger=false;payMovementCost(actor,now);
+ actor.searches=0;actor.noProgress=0;actor.emptyPvpSearches=0;actor.idleSearches=0;actor.seen={};actor.enemy=null;actor.opponent=null;actor.loot=null;actor.restMode=null;actor.leaveDanger=false;payMovementCost(actor,now);
  const goal=plan.recovery?(plan.recipeId?names[plan.recipeId]:'回復物資'):actor.goal?names[actor.goal]:null;
  comLog(actor,reason+(goal?'（目標：'+goal+'）':'')+' → '+actor.place,now);
  if(actor.hp<=0)eliminateCom(actor,'移動時のHP消費',now);return true;
@@ -7282,7 +7295,12 @@ function comSelectRecovery(actor,group,now=Date.now(),combat=false){
  if((actor.frozenUntil||0)>now||(actor.recoveryReadyAt[group]||0)>now)return null;
  const missing=Math.max(0,actorMax(actor,group)-actor[group==='hp'?'hp':'st']);if(!missing)return null;
  const policy=comRecoveryPolicy(actor);
- const choices=actor.bag.filter(x=>RECOVERY_ITEMS[x.id]?.group===group).map(x=>{
+ const choices=actor.bag.filter(x=>RECOVERY_ITEMS[x.id]?.group===group).filter(x=>{
+  const amount=recoveryAmount(actor,x.id);
+  if(!combat&&policy.late&&group==='hp'&&amount>=60&&actor.hp>actorMax(actor,'hp')*.35)return false;
+  if(!combat&&policy.late&&group==='stamina'&&amount>=50&&missing<amount*.9)return false;
+  return true;
+ }).map(x=>{
   const amount=recoveryAmount(actor,x.id),heal=Math.min(missing,amount);
   const preserve=combat&&group==='hp'&&policy.open>1&&amount>=120&&actor.hp>actorMax(actor,'hp')*.35?18:0;
   const finalBonus=combat&&group==='hp'&&policy.open===1&&amount>=120&&missing>=100?25:0;
@@ -7553,9 +7571,14 @@ function stepCom(actor,now){
   if(comMove(actor,now,plan.hunting?'ドローン狩りのため出現候補へ移動':plan.ammunition?'弾薬補充のため移動':plan.recovery?'回復アイテムを求めて移動':plan.id&&!localNeed?'不足素材を求めて移動':'探索を続けたため別区画へ',plan))return;
   actor.searches=0;actor.noProgress=0;
  }
+ const idle=!plan.id&&!plan.recovery&&!plan.ammunition&&!plan.hunting;
+ if(!idle)actor.idleSearches=0;
+ if(idle&&(actor.idleSearches||0)>=3&&comShouldTreatInjury(actor,now)&&actor.st<searchStaminaCost(actor)){
+  actor.st=Math.min(actorMax(actor,'stamina'),actor.st+restRecoveryRate(actor));actor.idleSearches=0;comLog(actor,'製作・補充目標がないため短くスタミナを回復',now);return;
+ }
  // Discover only local corpses and drones during a paid search, matching player search probabilities.
  if(actor.hp<=Math.max(0,searchStaminaCost(actor)-actor.st)+((actor.injuryUntil||0)>now?4:0)){comFinalSearch(actor,now);return;}
- if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;if(plan.hunting&&actor.recoveryHunt)actor.recoveryHunt.searches++;recordExploration(actor,now);
+ if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;if(idle)actor.idleSearches=(actor.idleSearches||0)+1;if(plan.hunting&&actor.recoveryHunt)actor.recoveryHunt.searches++;recordExploration(actor,now);
  const marked=markedLocalCorpse(actor,now);if(marked){discoverCorpseFor(actor,marked,now);actor.loot=marked.id;comLog(actor,'死臭追跡：印の死体を発見',now);return}
  const efficient=consumeEfficiency(actor);if(efficient)comLog(actor,'効率重視：アイテム3個を探索',now);
  const opponent=!efficient&&pvpEnabled()?chooseLocalOpponent(actor):null;
