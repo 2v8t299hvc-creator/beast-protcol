@@ -27,7 +27,8 @@
       "com-recovery-stacks-regression.test.cjs",
       "com-search-build.test.cjs",
       "com-weapon-upgrades.test.cjs",
-      "raz-miroku.test.cjs"
+      "raz-miroku.test.cjs",
+      "com-drone-hunting.test.cjs"
     ],
     "ui": [
       "compact-crafting-ui.test.cjs",

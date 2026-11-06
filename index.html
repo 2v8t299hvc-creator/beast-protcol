@@ -7220,11 +7220,12 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
  if(!safer.length&&!forced)return false;
  let safe=safer.length?safer:legal;
  const scentDestination=hasCharacterSkill(actor,'death_scent')&&actor.hp>actorMax(actor,'hp')*.5?scentAreas(actor,now).find(area=>safe.includes(area)):null;
- const needs=scentDestination?[]:Object.keys(plan.missing);
+ if(plan.hunting&&!scentDestination&&!forced){safe=safe.filter(area=>plan.huntAreas.includes(area));if(!safe.length)return false;}
+ const needs=scentDestination||plan.hunting?[]:Object.keys(plan.missing);
  if(!plan.recovery&&comAmmoType(actor)&&!needs.includes(comAmmoType(actor))&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<5&&(actor.inventory[comAmmoType(actor)]||0)<20)needs.push(comAmmoType(actor));
  if(!scentDestination&&!plan.recovery&&actor.st<60)needs.push('water','drink','energy_drink');
  if(needs.length&&!forced){safe=safe.filter(area=>!actor.exhausted[area]&&needs.some(id=>regionStock[area][id]>0));if(!safe.length)return false;}
- const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100*Math.min(3,plan.missing[id]||1),0)-(actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5-(actor.previousArea===area&&now-(actor.lastMovedAt||0)<8000?8:0);
+ const score=area=>needs.reduce((n,id)=>n+((regionStock[area][id]||0)/Object.values(regionStock[area]).reduce((a,b)=>a+b,0))*100*Math.min(3,plan.missing[id]||1),0)-(!plan.hunting&&actor.exhausted[area]?100:0)-(actor.visited[area]||0)*0.5-(actor.previousArea===area&&now-(actor.lastMovedAt||0)<8000?8:0);
  const coverage=area=>needs.filter(id=>regionStock[area][id]>0).length*3+score(area);
  const best=Math.max(...safe.map(coverage)),choices=safe.filter(a=>coverage(a)===best);
  const start=actor.place==='待機所'&&comWeaponTypes(actor).length===1&&safe.includes(actor.startArea)?actor.startArea:null;
@@ -7247,6 +7248,7 @@ function comWants(actor,id,plan,metadata=null){
 }
 function comLoot(actor,now,plan){
  const c=corpses.find(x=>x.id===actor.loot);if(!c||!corpseAvailable(c,now)||c.area!==actor.place||S.corpseVisit?.id===c.id){actor.loot=null;return false}
+ if(actor.droneLootNeeds?.bodyId===c.id)plan={...plan,needed:{...plan.needed,...actor.droneLootNeeds.needed}};
  const index=c.items.findIndex(x=>comWants(actor,x.id,plan,x));
  if(index<0){actor.loot=null;return false}
  const entry=c.items[index];
@@ -7254,7 +7256,7 @@ function comLoot(actor,now,plan){
   if(comMakeRoom(actor,entry.id,entry.count,plan,now))return true;
   actor.loot=null;return false;
  }
- c.items.splice(index,1);actor.loot=null;comLog(actor,'死体から取得：'+names[entry.id]+' ×'+entry.count,now);return true;
+ c.items.splice(index,1);actor.loot=c.items.some(x=>comWants(actor,x.id,plan,x))?c.id:null;comLog(actor,'死体から取得：'+names[entry.id]+' ×'+entry.count,now);return true;
 }
 function comFight(actor,now){
  const ref=actor.enemy,d=drones[ref.kind],def=DRONE_DEFS[ref.kind];
@@ -7265,7 +7267,7 @@ function comFight(actor,now){
  if(S.enemy&&S.enemyKind===d.kind&&S.place===actor.place){S.ehp=d.hp;if(result.defeated&&!S.busy)S.enemy=false;}
  comLog(actor,def.name+'へ'+result.damage+'ダメージ'+(result.shots?'／'+result.shots.length+'連射':'')+(result.guarded?'／ガード（50%）':'')+(result.defeated?'・撃破':'／反撃'+result.counter)+(result.healing?'／愛の矢でHP＋'+result.healing:'')+(result.effect.frozen?'／凍結付与':''),now);
  if(actor.hp<=0){eliminateCom(actor,def.name+'の反撃',now,'drone-'+d.kind+'-'+d.generation);return}
- if(result.body)actor.loot=result.body.id;
+ if(result.body){actor.loot=result.body.id;actor.droneLootNeeds={bodyId:result.body.id,needed:Object.fromEntries(def.drops.filter(id=>comDroneFoodPotential(actor,id,supplySetCount(id),'hp')||comDroneFoodPotential(actor,id,supplySetCount(id),'stamina')).map(id=>[id,supplySetCount(id)]))};actor.recoveryHunt=null;actor.recoveryHuntPauseUntil=now+10000;}
 }
 function comRecoveryTotal(actor,group='hp',minimum=0){return actor.bag.reduce((n,x)=>n+(RECOVERY_ITEMS[x.id]?.group===group&&recoveryAmount(actor,x.id)>=minimum?recoveryAmount(actor,x.id)*x.count:0),0)}
 function comRecoveryPolicy(actor){
@@ -7291,6 +7293,66 @@ function comRecoveryRates(actor,now=Date.now()){
   for(const [id,n]of Object.entries(stock))if(n>0)rates[id]=Math.min(rates[id]??Infinity,total/n+(area===actor.place?0:4));
  }return rates;
 }
+// Hunting plans use public spawn candidates and reward tables only: never live drones/corpses.
+const COM_RANDOM_RECOVERY_EXPECTATION=Object.create(null);
+function comRandomRecoveryExpectation(tableId,group){
+ const key=tableId+':'+group;if(COM_RANDOM_RECOVERY_EXPECTATION[key]!==undefined)return COM_RANDOM_RECOVERY_EXPECTATION[key];
+ const table=RANDOM_SUPPLY_TABLES[tableId];if(!table)return 0;
+ const candidates=supplyCandidates(tableId),groups=Object.entries(table.weights).map(([tier,weight])=>({weight,ids:candidates.filter(id=>(RECIPE_RARITY[id]||'common')===tier)})).filter(g=>g.ids.length);
+ const total=groups.reduce((n,g)=>n+g.weight,0);
+ return COM_RANDOM_RECOVERY_EXPECTATION[key]=groups.reduce((n,g)=>n+g.weight/total*g.ids.reduce((v,id)=>v+(RECOVERY_ITEMS[id]?.group===group?RECOVERY_ITEMS[id].amount*supplySetCount(id):0),0)/g.ids.length,0);
+}
+function comDroneFoodPotential(actor,id,count,group){
+ let value=RECOVERY_ITEMS[id]?.group===group?recoveryAmount(actor,id)*count:0;
+ for(const r of recipes){
+  if(!r.need[id]||RECOVERY_ITEMS[r.id]?.group!==group)continue;
+  const missingOthers=Object.entries(r.need).some(([other,n])=>other!==id&&(actor.inventory[other]||0)<n);
+  // Cooking potential is discounted, not treated as an already guaranteed meal.
+  const potential=recoveryAmount(actor,r.id)*craftOutputCount(actor,r)*Math.min(1,count/r.need[id]);
+  value=Math.max(value,potential*(missingOthers ? .25 : .8));
+ }return value;
+}
+function comDroneRecoveryEstimate(actor,kind,now){
+ const def=DRONE_DEFS[kind],policy=comRecoveryPolicy(actor);if(!def||def.section>matchClock.section)return null;
+ const hpNeed=comRecoveryTotal(actor)<Math.min(policy.hpTarget,Math.max(180,actorMax(actor,'hp')*2));
+ const stNeed=comRecoveryTotal(actor,'stamina')<60;if(!hpNeed&&!stNeed)return null;
+ const type=actorWeaponType(actor),weapon=equipmentDef(actor.equipment.weapon);
+ if(weapon?.ammoType&&!weapon.unlimitedAmmo&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=0)return null;
+ const accuracy=Math.max(.1,droneAccuracy(def,type,actor)/100),damage=Math.max(1,damageToDrone(def,type,totalStat('attack',actor,now),0,actor));
+ const turns=Math.ceil(def.hp/(damage*accuracy));if(turns>8)return null;
+ const ammo=weapon?.ammoType&&!weapon.unlimitedAmmo?weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)+(actor.inventory[weapon.ammoType]||0):Infinity;
+ if(ammo<turns)return null;
+ const hpCost=Math.max(0,turns-1)*Math.max(1,damageAfterDefense(def.attack,totalStat('defense',actor,now)))+(def.poison?turns*2:0);
+ if(actor.hp-hpCost<actorMax(actor,'hp')*.5||actor.st<8+turns*4)return null;
+ const expected={hp:0,stamina:0};for(const group of Object.keys(expected)){
+  expected[group]=def.drops.reduce((n,id)=>n+comDroneFoodPotential(actor,id,supplySetCount(id),group),0)+(DRONE_SUPPLY_TABLES[kind]||[]).reduce((n,table)=>n+comRandomRecoveryExpectation(table,group),0);
+ }
+ const value=(hpNeed?expected.hp:0)+(stNeed?expected.stamina*.7:0)-hpCost;
+ if(value<=4)return null;
+ return {turns,hpCost,expected,score:value/(turns*2+1/DRONE_DISCOVERY_RATE)};
+}
+function comRecoveryHuntPlan(actor,now,gearPlan,readyRecipe=false){
+ if(readyRecipe||actor.enemy||actor.opponent||actor.loot||comEndgamePressure()||comUnderFire(actor,now)||actor.hp<actorMax(actor,'hp')*.6)return null;
+ const existing=actor.recoveryHunt;
+ if(existing&&(now>=existing.until||existing.searches>=8)){
+  actor.recoveryHunt=null;actor.recoveryHuntPauseUntil=now+20000;return null;
+ }
+ if(now<(actor.recoveryHuntPauseUntil||0))return null;
+ const safe=Object.keys(regionStock).filter(area=>!isBlocked(area)&&!nextClosingAreas().includes(area)&&(actor.dangerAreas?.[area]||0)<=now);
+ const choices=Object.entries(DRONE_DEFS).flatMap(([kind,def])=>{
+  const estimate=comDroneRecoveryEstimate(actor,kind,now),areas=def.areas.filter(area=>safe.includes(area));
+  return estimate&&areas.length?[{kind,areas,...estimate}]:[];
+ });
+ const previous=choices.find(c=>c.kind===existing?.kind);choices.sort((a,b)=>b.score-a.score);
+ const choice=previous||choices[0];if(!choice){actor.recoveryHunt=null;return null;}
+ if(!existing||existing.kind!==choice.kind){
+  actor.recoveryHunt={kind:choice.kind,until:now+24000,searches:0};
+  comLog(actor,'回復補充のため'+DRONE_DEFS[choice.kind].name+'を探索する（出現候補区画・報酬は未確認）',now);
+ }
+ const needed={...gearPlan.needed};for(const id of DRONE_DEFS[choice.kind].drops)if(comDroneFoodPotential(actor,id,supplySetCount(id),'hp')||comDroneFoodPotential(actor,id,supplySetCount(id),'stamina'))needed[id]=Math.max(needed[id]||0,supplySetCount(id));
+ return {id:null,missing:{},needed,crafts:[],recovery:true,hunting:true,huntKind:choice.kind,huntAreas:choice.areas};
+}
+
 function comRecoveryPlan(actor,now=Date.now(),gearPlan={needed:{}}){
  const policy=comRecoveryPolicy(actor),hp=comRecoveryTotal(actor),st=comRecoveryTotal(actor,'stamina'),large=comRecoveryTotal(actor,'hp',120);
  const needHP=hp<policy.hpTarget||large<policy.largeTarget,needST=st<policy.stTarget;if(!needHP&&!needST)return null;
@@ -7437,7 +7499,8 @@ function stepCom(actor,now){
  }
  actor.restMode=null;
  const gearReady=plan.crafts.some(id=>{const r=recipes.find(r=>r.id===id),after=r&&craftConsumption(r,actor);return after&&!!addToStacks(after.stacks,r.id,craftOutputCount(actor,r))});
- const reservePriority=comReserveTurn(actor,plan,reservePlan,gearReady,now);
+ const huntPlan=!gearReady&&comRecoveryHuntPlan(actor,now,plan,!!upgradeReady);
+ const reservePriority=!huntPlan&&comReserveTurn(actor,plan,reservePlan,gearReady,now);
  if(!reservePriority&&reservePlan){
   const held=actor.bag.filter(x=>(reservePlan.needed[x.id]||0)>0&&!RECOVERY_ITEMS[x.id]);
   if(held.length<=2){const needed={...plan.needed};for(const x of held)needed[x.id]=Math.max(needed[x.id]||0,reservePlan.needed[x.id]);plan={...plan,needed}}
@@ -7446,6 +7509,7 @@ function stepCom(actor,now){
   const needed={...plan.needed};for(const [id,n]of Object.entries(reservePlan.needed))needed[id]=Math.max(needed[id]||0,n);
   plan={...reservePlan,needed};actor.recoveryRoute=plan.routeKey;actor.recoveryGoal=plan.recipeId||Object.keys(plan.missing)[0];
  }else actor.recoveryGoal=null;
+ if(huntPlan){plan=huntPlan;actor.recoveryGoal='ドローン狩り';}
  if(tryComFieldSkill(actor,plan,now,'afterRecovery'))return;
  if(actor.loot&&comLoot(actor,now,plan))return;
  if(comEquipBetter(actor,now))return;
@@ -7456,13 +7520,13 @@ function stepCom(actor,now){
   if(comMakeRoom(actor,id,craftOutputCount(actor,r),plan,now))return;
  }
  plan=comAmmoResupplyPlan(actor,plan,now)||plan;
- const localNeed=Object.keys(plan.missing).some(id=>regionStock[actor.place][id]);
- if(((plan.id||plan.recovery||plan.ammunition)&&!localNeed)||actor.noProgress>=COM_POLICY.searchesWithoutProgress||actor.searches>=COM_POLICY.maxSearchesPerVisit){
-  if(comMove(actor,now,plan.ammunition?'弾薬補充のため移動':plan.recovery?'回復アイテムを求めて移動':plan.id&&!localNeed?'不足素材を求めて移動':'探索を続けたため別区画へ',plan))return;
+ const localNeed=plan.hunting?plan.huntAreas.includes(actor.place):Object.keys(plan.missing).some(id=>regionStock[actor.place][id]);
+ if(((plan.id||plan.recovery||plan.ammunition)&&!localNeed)||!plan.hunting&&(actor.noProgress>=COM_POLICY.searchesWithoutProgress||actor.searches>=COM_POLICY.maxSearchesPerVisit)){
+  if(comMove(actor,now,plan.hunting?'回復補充のためドローン出現候補へ移動':plan.ammunition?'弾薬補充のため移動':plan.recovery?'回復アイテムを求めて移動':plan.id&&!localNeed?'不足素材を求めて移動':'探索を続けたため別区画へ',plan))return;
   actor.searches=0;actor.noProgress=0;
  }
  // Discover only local corpses and drones during a paid search, matching player search probabilities.
- if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;recordExploration(actor,now);
+ if(!paySearchCost(actor,now))return;actor.searches++;actor.noProgress++;if(plan.hunting&&actor.recoveryHunt)actor.recoveryHunt.searches++;recordExploration(actor,now);
  const marked=markedLocalCorpse(actor,now);if(marked){discoverCorpseFor(actor,marked,now);actor.loot=marked.id;comLog(actor,'死臭追跡：印の死体を発見',now);return}
  const efficient=consumeEfficiency(actor);if(efficient)comLog(actor,'効率重視：アイテム3個を探索',now);
  const opponent=!efficient&&pvpEnabled()?chooseLocalOpponent(actor):null;
