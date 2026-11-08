@@ -36,7 +36,8 @@
       "compact-crafting-ui.test.cjs",
       "craft-target.test.cjs",
       "encyclopedia.test.cjs",
-      "equipment-skill-hud.test.cjs"
+      "equipment-skill-hud.test.cjs",
+      "pause.test.cjs"
     ],
     "records": [
       "play-recording.test.cjs"
