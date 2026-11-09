@@ -7101,7 +7101,7 @@ function comPlan(actor,id,count=1){
  if(id)need(id,count);return {id,missing,needed,crafts};
 }
 function comPlanFeasible(actor,plan){
- return Object.keys(plan.missing).every(item=>comMaterialAreas(actor).some(area=>regionStock[area][item]));
+ return Object.keys(plan.missing).every(item=>item==='wood'&&hasCharacterSkill(actor,'wood_gathering')||comMaterialAreas(actor).some(area=>regionStock[area][item]));
 }
 function comUpgradeValue(actor,id){
  const def=equipmentDef(id);if(!def||def.slot==='weapon')return 0;
@@ -7114,7 +7114,8 @@ function comAmmoSupportValue(actor,id){
  if(type==='bow')return effect.arrowSaveChance?24+60*effect.arrowSaveChance:effect.bowCapacity?20+Math.min(20,effect.bowCapacity)*.8:0;
  return 0;
 }
-function comEquipmentValue(actor,id){const def=equipmentDef(id),effect=EQUIPMENT_SPECIAL_EFFECTS[id]||{};return def?(def.attack||0)+(def.defense||0)+comAmmoSupportValue(actor,id)+(comAmmoSupportValue(actor,actor.equipment?.accessory)>0?0:(effect.actionRecovery||0)*18):0}
+function comMineralGeneratorValue(actor,id){return hasCharacterSkill(actor,'mineral_feast')?(id==='stargazing_telescope'?30:id==='mythic_telescope'?48:0):0}
+function comEquipmentValue(actor,id){const def=equipmentDef(id),effect=EQUIPMENT_SPECIAL_EFFECTS[id]||{};return def?(def.attack||0)+(def.defense||0)+comMineralGeneratorValue(actor,id)+comAmmoSupportValue(actor,id)+(comAmmoSupportValue(actor,actor.equipment?.accessory)>0?0:(effect.actionRecovery||0)*18):0}
 function comUpgradePlan(actor){
  // Finish a chosen route before re-ranking. Only public item distributions and personally observed depletion are used.
  if(actor.goal&&!(actor.goals||COM_GOALS).includes(actor.goal)&&comUpgradeValue(actor,actor.goal)>0){const plan=comPlan(actor,actor.goal);if(comPlanFeasible(actor,plan))return plan}
@@ -7154,7 +7155,7 @@ function comWeaponValue(actor,id,instance=null){
 function comAdaptivePlan(actor,now=gameNow()){
  // Cache only personal/public inputs. No live regionObjects, enemy inventory or hidden stock counts.
  const areas=comMaterialAreas(actor,now);
- const key=JSON.stringify([actor.inventory,actor.equipment,actor.equipmentEffects?.weapon,actor.bag.map(x=>[x.id,x.effects]),actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4),comRecoveryTotal(actor),comRecoveryTotal(actor,'hp',120),comRecoveryPolicy(actor).late]);
+ const key=JSON.stringify([actor.inventory,actor.equipment,actor.equipmentEffects?.weapon,actor.bag.map(x=>[x.id,x.effects]),actor.preferredWeaponType,actor.masteryAttacks,actor.place,areas,Math.floor(actor.noProgress/4),comRecoveryTotal(actor),comRecoveryTotal(actor,'hp',120),comRecoveryPolicy(actor).late,actor.mineralMantleStacks||0,hasCharacterSkill(actor,'wood_gathering')?Math.ceil(Math.max(0,(actor.characterFieldReadyAt||0)-now)/5000):null]);
  if(actor.adaptivePlanCache?.key===key)return actor.adaptivePlanCache.plan;
  const rates={};
  for(const area of areas){
@@ -7165,6 +7166,7 @@ function comAdaptivePlan(actor,now=gameNow()){
    rates[id]=Math.min(rates[id]??Infinity,cost);
   }
  }
+ if(hasCharacterSkill(actor,'wood_gathering')&&rates.wood===undefined)rates.wood=31+Math.max(0,(actor.characterFieldReadyAt||0)-now)/1000;
  const replacement=comWeaponNeedsReplacement(actor),current=comWeaponValue(actor,actor.equipment.weapon),weaponTier=RECIPE_RARITY[actor.equipment.weapon],weakWeapon=!['rare','epic','legendary'].includes(weaponTier);
  const choices=[];
  const preserveReserve=comBuildReady(actor)&&comRecoveryTotal(actor,'hp',60)<Math.min(300,comRecoveryPolicy(actor).largeTarget);
@@ -7181,7 +7183,10 @@ function comAdaptivePlan(actor,now=gameNow()){
   let cost=plan.crafts.length*2+1,feasible=true;
   for(const [item,count] of Object.entries(plan.missing)){
    if(rates[item]===undefined){feasible=false;break}
-   cost+=count*rates[item]/itemSetCount(item);
+   if(item==='wood'&&hasCharacterSkill(actor,'wood_gathering')){
+    const skillCost=1+Math.max(0,(actor.characterFieldReadyAt||0)-now)/1000;
+    cost+=Math.min(rates[item]/itemSetCount(item),skillCost)+(count-1)*rates[item]/itemSetCount(item);
+   }else cost+=count*rates[item]/itemSetCount(item);
   }
   if(!feasible)continue;
   // Reward usable progress now; discourage long searches after repeated misses.
@@ -7198,10 +7203,11 @@ function comAdaptivePlan(actor,now=gameNow()){
  }
  choices.sort((a,b)=>b.score-a.score);
  const dragonRoute=(actorOwned(actor,'dragon_scale')||actorOwned(actor,'drago_core'))?choices.find(c=>EQUIPMENT_DEFS[c.plan.id]?.slot==='weapon'&&RECIPE_RARITY[c.plan.id]==='legendary'&&c.plan.needed.drago_core):null;
- let best=dragonRoute||choices[0];
+ const woodStep=hasCharacterSkill(actor,'wood_gathering')&&weakWeapon?choices.find(c=>equipmentDef(c.plan.id)?.slot==='weapon'&&c.plan.crafts.length<=3&&Object.values(c.plan.missing).reduce((n,x)=>n+x,0)<=2&&comWeaponValue(actor,c.plan.id,{})>current*1.05):null;
+ let best=dragonRoute||woodStep||choices[0];
  const previous=choices.find(c=>c.plan.id===actor.goal);
  // Small hysteresis avoids oscillation; materially easier routes replace the old goal.
- if(!dragonRoute&&previous&&best&&actor.noProgress<8&&previous.score>=best.score*0.65)best=previous;
+ if(!dragonRoute&&!woodStep&&previous&&best&&actor.noProgress<8&&previous.score>=best.score*0.65)best=previous;
  const plan=best?.plan||{id:null,missing:{},needed:{},crafts:[]};
  actor.adaptivePlanCache={key,plan};return plan;
 }
@@ -7218,7 +7224,7 @@ function comDrop(actor,index,now){
 function comMakeRoom(actor,id,count,plan,now){
  if(addToStacks(actor.bag,id,count))return false;
  // Preserve planned ingredients and a recovery stack per category. Drop only one stack per action.
- const candidates=actor.bag.map((x,i)=>({x,i,score:plan.needed[x.id]?100:RECOVERY_ITEMS[x.id]?40+Math.min(45,recoveryAmount(actor,x.id)*x.count/10):comWantedAmmo(actor,plan).includes(x.id)?60:0}));
+ const candidates=actor.bag.map((x,i)=>({x,i,score:plan.needed[x.id]?100:hasCharacterSkill(actor,'mineral_feast')&&isEdibleMineral(x.id)?55+mineralStacksFor(x.id):RECOVERY_ITEMS[x.id]?40+Math.min(45,recoveryAmount(actor,x.id)*x.count/10):comWantedAmmo(actor,plan).includes(x.id)?60:0}));
  candidates.sort((a,b)=>a.score-b.score);
  const c=candidates.find(({x,score})=>score<100&&x.id!==id);
  return !!c&&comDrop(actor,c.i,now);
@@ -7283,7 +7289,14 @@ function comMove(actor,now,reason,plan=comCurrentPlan(actor,now),retreat=false){
  comLog(actor,reason+(goal?'（目標：'+goal+'）':'')+' → '+actor.place,now);
  if(actor.hp<=0)eliminateCom(actor,'移動時のHP消費',now);return true;
 }
+function comWantsMineral(actor,id,plan){
+ if(!hasCharacterSkill(actor,'mineral_feast')||!isEdibleMineral(id))return false;
+ if((actor.inventory[id]||0)>=(plan.needed?.[id]||0)+2)return false;
+ const held=actor.bag.filter(x=>isEdibleMineral(x.id));
+ return held.some(x=>x.id===id)||held.length<2;
+}
 function comWants(actor,id,plan,metadata=null){
+ if(comWantsMineral(actor,id,plan))return true;
  if(['dragon_scale','drago_core'].includes(id))return actorOwned(actor,id)<1;
  if(plan.missing[id]>0||(plan.needed?.[id]||0)>actorOwned(actor,id))return true;
  if(id==='arrows'||id==='bullets')return comWantedAmmo(actor,plan).includes(id)&&(actor.inventory[id]||0)<comAmmoReserveTarget(actor);
@@ -7368,11 +7381,12 @@ function comDroneRecoveryEstimate(actor,kind,now){
  const def=DRONE_DEFS[kind],policy=comRecoveryPolicy(actor);if(!def||def.section>matchClock.section)return null;
  const hpNeed=comRecoveryTotal(actor)<Math.min(policy.hpTarget,Math.max(180,actorMax(actor,'hp')*2));
  const stNeed=comRecoveryTotal(actor,'stamina')<60,management=!hpNeed&&!stNeed;
+ const mineralGain=hasCharacterSkill(actor,'mineral_feast')?def.drops.reduce((n,id)=>n+(comWantsMineral(actor,id,{needed:{}})?mineralStacksFor(id)*supplySetCount(id):0),0):0;
  if(management&&(actor.hp<actorMax(actor,'hp')*.8||actor.st<actorMax(actor,'stamina')*.5))return null;
  const type=actorWeaponType(actor),weapon=equipmentDef(actor.equipment.weapon);
  if(weapon?.ammoType&&!weapon.unlimitedAmmo&&weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)<=0)return null;
  const accuracy=Math.max(.1,droneAccuracy(def,type,actor)/100),damage=Math.max(1,damageToDrone(def,type,totalStat('attack',actor,now),0,actor));
- const turns=Math.ceil(def.hp/(damage*accuracy));if(turns>(management?4:8))return null;
+ const turns=Math.ceil(def.hp/(damage*accuracy));if(turns>(management&&!mineralGain?4:8))return null;
  const ammo=weapon?.ammoType&&!weapon.unlimitedAmmo?weaponAmmo(actor.equipment.weapon,actor.equipmentAmmo.weapon)+(actor.inventory[weapon.ammoType]||0):Infinity;
  if(ammo<turns)return null;
  const hpCost=Math.max(0,turns-1)*Math.max(1,damageAfterDefense(def.attack,totalStat('defense',actor,now)))+(def.poison?turns*2:0);
@@ -7382,9 +7396,9 @@ function comDroneRecoveryEstimate(actor,kind,now){
  }
  // Even with full reserves, mastery/XP and public reward opportunities justify cheap fights.
  const opportunity=25+def.drops.length*6+(DRONE_SUPPLY_TABLES[kind]||[]).length*8;
- const value=(management?opportunity:(hpNeed?expected.hp:0)+(stNeed?expected.stamina*.7:0))-hpCost;
+ const value=(management?opportunity:(hpNeed?expected.hp:0)+(stNeed?expected.stamina*.7:0))+mineralGain*20-hpCost;
  if(value<=4)return null;
- return {management,turns,hpCost,expected,score:value/(turns*2+1/DRONE_DISCOVERY_RATE)};
+ return {management,mineralGain,turns,hpCost,expected,score:value/(turns*2+1/DRONE_DISCOVERY_RATE)};
 }
 function comRecoveryHuntPlan(actor,now,gearPlan,readyRecipe=false){
  if(readyRecipe||actor.enemy||actor.opponent||actor.loot||comEndgamePressure()||comUnderFire(actor,now)||actor.hp<actorMax(actor,'hp')*.6)return null;
@@ -7401,12 +7415,13 @@ function comRecoveryHuntPlan(actor,now,gearPlan,readyRecipe=false){
   return estimate&&areas.length?[{kind,areas,...estimate}]:[];
  });
  const previous=choices.find(c=>c.kind===existing?.kind);choices.sort((a,b)=>b.score-a.score);
- const choice=previous||choices[0];if(!choice){actor.recoveryHunt=null;return null;}
+ const mineralChoice=hasCharacterSkill(actor,'mineral_feast')&&comRecoveryTotal(actor)>=180?choices.find(c=>c.mineralGain>=3):null;
+ const choice=previous||mineralChoice||choices[0];if(!choice){actor.recoveryHunt=null;return null;}
  if(!existing||existing.kind!==choice.kind){
   actor.recoveryHunt={kind:choice.kind,until:now+24000,searches:0};
-  comLog(actor,(choice.management?'経験値・物資確保のため':'回復補充のため')+DRONE_DEFS[choice.kind].name+'を探索する（出現候補区画・報酬は未確認）',now);
+  comLog(actor,(mineralChoice===choice?'鉱物喰らいの素材確保のため':choice.management?'経験値・物資確保のため':'回復補充のため')+DRONE_DEFS[choice.kind].name+'を探索する（出現候補区画・報酬は未確認）',now);
  }
- const needed={...gearPlan.needed};for(const id of DRONE_DEFS[choice.kind].drops)if(comDroneFoodPotential(actor,id,supplySetCount(id),'hp')||comDroneFoodPotential(actor,id,supplySetCount(id),'stamina'))needed[id]=Math.max(needed[id]||0,supplySetCount(id));
+ const needed={...gearPlan.needed};for(const id of DRONE_DEFS[choice.kind].drops)if(comWantsMineral(actor,id,gearPlan)||comDroneFoodPotential(actor,id,supplySetCount(id),'hp')||comDroneFoodPotential(actor,id,supplySetCount(id),'stamina'))needed[id]=Math.max(needed[id]||0,supplySetCount(id));
  return {id:null,missing:{},needed,crafts:[],recovery:true,hunting:true,management:choice.management,huntKind:choice.kind,huntAreas:choice.areas};
 }
 

@@ -30,7 +30,8 @@
       "raz-miroku.test.cjs",
       "com-drone-hunting.test.cjs",
       "com-growth-recovery.test.cjs",
-      "com-reserve-conservation.test.cjs"
+      "com-reserve-conservation.test.cjs",
+      "com-character-builds.test.cjs"
     ],
     "ui": [
       "compact-crafting-ui.test.cjs",
